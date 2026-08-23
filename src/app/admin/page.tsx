@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -119,30 +120,30 @@ export default async function AdminDashboardPage() {
       <div className="mt-8">
         <h2 className="mb-4 text-lg font-semibold">Quick Actions</h2>
         <div className="flex flex-wrap gap-3 text-sm">
-          <a
+          <Link
             href="/admin/products"
             className="rounded-lg border bg-white px-4 py-2 font-medium hover:bg-surface"
           >
             Manage Products
-          </a>
-          <a
+          </Link>
+          <Link
             href="/admin/orders"
             className="rounded-lg border bg-white px-4 py-2 font-medium hover:bg-surface"
           >
             View Orders
-          </a>
-          <a
+          </Link>
+          <Link
             href="/admin/inventory"
             className="rounded-lg border bg-white px-4 py-2 font-medium hover:bg-surface"
           >
             Check Inventory
-          </a>
-          <a
+          </Link>
+          <Link
             href="/admin/content"
             className="rounded-lg border bg-white px-4 py-2 font-medium hover:bg-surface"
           >
             Edit Content
-          </a>
+          </Link>
         </div>
       </div>
     </div>
