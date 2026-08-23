@@ -1,0 +1,390 @@
+schema_version: "1.0"
+
+project:
+  id: "rescue8-philippines"
+  name: "Rescue 8 Philippines"
+  type: "ecommerce-cms-marketing-platform"
+  country: "Philippines"
+  currency: "PHP"
+  locale: "en-PH"
+  timezone: "Asia/Manila"
+
+vision:
+  summary: >
+    A modern Philippine marketing, CMS, and e-commerce platform combining
+    content management, products, customer accounts, checkout, payments,
+    shipping, inventory, orders, administration, analytics, and auditing.
+  priorities:
+    - security
+    - data_integrity
+    - reliability
+    - performance
+    - maintainability
+    - user_experience
+    - seo
+    - accessibility
+    - scalability
+
+brand:
+  colors:
+    primary_blue: "#2C2D99"
+    primary_orange: "#E75A25"
+    white: "#FFFFFF"
+    dark: "#171821"
+    muted: "#6B7280"
+    surface: "#F8F9FC"
+
+  visual_direction:
+    - modern
+    - premium
+    - professional
+    - trustworthy
+    - clean
+    - mobile_first
+    - conversion_focused
+    - accessible
+    - performance_focused
+
+technology:
+  frontend:
+    framework: "Next.js 16"
+    language: "TypeScript"
+    ui:
+      - "React"
+      - "Tailwind CSS"
+      - "shadcn/ui"
+      - "Lucide"
+
+  backend:
+    platform: "Supabase"
+    database: "PostgreSQL"
+    authentication: "Supabase Auth"
+    storage: "Supabase Storage"
+    authorization: "PostgreSQL RLS"
+    functions: "Supabase Edge Functions"
+
+  infrastructure:
+    hosting: "Vercel"
+    source_control: "GitHub"
+    ci_cd: true
+
+  validation:
+    - "Zod"
+
+architecture:
+  style: "headless"
+  rendering_strategy:
+    public_pages: "server_first"
+    marketing_pages: "static_or_cached_where_possible"
+    product_pages: "server_first_with_caching"
+    checkout: "dynamic"
+    admin: "dynamic"
+  principles:
+    - "domain_separation"
+    - "provider_abstractions"
+    - "server_first_rendering"
+    - "database_enforced_authorization"
+    - "incremental_delivery"
+    - "minimal_client_javascript"
+
+domains:
+  - auth
+  - authorization
+  - users
+  - products
+  - categories
+  - inventory
+  - customers
+  - addresses
+  - cart
+  - checkout
+  - orders
+  - payments
+  - shipping
+  - cms
+  - media
+  - blog
+  - analytics
+  - audit
+
+roles:
+  super_admin:
+    description: "Full system access"
+  admin:
+    description: "Staff user controlled by granular permissions"
+  customer:
+    description: "Customer who can browse, purchase, and manage their account"
+
+permissions:
+  - PRODUCTS_VIEW
+  - PRODUCTS_CREATE
+  - PRODUCTS_UPDATE
+  - PRODUCTS_DELETE
+  - ORDERS_VIEW
+  - ORDERS_UPDATE
+  - ORDERS_CANCEL
+  - ORDERS_REFUND
+  - CUSTOMERS_VIEW
+  - INVENTORY_VIEW
+  - INVENTORY_UPDATE
+  - CONTENT_VIEW
+  - CONTENT_CREATE
+  - CONTENT_UPDATE
+  - CONTENT_DELETE
+  - MEDIA_VIEW
+  - MEDIA_UPLOAD
+  - MEDIA_DELETE
+  - ANALYTICS_VIEW
+  - USERS_VIEW
+  - USERS_MANAGE
+  - SETTINGS_VIEW
+  - SETTINGS_MANAGE
+
+payment:
+  abstraction: "PaymentProvider"
+  providers:
+    - name: "Xendit"
+      adapter: "XenditProvider"
+      status: "planned"
+    - name: "PayMongo"
+      adapter: "PayMongoProvider"
+      status: "planned"
+    - name: "Manual/COD"
+      adapter: "ManualPaymentProvider"
+      status: "planned"
+  rules:
+    - "payment_status_must_be_verified_server_side"
+    - "browser_redirect_is_not_proof_of_payment"
+    - "webhooks_must_be_validated"
+    - "webhook_handling_must_be_idempotent"
+    - "payment_secrets_must_remain_server_side"
+
+shipping:
+  abstraction: "ShippingProvider"
+  providers:
+    - name: "Manual"
+      adapter: "ManualShippingProvider"
+      status: "mvp"
+    - name: "Lalamove"
+      adapter: "LalamoveProvider"
+      status: "planned"
+    - name: "J&T"
+      adapter: "JntProvider"
+      status: "planned"
+    - name: "LBC"
+      adapter: "LbcProvider"
+      status: "planned"
+  rules:
+    - "checkout_must_not_depend_on_one_shipping_provider"
+    - "provider_failure_must_be_handled_gracefully"
+    - "provider_secrets_must_remain_server_side"
+    - "do_not_invent_provider_api_behavior"
+
+database:
+  entities:
+    - profiles
+    - roles
+    - permissions
+    - role_permissions
+    - products
+    - product_images
+    - product_variants
+    - categories
+    - product_categories
+    - inventory
+    - inventory_movements
+    - carts
+    - cart_items
+    - orders
+    - order_items
+    - order_addresses
+    - order_status_history
+    - payments
+    - payment_transactions
+    - shipments
+    - shipment_events
+    - shipping_rates
+    - customer_addresses
+    - coupons
+    - coupon_redemptions
+    - pages
+    - page_sections
+    - blog_posts
+    - blog_categories
+    - faqs
+    - testimonials
+    - services
+    - media
+    - site_settings
+    - navigation_items
+    - audit_logs
+
+order_states:
+  - PENDING
+  - PAYMENT_PENDING
+  - PAID
+  - PROCESSING
+  - READY_TO_SHIP
+  - SHIPPED
+  - OUT_FOR_DELIVERY
+  - DELIVERED
+  - CANCELLED
+  - FAILED
+  - REFUNDED
+  - PARTIALLY_REFUNDED
+
+payment_states:
+  - PENDING
+  - AUTHORIZED
+  - PAID
+  - FAILED
+  - EXPIRED
+  - REFUNDED
+  - PARTIALLY_REFUNDED
+
+shipment_states:
+  - PENDING
+  - QUOTED
+  - BOOKED
+  - PICKED_UP
+  - IN_TRANSIT
+  - OUT_FOR_DELIVERY
+  - DELIVERED
+  - FAILED
+  - CANCELLED
+
+cms:
+  content_types:
+    - pages
+    - products
+    - categories
+    - blog_posts
+    - faqs
+    - testimonials
+    - services
+    - banners
+    - navigation
+    - site_settings
+
+  sections:
+    - hero
+    - feature_grid
+    - product_grid
+    - image_text
+    - service_grid
+    - testimonials
+    - faq
+    - blog_grid
+    - cta
+    - rich_text
+    - banner
+
+seo:
+  enabled: true
+  features:
+    - metadata
+    - canonical_urls
+    - open_graph
+    - sitemap
+    - robots_txt
+    - product_schema
+    - organization_schema
+    - breadcrumb_schema
+    - article_schema
+
+performance:
+  targets:
+    lcp: "<2.5s"
+    inp: "<200ms"
+    cls: "<0.1"
+  principles:
+    - server_components
+    - caching
+    - static_rendering_where_possible
+    - responsive_images
+    - avif_webp
+    - lazy_loading
+    - code_splitting
+    - minimal_client_javascript
+    - cdn_delivery
+
+security:
+  requirements:
+    - rls
+    - rbac
+    - server_side_authorization
+    - input_validation
+    - secure_authentication
+    - secure_cookies
+    - rate_limiting
+    - webhook_verification
+    - csp
+    - xss_protection
+    - secret_management
+    - audit_logging
+
+  never_expose:
+    - supabase_service_role_key
+    - payment_secrets
+    - shipping_secrets
+    - private_tokens
+
+development:
+  strategy: "incremental_vertical_slices"
+  phases:
+    phase_0: "architecture_and_memory"
+    phase_1: "foundation"
+    phase_2: "authentication_and_authorization"
+    phase_3: "admin_shell"
+    phase_4: "cms"
+    phase_5: "products_and_inventory"
+    phase_6: "marketing_and_storefront"
+    phase_7: "cart_and_customer_accounts"
+    phase_8: "checkout"
+    phase_9: "payments"
+    phase_10: "shipping"
+    phase_11: "orders"
+    phase_12: "analytics_and_audit"
+    phase_13: "performance_seo_accessibility"
+    phase_14: "production_hardening"
+
+current_phase:
+  id: "phase_1"
+  status: "complete"
+
+current_task:
+  id: "AUTH-001"
+  title: "Implement authentication, profiles, roles, permissions, and protected routes"
+  status: "pending"
+
+rules:
+  - "Never expose secrets to the client."
+  - "Never trust client-side pricing."
+  - "Never trust client-side payment status."
+  - "Never trust client-side shipping totals."
+  - "Never trust client-side roles."
+  - "Use RLS for private data."
+  - "Use server-side validation."
+  - "Preserve historical order data."
+  - "Use migrations for schema changes."
+  - "Do not invent third-party API behavior."
+  - "Prefer simple production-grade solutions."
+  - "Do not over-engineer MVP."
+  - "Document meaningful architectural changes."
+
+memory_management:
+  read_at_start_of_session:
+    - "/ai/PROJECT_CONTEXT.yaml"
+    - "/ai/ARCHITECTURE.md"
+    - "/ai/DEVELOPMENT_RULES.md"
+    - "/ai/CURRENT_TASK.md"
+    - "/ai/CHANGELOG.md"
+
+  update_when:
+    - architecture_changes
+    - technology_changes
+    - database_changes
+    - role_changes
+    - major_feature_completion
+    - business_rule_changes
+    - integration_changes
