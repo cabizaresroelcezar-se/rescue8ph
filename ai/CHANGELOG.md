@@ -2,7 +2,22 @@
 
 ## 2026-08-24
 
-### Added
+### Added — AUTH-001
+
+- Auth server actions: signUp, signIn, signOut, requestPasswordReset, updatePassword, updateProfile
+- Auth pages: login, register, forgot-password, reset-password, callback handler
+- Auth layout: centered card-based design
+- Protected account pages: dashboard, profile editor, orders list, order detail
+- Admin dashboard page with role-based section visibility
+- Header component: auth-aware navigation (login/signup or account/admin/signout)
+- Footer component: site footer with navigation links
+- SignOutButton: client component for logout via server action
+- ButtonLink component: Link wrapper with button styling (Base UI compatible)
+- Middleware: session refresh, route protection (/account, /admin), auth redirect
+- Supabase database connection established (ap-northeast-2 pooler)
+- Seed data applied: 8 site settings, 7 navigation items, 1 homepage CMS page
+
+### Added — Previous
 
 - Rescue 8 Philippines project definition
 - Technology architecture (Next.js 16, Supabase, TypeScript, Tailwind v4, shadcn/ui)

@@ -2,97 +2,80 @@
 
 ## ID
 
-DB-001
+AUTH-001
 
 ## Goal
 
-Initial Supabase Schema and RLS Foundation — COMPLETE.
-Next task: AUTH-001 (Authentication, profiles, roles, permissions, protected routes).
+Implement authentication, profiles, roles, permissions, and protected routes — COMPLETE.
+Next task: ADMIN-001 (Admin shell and dashboard).
 
 ## Current Phase
 
-Phase 1 — Foundation (complete)
-Phase 2 — Authentication and Authorization (next)
+Phase 2 — Authentication and Authorization (COMPLETE)
+Phase 3 — Admin Shell (NEXT)
 
 ## Completed Tasks
 
 - INIT-001: Initialize architecture and persistent AI memory (COMPLETE)
-- DB-001: Initial Supabase schema and RLS foundation (COMPLETE — migration created, pending Supabase project deployment)
+- DB-001: Initial Supabase schema and RLS foundation (COMPLETE — deployed to live Supabase)
+- AUTH-001: Authentication, profiles, roles, permissions, protected routes (COMPLETE)
 
-## Acceptance Criteria — INIT-001
+## What Was Built (AUTH-001)
 
-- [x] /ai directory exists
-- [x] PROJECT_CONTEXT.yaml exists
-- [x] ARCHITECTURE.md exists
-- [x] DEVELOPMENT_RULES.md exists
-- [x] CURRENT_TASK.md exists
-- [x] CHANGELOG.md exists
-- [x] Next.js project exists
-- [x] TypeScript strict mode enabled
-- [x] Tailwind configured
-- [x] shadcn/ui configured
-- [x] Supabase architecture established
-- [x] Environment variables documented
-- [x] Rescue 8 design tokens established
-- [x] Lint passes
-- [x] Type checking passes
-- [x] Application builds successfully
+### Server Actions
+- signUp — registration with first_name/last_name metadata
+- signIn — login with redirect support
+- signOut — logout
+- requestPasswordReset — forgot password flow
+- updatePassword — reset password after email confirmation
+- updateProfile — update first name, last name, phone
 
-## Acceptance Criteria — DB-001
+### Auth Pages
+- /auth/login — login form with error/message display
+- /auth/register — registration form with name fields
+- /auth/forgot-password — password reset request
+- /auth/reset-password — new password entry
+- /auth/callback — OAuth/email confirmation callback handler
+- /auth/layout — centered card-based auth layout
 
-- [x] Migration exists
-- [x] Migration is syntactically complete (pending deployment to Supabase project)
-- [x] Enums exist (13 enums)
-- [x] Roles exist (seeded)
-- [x] Permissions exist (seeded)
-- [x] Role permissions exist (seeded)
-- [x] Profiles exist with auth trigger
-- [x] Products exist
-- [x] Categories exist
-- [x] Product media exists
-- [x] Variants exist
-- [x] Inventory exists
-- [x] Inventory movements exist
-- [x] Customer addresses exist
-- [x] Cart exists
-- [x] Cart items exist
-- [x] Orders exist
-- [x] Order items exist
-- [x] Order addresses exist
-- [x] Order history exists
-- [x] Payments exist
-- [x] Payment transactions exist
-- [x] Shipping rates exist
-- [x] Shipments exist
-- [x] Shipment events exist
-- [x] Coupons exist
-- [x] CMS pages exist
-- [x] CMS sections exist
-- [x] Blog exists
-- [x] FAQs exist
-- [x] Testimonials exist
-- [x] Services exist
-- [x] Media exists
-- [x] Site settings exist
-- [x] Navigation exists
-- [x] Audit logs exist
-- [x] Required indexes exist
-- [x] Required constraints exist
-- [x] RLS is enabled on all tables
-- [x] RLS policies defined
-- [x] Security helpers work (private schema)
-- [x] Seed data works (roles, permissions, role_permissions)
-- [x] No secrets introduced
-- [x] No fake business data introduced
-- [x] Project memory updated
-- [x] Changelog updated
+### Protected Pages
+- /account — dashboard with profile, orders, addresses, admin link
+- /account/profile — edit profile form
+- /account/orders — order list with status badges
+- /account/orders/[id] — order detail with items, address, history
+- /admin — admin dashboard with role-based section visibility
 
-## Next Task
+### Components
+- Header — auth-aware navigation (shows login/signup or account/admin/signout)
+- Footer — site footer with links
+- SignOutButton — client component for logout
+- ButtonLink — Link wrapper with button styling (shadcn Base UI compatibility)
 
-AUTH-001: Implement authentication, profiles, roles, permissions, and protected routes
+### Middleware
+- Session refresh on every request
+- Protected routes: /account, /admin (redirects to /auth/login)
+- Auth routes: /auth/login, /auth/register (redirects to /account if logged in)
+
+## Acceptance Criteria — AUTH-001
+
+- [x] Supabase client/server utilities
+- [x] Authentication (registration, login, logout)
+- [x] Password reset flow
+- [x] Session handling (middleware + cookies)
+- [x] Profile creation (auto via DB trigger)
+- [x] Role retrieval (from profiles → roles join)
+- [x] Permission checks (lib/auth helpers)
+- [x] Protected routes (middleware)
+- [x] Admin protection (role check in page + middleware)
+- [x] Customer protection (auth check in page + middleware)
+- [x] Auth-aware header navigation
+- [x] Lint passes (0 errors, 0 warnings)
+- [x] Type checking passes (0 errors)
+- [x] Build succeeds
 
 ## Status
 
 INIT-001: COMPLETE
-DB-001: COMPLETE (migration created — deploy to Supabase project to apply)
-NEXT: AUTH-001
+DB-001: COMPLETE (deployed to live Supabase)
+AUTH-001: COMPLETE
+NEXT: ADMIN-001 (Admin shell and dashboard)

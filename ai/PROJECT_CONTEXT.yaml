@@ -349,12 +349,12 @@ development:
     phase_14: "production_hardening"
 
 current_phase:
-  id: "phase_1"
+  id: "phase_2"
   status: "complete"
 
 current_task:
-  id: "AUTH-001"
-  title: "Implement authentication, profiles, roles, permissions, and protected routes"
+  id: "ADMIN-001"
+  title: "Admin shell and dashboard"
   status: "pending"
 
 rules:
