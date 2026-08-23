@@ -9,6 +9,34 @@ project:
   locale: "en-PH"
   timezone: "Asia/Manila"
 
+business_context:
+  legal_name: "Rescue 8 Trading Philippines, Inc."
+  registered_since: "February 2012"
+  registration: "Department of Trade and Industry (DTI)"
+  location: "Unit G4 #65 Gasan, Quezon City, Philippines"
+  owner: "Allan Cabizares"
+  industry: "EMS and Rescue Equipment"
+  description: >
+    Rescue 8 Trading Philippines supplies emergency medical services (EMS),
+    rescue, safety, and first aid equipment to first responders, government
+    agencies, local government units (LGUs), private companies, and
+    organizations across the Philippines.
+  facebook_page: "https://www.facebook.com/rescue8tradingphils"
+  product_categories:
+    - "EMS / Emergency Medical Equipment"
+    - "Rescue Equipment (stretchers, ropes, harnesses, helmets)"
+    - "First Aid Kits and Trauma Supplies"
+    - "Safety Equipment (PPE, fall protection)"
+    - "Fire Safety Equipment"
+    - "Disaster Preparedness Supplies"
+  target_customers:
+    - "First responders and emergency medical personnel"
+    - "Government agencies and LGUs"
+    - "Private companies and corporations"
+    - "Hospitals and medical facilities"
+    - "Search and rescue teams"
+    - "Industrial and construction companies"
+
 vision:
   summary: >
     A modern Philippine marketing, CMS, and e-commerce platform combining
@@ -349,12 +377,12 @@ development:
     phase_14: "production_hardening"
 
 current_phase:
-  id: "phase_2"
+  id: "phase_3"
   status: "complete"
 
 current_task:
-  id: "ADMIN-001"
-  title: "Admin shell and dashboard"
+  id: "CMS-001"
+  title: "CMS foundation"
   status: "pending"
 
 rules:

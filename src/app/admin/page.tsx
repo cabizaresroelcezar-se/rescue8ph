@@ -1,6 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { ButtonLink } from "@/components/ui/button-link";
 import {
   Card,
   CardContent,
@@ -8,67 +6,110 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Package, ShoppingCart, Users, DollarSign, AlertTriangle, TrendingUp } from "lucide-react";
 
-export default async function AdminPage() {
+export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Fetch counts in parallel
+  const [productsRes, ordersRes, customersRes, pendingOrdersRes, lowStockRes, publishedPagesRes] =
+    await Promise.all([
+      supabase.from("products").select("*", { count: "exact", head: true }),
+      supabase.from("orders").select("*", { count: "exact", head: true }),
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .in("status", ["PENDING", "PAYMENT_PENDING", "PAID", "PROCESSING"]),
+      supabase
+        .from("inventory")
+        .select("quantity_on_hand, reorder_level")
+        .lt("quantity_on_hand", 10),
+      supabase
+        .from("pages")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "PUBLISHED"),
+    ]);
 
-  if (!user) {
-    redirect("/auth/login?redirectTo=/admin");
-  }
+  const productCount = productsRes.count ?? 0;
+  const orderCount = ordersRes.count ?? 0;
+  const customerCount = customersRes.count ?? 0;
+  const pendingOrderCount = pendingOrdersRes.count ?? 0;
+  const lowStockCount = lowStockRes.data?.filter(
+    (i) => i.quantity_on_hand <= i.reorder_level,
+  ).length ?? 0;
+  const publishedPageCount = publishedPagesRes.count ?? 0;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*, role:roles(name)")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || (profile.role?.name !== "admin" && profile.role?.name !== "super_admin")) {
-    redirect("/account");
-  }
-
-  const isSuperAdmin = profile.role?.name === "super_admin";
-
-  const sections = [
-    { href: "/admin/products", label: "Products", desc: "Manage your product catalog", requires: "PRODUCTS_VIEW" },
-    { href: "/admin/orders", label: "Orders", desc: "View and manage customer orders", requires: "ORDERS_VIEW" },
-    { href: "/admin/customers", label: "Customers", desc: "View customer accounts", requires: "CUSTOMERS_VIEW" },
-    { href: "/admin/inventory", label: "Inventory", desc: "Track stock levels", requires: "INVENTORY_VIEW" },
-    { href: "/admin/content", label: "Content", desc: "Manage pages and blog", requires: "CONTENT_VIEW" },
-    { href: "/admin/media", label: "Media", desc: "Manage media library", requires: "MEDIA_VIEW" },
-    { href: "/admin/users", label: "Users", desc: "Manage user accounts", requires: "USERS_VIEW", superOnly: true },
-    { href: "/admin/settings", label: "Settings", desc: "Site configuration", requires: "SETTINGS_VIEW", superOnly: true },
-    { href: "/admin/audit-logs", label: "Audit Logs", desc: "Security audit trail", requires: "" },
-    { href: "/admin/analytics", label: "Analytics", desc: "Platform analytics", requires: "ANALYTICS_VIEW" },
+  const stats = [
+    {
+      title: "Total Products",
+      value: productCount,
+      icon: Package,
+      description: "Products in catalog",
+      color: "text-primary",
+    },
+    {
+      title: "Total Orders",
+      value: orderCount,
+      icon: ShoppingCart,
+      description: "All orders",
+      color: "text-primary",
+    },
+    {
+      title: "Pending Orders",
+      value: pendingOrderCount,
+      icon: TrendingUp,
+      description: "Need attention",
+      color: "text-accent",
+    },
+    {
+      title: "Customers",
+      value: customerCount,
+      icon: Users,
+      description: "Registered users",
+      color: "text-primary",
+    },
+    {
+      title: "Low Stock Items",
+      value: lowStockCount,
+      icon: AlertTriangle,
+      description: "At or below reorder level",
+      color: "text-destructive",
+    },
+    {
+      title: "Published Pages",
+      value: publishedPageCount,
+      icon: DollarSign,
+      description: "CMS pages live",
+      color: "text-primary",
+    },
   ];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
+    <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="mt-1 text-muted-foreground">
-          Signed in as {isSuperAdmin ? "Super Admin" : "Admin"} — {user.email}
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Overview of your Rescue 8 Philippines store
         </p>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {sections.map((section) => {
-          // Hide super-admin-only sections from regular admins
-          if (section.superOnly && !isSuperAdmin) return null;
-
+        {stats.map((stat) => {
+          const Icon = stat.icon;
           return (
-            <Card key={section.href}>
+            <Card key={stat.title}>
               <CardHeader>
-                <CardTitle className="text-lg">{section.label}</CardTitle>
-                <CardDescription>{section.desc}</CardDescription>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    {stat.title}
+                  </CardTitle>
+                  <Icon className={`h-5 w-5 ${stat.color}`} />
+                </div>
               </CardHeader>
               <CardContent>
-                <ButtonLink href={section.href} variant="outline" size="sm">
-                  Open
-                </ButtonLink>
+                <p className="text-3xl font-bold">{stat.value}</p>
+                <CardDescription className="mt-1">{stat.description}</CardDescription>
               </CardContent>
             </Card>
           );
@@ -76,7 +117,33 @@ export default async function AdminPage() {
       </div>
 
       <div className="mt-8">
-        <ButtonLink href="/account" variant="outline">Back to Account</ButtonLink>
+        <h2 className="mb-4 text-lg font-semibold">Quick Actions</h2>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <a
+            href="/admin/products"
+            className="rounded-lg border bg-white px-4 py-2 font-medium hover:bg-surface"
+          >
+            Manage Products
+          </a>
+          <a
+            href="/admin/orders"
+            className="rounded-lg border bg-white px-4 py-2 font-medium hover:bg-surface"
+          >
+            View Orders
+          </a>
+          <a
+            href="/admin/inventory"
+            className="rounded-lg border bg-white px-4 py-2 font-medium hover:bg-surface"
+          >
+            Check Inventory
+          </a>
+          <a
+            href="/admin/content"
+            className="rounded-lg border bg-white px-4 py-2 font-medium hover:bg-surface"
+          >
+            Edit Content
+          </a>
+        </div>
       </div>
     </div>
   );
