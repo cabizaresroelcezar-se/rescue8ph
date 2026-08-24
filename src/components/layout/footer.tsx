@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, MapPin, Phone, Globe, Camera, Briefcase, Clock } from "lucide-react";
+import { Mail, MapPin, Phone, Globe, Camera, Briefcase, Clock, Check } from "lucide-react";
 import { site } from "@/lib/site";
 import { NewsletterForm } from "@/components/layout/newsletter-form";
 import {
@@ -51,28 +51,85 @@ const socials = [
 export function Footer() {
   return (
     <footer className="mt-auto border-t border-border bg-surface">
-      <div className="border-b border-border bg-background">
-        <div className="container-wide grid items-center gap-6 py-10 md:grid-cols-2">
-          <div>
-            <p className="text-eyebrow">Stay prepared</p>
-            <h3 className="mt-2 text-display-md text-foreground">
-              Get product updates &amp; first-aid tips.
-            </h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              No spam. Unsubscribe anytime.
-            </p>
-          </div>
-          <form
-                      action="/api/newsletter"
-                      method="post"
-                      className="hidden"
-                      aria-hidden
-                    >
-                      <input type="email" name="email" />
-                    </form>
-                    <NewsletterForm />
-                  </div>
+      {/* Newsletter hero strip */}
+            <section className="relative isolate overflow-hidden border-b border-border">
+              {/* Layered gradient background */}
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-gradient-to-br from-primary via-primary/95 to-blue-800"
+              />
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklch,white_18%,transparent),transparent_50%),radial-gradient(circle_at_85%_70%,color-mix(in_oklch,var(--orange-500)_28%,transparent),transparent_55%)]"
+              />
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-grid-faint opacity-20 [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,black,transparent)]"
+              />
+              {/* Decorative orbs */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-accent/40 blur-3xl animate-float"
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-sky-300/30 blur-3xl animate-float"
+                style={{ animationDelay: "1.2s" }}
+              />
+
+              <div className="container-wide relative grid gap-10 py-14 sm:py-16 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-12">
+                <div className="text-primary-foreground">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90 backdrop-blur">
+                    <span className="pulse-dot" aria-hidden />
+                    Monthly briefing
+                  </span>
+                  <h3 className="mt-4 text-display-lg !text-white">
+                    Be the first to know when new gear drops.
+                  </h3>
+                  <p className="mt-3 max-w-xl text-sm text-white/80 sm:text-base">
+                    Monthly product updates, first-aid tips, and field insights from our
+                    EMT-led team. Trusted by 500+ organizations nationwide.
+                  </p>
+                  <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-white/85">
+                    <li className="inline-flex items-center gap-1.5">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white/15">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                      New product launches
+                    </li>
+                    <li className="inline-flex items-center gap-1.5">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white/15">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                      First-aid &amp; safety guides
+                    </li>
+                    <li className="inline-flex items-center gap-1.5">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white/15">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                      Bulk-order discounts
+                    </li>
+                  </ul>
                 </div>
+
+                <div className="rounded-2xl border border-white/15 bg-background/95 p-5 shadow-elev-4 backdrop-blur sm:p-6">
+                  <div className="mb-4 flex items-center gap-2">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Mail className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        Get product updates
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Join our newsletter — it&apos;s free.
+                      </p>
+                    </div>
+                  </div>
+                  <NewsletterForm />
+                </div>
+              </div>
+            </section>
 
       <div className="container-wide grid gap-10 py-14 md:grid-cols-12">
         <div className="md:col-span-4">

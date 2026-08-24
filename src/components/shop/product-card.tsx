@@ -6,7 +6,7 @@ import { Heart, Star, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type ProductCardProps = {
-  id: string;
+  id?: string;
   slug: string;
   title: string;
   short_description?: string | null;
@@ -78,14 +78,14 @@ export function ProductCard({
     >
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-surface to-surface/40">
         {image ? (
-          <Image
-            src={image.src}
-            alt={image.alt}
-            fill
-            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-            className="object-contain p-6 transition-transform duration-[var(--duration-slower)] ease-[var(--ease-out-quart)] group-hover:scale-110"
-          />
-        ) : (
+                  <Image
+                    src={image.src}
+                    alt={image.alt || title}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                    className="object-contain p-6 transition-transform duration-[var(--duration-slower)] ease-[var(--ease-out-quart)] group-hover:scale-110"
+                  />
+                ) : (
           <div className="flex h-full w-full items-center justify-center">
             <span className="text-5xl font-light text-muted-foreground/30">+</span>
           </div>

@@ -19,6 +19,7 @@ import {
 import { ButtonLink } from "@/components/ui/button-link";
 import { FadeIn, Stagger } from "@/lib/motion";
 import { ProductCard } from "@/components/shop/product-card";
+import { getMediaUrl } from "@/lib/media";
 import { HeroCarousel, type HeroSlide } from "@/components/marketing/hero-carousel";
 import { site } from "@/lib/site";
 import { organizationSchema } from "@/lib/seo";
@@ -27,13 +28,32 @@ export default async function HomePage() {
   const supabase = await createClient();
 
   const [{ data: products }, { data: services }, { data: testimonials }, { data: faqs }, { data: categories }] =
-    await Promise.all([
-      supabase.from("products").select("id, title, slug, short_description, price, compare_at_price, featured").eq("status", "ACTIVE").eq("featured", true).limit(8),
-      supabase.from("services").select("title, slug, short_description").eq("status", "PUBLISHED").order("sort_order").limit(4),
-      supabase.from("testimonials").select("name, role_or_company, quote").eq("is_enabled", true).order("sort_order").limit(3),
-      supabase.from("faqs").select("question, answer").eq("is_enabled", true).order("sort_order").limit(6),
-      supabase.from("categories").select("name, slug").eq("status", "PUBLISHED").order("name"),
-    ]);
+      await Promise.all([
+        supabase.from("products").select("id, title, slug, short_description, price, compare_at_price, featured").eq("status", "ACTIVE").eq("featured", true).limit(8),
+        supabase.from("services").select("title, slug, short_description").eq("status", "PUBLISHED").order("sort_order").limit(4),
+        supabase.from("testimonials").select("name, role_or_company, quote").eq("is_enabled", true).order("sort_order").limit(3),
+        supabase.from("faqs").select("question, answer").eq("is_enabled", true).order("sort_order").limit(6),
+        supabase.from("categories").select("name, slug").eq("status", "PUBLISHED").order("name"),
+      ]);
+
+    // Fetch primary images for the featured products on the homepage
+    const featuredIds = (products ?? []).map((p) => p.id);
+    const { data: featuredImages } = featuredIds.length
+      ? await supabase
+          .from("product_images")
+          .select("product_id, storage_path, alt_text, is_primary, sort_order")
+          .in("product_id", featuredIds)
+          .order("sort_order", { ascending: true })
+      : { data: [] };
+    const imageByProduct: Record<string, { src: string; alt: string }> = {};
+    for (const img of featuredImages ?? []) {
+      const url = getMediaUrl(img.storage_path);
+      if (!url) continue;
+      const existing = imageByProduct[img.product_id];
+      if (!existing || img.is_primary) {
+        imageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
+      }
+    }
 
   const slides: HeroSlide[] = [
     {
@@ -221,20 +241,20 @@ export default async function HomePage() {
               </Link>
             </FadeIn>
             <Stagger className="grid gap-5 sm:grid-cols-2 md:grid-cols-4">
-              {products.map((product) => (
-                <FadeIn key={product.id}>
-                  <ProductCard
-                    id={product.id}
-                    slug={product.slug}
-                    title={product.title}
-                    short_description={product.short_description}
-                    price={product.price}
-                    compare_at_price={product.compare_at_price}
-                    featured={product.featured}
-                  />
-                </FadeIn>
-              ))}
-            </Stagger>
+                          {products.map((product) => (
+                            <FadeIn key={product.id}>
+                              <ProductCard
+                                slug={product.slug}
+                                title={product.title}
+                                short_description={product.short_description}
+                                price={product.price}
+                                compare_at_price={product.compare_at_price}
+                                featured={product.featured}
+                                image={imageByProduct[product.id] ?? null}
+                              />
+                            </FadeIn>
+                          ))}
+                        </Stagger>
           </div>
         </section>
       )}

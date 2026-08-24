@@ -7,6 +7,7 @@ import { ProductGallery } from "@/components/shop/product-gallery";
 import { ProductCard } from "@/components/shop/product-card";
 import { FadeIn, Stagger } from "@/lib/motion";
 import { createMetadata, productSchema, breadcrumbSchema, organizationSchema } from "@/lib/seo";
+import { getMediaUrl } from "@/lib/media";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -85,10 +86,12 @@ export default async function ProductDetailPage({
     }
   }
 
-  const galleryImages = (images ?? []).map((i) => ({
-    src: i.storage_path,
-    alt: i.alt_text || product.title,
-  }));
+  const galleryImages = (images ?? [])
+      .map((i) => ({
+        src: getMediaUrl(i.storage_path) ?? "",
+        alt: i.alt_text || product.title,
+      }))
+      .filter((i) => i.src !== "");
 
   const discount =
     product.compare_at_price && product.compare_at_price > product.price
@@ -99,8 +102,29 @@ export default async function ProductDetailPage({
         )
       : null;
 
-  return (
-    <div className="bg-background pb-28 md:pb-10">
+  // Fetch primary images for the related products
+    const relatedIds = related
+      .map((r) => (Array.isArray(r.product) ? r.product[0]?.id : r.product?.id))
+      .filter((id): id is string => Boolean(id));
+    const { data: relatedImages } = relatedIds.length
+      ? await supabase
+          .from("product_images")
+          .select("product_id, storage_path, alt_text, is_primary, sort_order")
+          .in("product_id", relatedIds)
+          .order("sort_order", { ascending: true })
+      : { data: [] };
+    const relatedImageByProduct: Record<string, { src: string; alt: string }> = {};
+    for (const img of relatedImages ?? []) {
+      const url = getMediaUrl(img.storage_path);
+      if (!url) continue;
+      const existing = relatedImageByProduct[img.product_id];
+      if (!existing || img.is_primary) {
+        relatedImageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
+      }
+    }
+
+    return (
+      <div className="bg-background pb-28 md:pb-10">
       {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
@@ -303,23 +327,23 @@ export default async function ProductDetailPage({
               </Link>
             </div>
             <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {related
-                .map((r) => (Array.isArray(r.product) ? r.product[0] : r.product))
-                .filter((p): p is ProductCardLite => Boolean(p))
-                .map((p) => (
-                  <FadeIn key={p.id}>
-                    <ProductCard
-                      id={p.id}
-                      slug={p.slug}
-                      title={p.title}
-                      short_description={p.short_description}
-                      price={p.price}
-                      compare_at_price={p.compare_at_price}
-                      featured={p.featured}
-                    />
-                  </FadeIn>
-                ))}
-            </Stagger>
+                          {related
+                            .map((r) => (Array.isArray(r.product) ? r.product[0] : r.product))
+                            .filter((p): p is ProductCardLite => Boolean(p))
+                            .map((p) => (
+                              <FadeIn key={p.id}>
+                                <ProductCard
+                                  slug={p.slug}
+                                  title={p.title}
+                                  short_description={p.short_description}
+                                  price={p.price}
+                                  compare_at_price={p.compare_at_price}
+                                  featured={p.featured}
+                                  image={relatedImageByProduct[p.id] ?? null}
+                                />
+                              </FadeIn>
+                            ))}
+                        </Stagger>
           </div>
         </section>
       )}
