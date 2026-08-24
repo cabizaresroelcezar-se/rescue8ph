@@ -102,32 +102,55 @@ export default async function HomePage() {
       {/* HERO CAROUSEL */}
       <HeroCarousel slides={slides} />
 
-      {/* TRUST BAR */}
-      <section className="border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container-page">
-          <Stagger className="grid grid-cols-2 gap-x-6 gap-y-8 py-10 md:grid-cols-4">
-            {[
-              { icon: Shield,     label: "Quality Assured",     desc: "Field-tested equipment" },
-              { icon: Truck,      label: "Nationwide Delivery", desc: "All across the Philippines" },
-              { icon: Award,      label: "DTI Registered",      desc: `Since ${new Date(site.brand.founded).toLocaleDateString("en-US", { year: "numeric", month: "long" })}` },
-              { icon: Headphones, label: "Expert Support",      desc: "EMS professionals on call" },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <FadeIn key={item.label} className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{item.label}</p>
-                    <p className="text-xs text-muted-foreground">{item.desc}</p>
-                  </div>
-                </FadeIn>
-              );
-            })}
-          </Stagger>
-        </div>
-      </section>
+      {/* TRUST BAR — modern marquee with live ticker */}
+            <section className="border-b border-border bg-gradient-to-b from-surface to-background">
+              <div className="container-page py-8 sm:py-10">
+                <Stagger className="grid grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-4">
+                  {[
+                    { icon: Shield,     label: "Quality Assured",     desc: "Field-tested equipment" },
+                    { icon: Truck,      label: "Nationwide Delivery", desc: "All across the Philippines" },
+                    { icon: Award,      label: "DTI Registered",      desc: `Since ${new Date(site.brand.founded).toLocaleDateString("en-US", { year: "numeric", month: "long" })}` },
+                    { icon: Headphones, label: "Expert Support",      desc: "EMS professionals on call" },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <FadeIn key={item.label} className="group flex items-center gap-3">
+                        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-elev-1 transition-transform duration-[var(--duration-base)] ease-[var(--ease-spring)] group-hover:scale-110 group-hover:shadow-elev-2">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                          <p className="text-xs text-muted-foreground">{item.desc}</p>
+                        </div>
+                      </FadeIn>
+                    );
+                  })}
+                </Stagger>
+              </div>
+            </section>
+
+            {/* TRUST MARQUEE — customer segments strip */}
+            <section className="border-b border-border bg-background py-6">
+              <div className="container-page mb-3 flex items-center justify-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                <span className="pulse-dot" aria-hidden />
+                <span>Trusted by 500+ organizations nationwide</span>
+              </div>
+              <div className="marquee-mask overflow-hidden">
+                <div className="flex w-max gap-12 animate-marquee py-2">
+                  {[...site.customerSegments, ...site.customerSegments].map((s, i) => (
+                    <div
+                      key={`${s.abbr}-${i}`}
+                      className="flex items-center gap-3 text-foreground/70"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary text-xs font-bold">
+                        {s.abbr}
+                      </span>
+                      <span className="text-sm font-medium whitespace-nowrap">{s.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
 
       {/* ABOUT STRIP — pulled from FB */}
       <section className="bg-surface">

@@ -24,11 +24,27 @@ export function HeaderClient({
   const megaTimer = React.useRef<number | null>(null);
 
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+      const onScroll = () => setScrolled(window.scrollY > 8);
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      return () => window.removeEventListener("scroll", onScroll);
+    }, []);
+
+    // Global Cmd+K / Ctrl+K to open search
+    React.useEffect(() => {
+      const onKey = (e: KeyboardEvent) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+          e.preventDefault();
+          setSearchOpen(true);
+        }
+        if (e.key === "Escape") {
+          setSearchOpen(false);
+          setMegaOpen(false);
+        }
+      };
+      window.addEventListener("keydown", onKey);
+      return () => window.removeEventListener("keydown", onKey);
+    }, []);
 
   React.useEffect(() => {
     if (drawerOpen) {
@@ -113,12 +129,12 @@ export function HeaderClient({
           </nav>
         </div>
 
-        <div className="ml-auto flex items-center gap-1">
-          <SearchTrigger open={searchOpen} setOpen={setSearchOpen} />
-          <ThemeToggle />
-          <CartButton />
-        </div>
-      </div>
+        <div className="ml-auto flex items-center gap-1.5">
+                  <SearchTrigger open={searchOpen} setOpen={setSearchOpen} />
+                  <ThemeToggle />
+                  <CartButton />
+                </div>
+              </div>
 
       <MobileDrawer
         open={drawerOpen}
@@ -204,17 +220,34 @@ function SearchTrigger({
 }) {
   return (
     <>
+      {/* Desktop: visible search pill with Cmd+K hint */}
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="hidden h-9 items-center gap-2 rounded-md border border-border bg-secondary/60 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:inline-flex"
+        aria-label="Search products"
+        aria-expanded={open}
+      >
+        <Search className="h-4 w-4" />
+        <span className="hidden lg:inline">Search products…</span>
+        <kbd className="ml-2 hidden rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground lg:inline-flex">
+          Ctrl K
+        </kbd>
+      </button>
+
+      {/* Mobile: icon-only button */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-md text-foreground transition-colors hover:bg-secondary md:hidden"
         aria-label="Search"
         aria-expanded={open}
       >
         <Search className="h-5 w-5" />
       </button>
+
       {open && (
-        <div className="absolute inset-x-0 top-full border-t border-border bg-background/95 backdrop-blur">
+        <div className="absolute inset-x-0 top-full border-t border-border bg-background/95 backdrop-blur animate-fade-down">
           <form
             action="/products"
             method="get"
@@ -229,6 +262,9 @@ function SearchTrigger({
               placeholder="Search products, categories, SKUs…"
               className="h-10 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
+            <kbd className="hidden rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground sm:inline-flex">
+              Enter
+            </kbd>
             <button
               type="button"
               onClick={() => setOpen(false)}
