@@ -94,14 +94,17 @@ create policy "Public read banners" on storage.objects for select
 create policy "Public read avatars" on storage.objects for select
   to public using (bucket_id = 'avatars');
 
--- Staff write (admin or super_admin role) on products/blog/pages/banners
+-- Staff write (admin or super_admin role) on products/blog/pages/banners.
+-- The profiles table stores role_id (FK to public.roles), not a role text
+-- column, so the policy joins to public.roles to read the role name.
 create policy "Staff write products" on storage.objects for insert
   to authenticated with check (
     bucket_id = 'products'
     and exists (
       select 1 from public.profiles p
+      join public.roles r on r.id = p.role_id
       where p.id = auth.uid()
-        and (p.role = 'admin' or p.role = 'super_admin')
+        and r.name in ('admin', 'super_admin')
     )
   );
 
@@ -110,8 +113,9 @@ create policy "Staff write blog" on storage.objects for insert
     bucket_id = 'blog'
     and exists (
       select 1 from public.profiles p
+      join public.roles r on r.id = p.role_id
       where p.id = auth.uid()
-        and (p.role = 'admin' or p.role = 'super_admin')
+        and r.name in ('admin', 'super_admin')
     )
   );
 
@@ -120,8 +124,9 @@ create policy "Staff write pages" on storage.objects for insert
     bucket_id = 'pages'
     and exists (
       select 1 from public.profiles p
+      join public.roles r on r.id = p.role_id
       where p.id = auth.uid()
-        and (p.role = 'admin' or p.role = 'super_admin')
+        and r.name in ('admin', 'super_admin')
     )
   );
 
@@ -130,8 +135,9 @@ create policy "Staff write banners" on storage.objects for insert
     bucket_id = 'banners'
     and exists (
       select 1 from public.profiles p
+      join public.roles r on r.id = p.role_id
       where p.id = auth.uid()
-        and (p.role = 'admin' or p.role = 'super_admin')
+        and r.name in ('admin', 'super_admin')
     )
   );
 
