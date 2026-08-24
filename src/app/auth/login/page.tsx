@@ -1,8 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import { signIn } from "@/features/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/auth/password-input";
 import {
   Card,
   CardContent,
@@ -22,7 +24,14 @@ export default async function LoginPage({
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Welcome back</CardTitle>
+        <Image
+          src="/logo.png"
+          alt="Rescue 8 Philippines"
+          width={140}
+          height={72}
+          className="mx-auto h-12 w-auto"
+        />
+        <CardTitle className="mt-4 text-2xl">Welcome back</CardTitle>
         <CardDescription>Sign in to your Rescue 8 account</CardDescription>
       </CardHeader>
       <CardContent>
@@ -50,11 +59,15 @@ export default async function LoginPage({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link href="/auth/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+                Forgot password?
+              </Link>
+            </div>
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               placeholder="Your password"
               required
             />
@@ -63,11 +76,6 @@ export default async function LoginPage({
             Sign In
           </Button>
         </form>
-        <div className="mt-4 text-center text-sm">
-          <Link href="/auth/forgot-password" className="text-muted-foreground hover:text-primary">
-            Forgot your password?
-          </Link>
-        </div>
       </CardContent>
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">

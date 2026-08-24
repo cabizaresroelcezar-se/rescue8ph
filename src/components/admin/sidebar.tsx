@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,7 @@ import {
   Boxes,
   FileText,
   FolderOpen,
-  Image,
+  ImageIcon,
   Settings,
   ShieldAlert,
   BarChart3,
@@ -28,7 +29,7 @@ const navItems = [
   { href: "/admin/content", label: "Content", icon: FileText, superOnly: false },
   { href: "/admin/pages", label: "Pages", icon: FolderOpen, superOnly: false },
   { href: "/admin/blog", label: "Blog", icon: FileText, superOnly: false },
-  { href: "/admin/media", label: "Media", icon: Image, superOnly: false },
+  { href: "/admin/media", label: "Media", icon: ImageIcon, superOnly: false },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3, superOnly: false },
   { href: "/admin/audit-logs", label: "Audit Logs", icon: ShieldAlert, superOnly: false },
   { href: "/admin/users", label: "Users", icon: UserCog, superOnly: true },
@@ -39,13 +40,16 @@ export function AdminSidebar({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r bg-white md:block">
-      <div className="flex h-16 items-center gap-2 border-b px-6">
+    <aside className="hidden w-64 shrink-0 border-r border-border bg-white md:block">
+      <div className="flex h-16 items-center border-b border-border px-4">
         <Link href="/admin" className="flex items-center gap-2">
-          <span className="text-lg font-bold">Rescue 8</span>
-          <span className="rounded bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
-            Admin
-          </span>
+          <Image
+            src="/logo.png"
+            alt="Rescue 8 Admin"
+            width={100}
+            height={52}
+            className="h-8 w-auto"
+          />
         </Link>
       </div>
       <nav className="space-y-1 p-3">
@@ -73,7 +77,7 @@ export function AdminSidebar({ isSuperAdmin }: { isSuperAdmin: boolean }) {
             );
           })}
       </nav>
-      <div className="absolute bottom-0 w-64 border-t p-3">
+      <div className="absolute bottom-0 w-64 border-t border-border p-3">
         <Link
           href="/account"
           className={cn(

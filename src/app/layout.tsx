@@ -16,17 +16,29 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Rescue 8 Philippines",
+    default: "Rescue 8 Philippines — EMS and Rescue Equipment",
     template: "%s | Rescue 8 Philippines",
   },
   description:
-    "Rescue 8 Philippines — premium products and solutions for every Filipino. Shop with confidence.",
-  keywords: ["Rescue 8", "Philippines", "shopping", "ecommerce", "online store"],
-  authors: [{ name: "Rescue 8 Philippines" }],
+    "Rescue 8 Philippines — EMS and Rescue Equipment. Emergency Disaster Preparedness and Rescue Equipment for first responders, government agencies, and organizations nationwide.",
+  keywords: [
+    "Rescue 8 Philippines",
+    "EMS equipment",
+    "rescue equipment",
+    "first aid kits",
+    "safety equipment",
+    "emergency preparedness",
+    "Philippines",
+  ],
+  authors: [{ name: "Rescue 8 Trading Philippines, Inc." }],
+  icons: {
+    icon: "/favicon.png",
+    apple: "/icon.png",
+  },
   openGraph: {
-    title: "Rescue 8 Philippines",
+    title: "Rescue 8 Philippines — EMS and Rescue Equipment",
     description:
-      "Premium products and solutions for every Filipino. Shop with confidence.",
+      "EMS and Rescue Equipment. Emergency Disaster Preparedness and Rescue Equipment.",
     type: "website",
     locale: "en_PH",
   },

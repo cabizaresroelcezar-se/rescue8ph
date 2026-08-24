@@ -14,10 +14,11 @@ export default function AboutPage() {
         </p>
 
         <p>
-          Our mission is simple: to be a very present help in times of trouble.
-          We equip first responders, government agencies, local government
-          units (LGUs), hospitals, private companies, and organizations across
-          the Philippines with reliable, field-tested emergency equipment.
+          Our mission is simple: to provide EMS and Rescue Equipment, Emergency
+          Disaster Preparedness and Rescue Equipment. We equip first responders,
+          government agencies, local government units (LGUs), hospitals, private
+          companies, and organizations across the Philippines with reliable,
+          field-tested emergency equipment.
         </p>
 
         <div className="rounded-lg border bg-surface p-6">

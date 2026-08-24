@@ -1,8 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import { signUp } from "@/features/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/auth/password-input";
 import {
   Card,
   CardContent,
@@ -22,7 +24,14 @@ export default async function RegisterPage({
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Create your account</CardTitle>
+        <Image
+          src="/logo.png"
+          alt="Rescue 8 Philippines"
+          width={140}
+          height={72}
+          className="mx-auto h-12 w-auto"
+        />
+        <CardTitle className="mt-4 text-2xl">Create your account</CardTitle>
         <CardDescription>Join Rescue 8 Philippines today</CardDescription>
       </CardHeader>
       <CardContent>
@@ -69,10 +78,9 @@ export default async function RegisterPage({
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               placeholder="At least 8 characters"
               required
               minLength={8}
