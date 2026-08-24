@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { logAudit, AuditAction } from "@/lib/audit";
 
 export async function createProduct(formData: FormData) {
   const supabase = await createClient();
@@ -15,7 +16,7 @@ export async function createProduct(formData: FormData) {
   const slug = (formData.get("slug") as string) || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const price = parseFloat(formData.get("price") as string) || 0;
 
-  const { error } = await supabase.from("products").insert({
+  const { data: newProduct, error } = await supabase.from("products").insert({
     title,
     slug,
     short_description: formData.get("shortDescription") as string || null,
@@ -30,11 +31,18 @@ export async function createProduct(formData: FormData) {
     seo_description: formData.get("seoDescription") as string || null,
     created_by: user.id,
     published_at: formData.get("status") === "ACTIVE" ? new Date().toISOString() : null,
-  });
+  }).select("id");
 
   if (error) {
     redirect(`/admin/products/new?error=${encodeURIComponent(error.message)}`);
   }
+
+  await logAudit({
+    action: AuditAction.CREATE,
+    resourceType: "products",
+    resourceId: newProduct?.[0]?.id,
+    newValues: { title, slug, price, status: formData.get("status") },
+  });
 
   revalidatePath("/admin/products");
   redirect("/admin/products");
@@ -73,6 +81,13 @@ export async function updateProduct(formData: FormData) {
   if (error) {
     redirect(`/admin/products/${id}?error=${encodeURIComponent(error.message)}`);
   }
+
+  await logAudit({
+    action: AuditAction.UPDATE,
+    resourceType: "products",
+    resourceId: id,
+    newValues: { title, slug, price, status, featured: formData.get("featured") === "true" },
+  });
 
   revalidatePath("/admin/products");
   redirect("/admin/products");

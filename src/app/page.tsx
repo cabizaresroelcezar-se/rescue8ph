@@ -21,6 +21,7 @@ import { FadeIn, Stagger } from "@/lib/motion";
 import { ProductCard } from "@/components/shop/product-card";
 import { HeroCarousel, type HeroSlide } from "@/components/marketing/hero-carousel";
 import { site } from "@/lib/site";
+import { organizationSchema } from "@/lib/seo";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -87,6 +88,17 @@ export default async function HomePage() {
 
   return (
     <div>
+      {/* Organization JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            ...organizationSchema(),
+          }),
+        }}
+      />
+
       {/* HERO CAROUSEL */}
       <HeroCarousel slides={slides} />
 

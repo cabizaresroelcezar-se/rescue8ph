@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { logAudit, AuditAction } from "@/lib/audit";
 
 // ============================================================================
 // Mark Payment as Paid (admin action for manual payments)
@@ -56,6 +57,15 @@ export async function markPaymentPaid(formData: FormData) {
       note: "Payment confirmed (manual/COD)",
       changed_by: user.id,
     });
+
+    await logAudit({
+      action: AuditAction.STATUS_CHANGE,
+      resourceType: "orders",
+      resourceId: orderId,
+      oldValues: { status: order.status },
+      newValues: { status: "PAID" },
+      metadata: { paymentId, method: "MANUAL" },
+    });
   }
 
   revalidatePath(`/admin/orders/${orderId}`);
@@ -104,6 +114,15 @@ export async function updateOrderStatus(formData: FormData) {
     changed_by: user.id,
   });
 
+  await logAudit({
+    action: AuditAction.STATUS_CHANGE,
+    resourceType: "orders",
+    resourceId: orderId,
+    oldValues: { status: order.status },
+    newValues: { status: newStatus },
+    metadata: { note },
+  });
+
   revalidatePath(`/admin/orders/${orderId}`);
   redirect(`/admin/orders/${orderId}?message=${encodeURIComponent("Order status updated to " + newStatus.replace(/_/g, " "))}`);
 }
@@ -145,6 +164,15 @@ export async function cancelOrder(formData: FormData) {
     to_status: "CANCELLED",
     note: reason,
     changed_by: user.id,
+  });
+
+  await logAudit({
+    action: AuditAction.CANCEL,
+    resourceType: "orders",
+    resourceId: orderId,
+    oldValues: { status: order.status },
+    newValues: { status: "CANCELLED" },
+    metadata: { reason },
   });
 
   revalidatePath(`/admin/orders/${orderId}`);
