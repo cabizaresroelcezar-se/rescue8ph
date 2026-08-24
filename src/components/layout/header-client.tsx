@@ -2,20 +2,26 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, Search, X, ChevronDown, ArrowRight } from "lucide-react";
+import { Menu, Search, X, ChevronDown, ArrowRight, User } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { CartButton } from "@/components/shop/cart-button";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { cn } from "@/lib/utils";
 
 type NavItem = { href: string; label: string };
+type HeaderUser = { email: string; firstName: string | null };
 
 export function HeaderClient({
   navItems,
   children,
+  user = null,
+  isAdmin = false,
 }: {
   navItems: NavItem[];
   children: React.ReactNode;
+  user?: HeaderUser | null;
+  isAdmin?: boolean;
 }) {
   const [scrolled, setScrolled] = React.useState(false);
   const [megaOpen, setMegaOpen] = React.useState(false);
@@ -137,10 +143,12 @@ export function HeaderClient({
               </div>
 
       <MobileDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        navItems={navItems}
-      />
+              open={drawerOpen}
+              onClose={() => setDrawerOpen(false)}
+              navItems={navItems}
+              user={user}
+              isAdmin={isAdmin}
+            />
     </header>
   );
 }
@@ -284,11 +292,16 @@ function MobileDrawer({
   open,
   onClose,
   navItems,
+  user,
+  isAdmin,
 }: {
   open: boolean;
   onClose: () => void;
   navItems: NavItem[];
+  user?: HeaderUser | null;
+  isAdmin?: boolean;
 }) {
+  const greeting = user?.firstName || user?.email?.split("@")[0] || "Account";
   return (
     <>
       <div
@@ -320,6 +333,25 @@ function MobileDrawer({
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {user && (
+          <div className="border-b border-border bg-secondary/40 px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                <User className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {greeting}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {user.email}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <nav className="flex-1 overflow-y-auto p-4" aria-label="Mobile primary">
           <ul className="space-y-1">
             {navItems.map((item) => (
@@ -333,17 +365,62 @@ function MobileDrawer({
                 </Link>
               </li>
             ))}
+            {user && (
+              <>
+                <li className="pt-2">
+                  <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    Account
+                  </p>
+                </li>
+                {isAdmin && (
+                  <li>
+                    <Link
+                      href="/admin"
+                      onClick={onClose}
+                      className="block rounded-md px-3 py-2.5 text-base font-medium text-foreground transition-colors hover:bg-secondary"
+                    >
+                      Admin
+                    </Link>
+                  </li>
+                )}
+                <li>
+                  <Link
+                    href="/account"
+                    onClick={onClose}
+                    className="block rounded-md px-3 py-2.5 text-base font-medium text-foreground transition-colors hover:bg-secondary"
+                  >
+                    My Account
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/account/orders"
+                    onClick={onClose}
+                    className="block rounded-md px-3 py-2.5 text-base font-medium text-foreground transition-colors hover:bg-secondary"
+                  >
+                    My Orders
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </nav>
+
         <div className="border-t border-border p-4">
-          <div className="grid gap-2">
-            <ButtonLink href="/auth/login" variant="outline" size="sm" className="w-full">
-              Sign In
-            </ButtonLink>
-            <ButtonLink href="/auth/register" size="sm" className="w-full">
-              Sign Up
-            </ButtonLink>
-          </div>
+          {user ? (
+            <div className="grid gap-2">
+              <SignOutButton />
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              <ButtonLink href="/auth/login" variant="outline" size="sm" className="w-full">
+                Sign In
+              </ButtonLink>
+              <ButtonLink href="/auth/register" size="sm" className="w-full">
+                Sign Up
+              </ButtonLink>
+            </div>
+          )}
         </div>
       </aside>
     </>

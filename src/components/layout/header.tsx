@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ButtonLink } from "@/components/ui/button-link";
 import { HeaderClient } from "@/components/layout/header-client";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 export async function Header() {
   const supabase = await createClient();
@@ -11,11 +12,14 @@ export async function Header() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let profile: { role?: { name?: string }[] | { name?: string } } | null = null;
+  let profile: {
+    first_name?: string | null;
+    role?: { name?: string }[] | { name?: string };
+  } | null = null;
   if (user) {
     const { data } = await supabase
       .from("profiles")
-      .select("role:roles(name)")
+      .select("first_name, role:roles(name)")
       .eq("id", user.id)
       .single();
     profile = data;
@@ -25,6 +29,7 @@ export async function Header() {
     ? profile.role[0]?.name
     : profile?.role?.name;
   const isAdmin = roleName === "admin" || roleName === "super_admin";
+  const firstName = profile?.first_name ?? null;
 
   const navItems = [
     { href: "/products", label: "Products" },
@@ -42,7 +47,11 @@ export async function Header() {
         href="/products"
       />
 
-      <HeaderClient navItems={navItems}>
+      <HeaderClient
+        navItems={navItems}
+        user={user ? { email: user.email ?? "", firstName } : null}
+        isAdmin={isAdmin}
+      >
         <Link href="/" className="flex items-center gap-2" aria-label="Rescue 8 Philippines home">
           <Image
             src="/logo.svg"
@@ -65,6 +74,7 @@ export async function Header() {
               <ButtonLink href="/account" variant="ghost" size="sm">
                 My Account
               </ButtonLink>
+              <SignOutButton />
             </>
           ) : (
             <>
