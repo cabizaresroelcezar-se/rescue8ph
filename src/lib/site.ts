@@ -16,10 +16,10 @@ export const site = {
   },
 
   contact: {
-    address: {
-      line1: "Unit G4 #65 Malac cor Gasan Street",
-      line2: "Brgy Masambong, Quezon City, 1115 Metro Manila, Philippines",
-    },
+      address: {
+        line1: "156B Wayan St. Brgy. Masambong",
+        line2: "Quezon City, Quezon City, Philippines, 1115",
+      },
     phone: {
       label: "(02) 622-9565",
       tel: "+6326229565",
@@ -48,15 +48,11 @@ export const site = {
   },
 
   customerSegments: [
-    { name: "Bureau of Fire Protection",         abbr: "BFP" },
-    { name: "Philippine National Police",        abbr: "PNP" },
-    { name: "Armed Forces of the Philippines",   abbr: "AFP" },
-    { name: "Philippine Red Cross",              abbr: "PRC" },
-    { name: "Local Government Units",            abbr: "LGUs" },
-    { name: "Hospitals & Clinics",               abbr: "H&C" },
-    { name: "Schools & Universities",            abbr: "S&U" },
-    { name: "Private Companies & NGOs",          abbr: "PRV" },
-  ],
+      { name: "Local Government Units",            abbr: "LGUs" },
+      { name: "Hospitals & Clinics",               abbr: "H&C" },
+      { name: "Schools & Universities",            abbr: "S&U" },
+      { name: "Private Companies & NGOs",          abbr: "PRV" },
+    ],
 
   trainingPrograms: [
     { title: "CPR & First Aid",              blurb: "Adult, child, and infant CPR with AED, choking, bleeding control, and basic first response." },

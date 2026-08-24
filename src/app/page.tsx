@@ -105,10 +105,10 @@ export default async function HomePage() {
         </>
       ),
       body:
-        "Bulk and institutional supply for the BFP, PNP, AFP, Philippine Red Cross, LGUs, hospitals, and schools. Custom quotes and nationwide delivery.",
+              "Bulk and institutional supply for LGUs, hospitals, schools, and private companies. Custom quotes and nationwide delivery.",
       primary: { href: "/contact", label: "Talk to Sales" },
       secondary: { href: "/about", label: "About Us" },
-      badge: "Gov't · Military · Civilian",
+      badge: "Public · Private · Training",
     },
   ];
 

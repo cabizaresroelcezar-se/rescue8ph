@@ -21,11 +21,11 @@ export const metadata: Metadata = {
 
 const channels = [
   {
-    icon: Briefcase,
-    title: "Sales & bulk orders",
-    line1: "BFP, PNP, AFP, hospitals, LGUs, and corporate accounts.",
-    cta: { href: "tel:+6326229565", label: "(02) 622-9565" },
-  },
+      icon: Briefcase,
+      title: "Sales & bulk orders",
+      line1: "Hospitals, LGUs, schools, and corporate accounts.",
+      cta: { href: "tel:+6326229565", label: "(02) 622-9565" },
+    },
   {
     icon: GraduationCap,
     title: "Training & certification",

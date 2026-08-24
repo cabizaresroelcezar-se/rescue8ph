@@ -262,31 +262,27 @@ function SearchTrigger({
 }) {
   return (
     <>
-      {/* Desktop: visible search pill with Cmd+K hint */}
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="hidden h-9 items-center gap-2 rounded-md border border-border bg-secondary/60 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:inline-flex"
-        aria-label="Search products"
-        aria-expanded={open}
-      >
-        <Search className="h-4 w-4" />
-        <span className="hidden lg:inline">Search products…</span>
-        <kbd className="ml-2 hidden rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground lg:inline-flex">
-          Ctrl K
-        </kbd>
-      </button>
+      {/* Desktop: compact icon-only search button */}
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              aria-label="Search products"
+              aria-expanded={open}
+            >
+              <Search className="h-4 w-4" />
+            </button>
 
-      {/* Mobile: icon-only button */}
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md text-foreground transition-colors hover:bg-secondary md:hidden"
-        aria-label="Search"
-        aria-expanded={open}
-      >
-        <Search className="h-5 w-5" />
-      </button>
+            {/* Mobile: icon-only button */}
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md text-foreground transition-colors hover:bg-secondary md:hidden"
+              aria-label="Search"
+              aria-expanded={open}
+            >
+              <Search className="h-5 w-5" />
+            </button>
 
       {open && (
         <div className="absolute inset-x-0 top-full border-t border-border bg-background/95 backdrop-blur animate-fade-down">

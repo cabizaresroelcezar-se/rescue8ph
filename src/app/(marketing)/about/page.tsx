@@ -47,7 +47,7 @@ const milestones = [
   { year: "2012", label: `Rescue 8 Trading Philippines, Inc. is registered with the DTI in ${site.brand.founded}.` },
   { year: "—",     label: "Becomes an American Safety & Health Institute (ASHI) Training Center." },
   { year: "—",     label: "Achieves ASHI Level 9 instructor rating — the highest in the program." },
-  { year: "Today", label: "Equips the BFP, PNP, AFP, Philippine Red Cross, LGUs, hospitals, and schools nationwide." },
+  { year: "Today", label: "Equips LGUs, hospitals, schools, and private companies nationwide." },
 ];
 
 export default function AboutPage() {

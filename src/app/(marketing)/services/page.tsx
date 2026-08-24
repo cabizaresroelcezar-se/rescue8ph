@@ -39,12 +39,12 @@ const serviceLines = [
     bullets: ["CPR & First Aid", "BLS for Healthcare Workers", "Stop the Bleed"],
   },
   {
-    icon: Building2,
-    title: "Institutional Rollout",
-    blurb:
-      "Multi-site deployments for the BFP, PNP, AFP, Philippine Red Cross, LGUs, schools, and large private employers.",
-    bullets: ["Site surveys & needs analysis", "Custom quote packs", "Recurring supply contracts"],
-  },
+      icon: Building2,
+      title: "Institutional Rollout",
+      blurb:
+        "Multi-site deployments for LGUs, schools, hospitals, and large private employers.",
+      bullets: ["Site surveys & needs analysis", "Custom quote packs", "Recurring supply contracts"],
+    },
   {
     icon: Wrench,
     title: "Equipment Servicing",
@@ -62,9 +62,9 @@ const serviceLines = [
   {
     icon: ShieldCheck,
     title: "Compliance & Audit",
-    blurb:
-      "Help organizations comply with DOLE OSH Standards, BFP requirements, and school disaster-preparedness mandates.",
-    bullets: ["Documentation review", "Stock & expiry audit", "Compliance training"],
+        blurb:
+          "Help organizations comply with DOLE OSH Standards and school disaster-preparedness mandates.",
+        bullets: ["Documentation review", "Stock & expiry audit", "Compliance training"],
   },
 ];
 

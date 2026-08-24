@@ -3,14 +3,6 @@ import Image from "next/image";
 import { Mail, MapPin, Phone, Globe, Camera, Briefcase, Clock, Check } from "lucide-react";
 import { site } from "@/lib/site";
 import { NewsletterForm } from "@/components/layout/newsletter-form";
-import {
-  VisaIcon,
-  MastercardIcon,
-  GcashIcon,
-  MayaIcon,
-  CodIcon,
-  BankTransferIcon,
-} from "@/components/ui/payment-icons";
 
 const linkGroups = [
   {
@@ -52,30 +44,30 @@ export function Footer() {
   return (
     <footer className="mt-auto border-t border-border bg-surface">
       {/* Newsletter hero strip */}
-            <section className="relative isolate overflow-hidden border-b border-border">
-              {/* Layered gradient background */}
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-gradient-to-br from-primary via-primary/95 to-blue-800"
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklch,white_18%,transparent),transparent_50%),radial-gradient(circle_at_85%_70%,color-mix(in_oklch,var(--orange-500)_28%,transparent),transparent_55%)]"
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-grid-faint opacity-20 [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,black,transparent)]"
-              />
-              {/* Decorative orbs */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-accent/40 blur-3xl animate-float"
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-sky-300/30 blur-3xl animate-float"
-                style={{ animationDelay: "1.2s" }}
-              />
+                  <section className="relative isolate overflow-hidden border-b border-border">
+                    {/* Layered gradient background — darker, deeper navy */}
+                    <div
+                      aria-hidden
+                      className="absolute inset-0 bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950"
+                    />
+                    <div
+                      aria-hidden
+                      className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklch,white_10%,transparent),transparent_55%),radial-gradient(circle_at_85%_75%,color-mix(in_oklch,var(--accent)_18%,transparent),transparent_60%)]"
+                    />
+                    <div
+                      aria-hidden
+                      className="absolute inset-0 bg-grid-faint opacity-15 [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,black,transparent)]"
+                    />
+                    {/* Decorative orbs */}
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-accent/30 blur-3xl animate-float"
+                    />
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-blue-400/20 blur-3xl animate-float"
+                      style={{ animationDelay: "1.2s" }}
+                    />
 
               <div className="container-wide relative grid gap-10 py-14 sm:py-16 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-12">
                 <div className="text-primary-foreground">
@@ -198,44 +190,24 @@ export function Footer() {
         ))}
 
         <div className="md:col-span-2">
-          <h4 className="text-sm font-semibold text-foreground">Follow</h4>
-          <ul className="mt-4 flex gap-2">
-            {socials.map(({ href, label, Icon }) => (
-              <li key={label}>
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              </li>
-            ))}
-          </ul>
-
-          <h4 className="mt-6 text-sm font-semibold text-foreground">We accept</h4>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {[
-                        { Icon: VisaIcon,           label: "Visa" },
-                        { Icon: MastercardIcon,     label: "Mastercard" },
-                        { Icon: GcashIcon,          label: "GCash" },
-                        { Icon: MayaIcon,           label: "Maya" },
-                        { Icon: BankTransferIcon,   label: "Bank Transfer" },
-                        { Icon: CodIcon,            label: "Cash on Delivery" },
-                      ].map(({ Icon, label }) => (
-                        <span
-                          key={label}
-                          className="inline-flex h-7 items-center rounded-md border border-border bg-background px-2 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                          title={label}
+                  <h4 className="text-sm font-semibold text-foreground">Follow</h4>
+                  <ul className="mt-4 flex gap-2">
+                    {socials.map(({ href, label, Icon }) => (
+                      <li key={label}>
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={label}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
                         >
-                          <Icon className="h-4 w-auto" />
-                        </span>
-                      ))}
-                    </div>
-        </div>
-      </div>
+                          <Icon className="h-4 w-4" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
 
       <div className="border-t border-border">
         <div className="container-wide flex flex-col items-center justify-between gap-2 py-5 text-xs text-muted-foreground sm:flex-row">

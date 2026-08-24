@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Mail, Check, ArrowRight, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import { Mail, Check, ArrowRight, Loader2 } from "lucide-react";
 
 export function NewsletterForm() {
   const [email, setEmail] = React.useState("");
@@ -91,14 +91,9 @@ export function NewsletterForm() {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <ShieldCheck className="h-3 w-3 text-success" />
-          No spam, ever
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Sparkles className="h-3 w-3 text-accent" />
-          Unsubscribe anytime
-        </span>
+        <span>No spam, ever</span>
+        <span className="h-1 w-1 rounded-full bg-muted-foreground/40" aria-hidden />
+        <span>Unsubscribe anytime</span>
       </div>
 
       {error && (
