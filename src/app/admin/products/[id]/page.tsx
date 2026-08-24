@@ -1,17 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { updateProduct } from "@/features/products/actions";
 import { redirect } from "next/navigation";
+import { ArrowRight, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { FadeIn } from "@/lib/motion";
+import { updateProduct } from "@/features/products/actions";
 
 export default async function EditProductPage({
   params,
@@ -35,112 +30,172 @@ export default async function EditProductPage({
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">Edit Product</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{product.title}</p>
-      </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <FadeIn className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-eyebrow">Back Office · Products</p>
+          <h1 className="mt-2 text-display-md text-foreground">
+            Edit Product
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">{product.title}</p>
+        </div>
+        <Link
+          href="/admin/products"
+          className="inline-flex h-9 items-center gap-1 rounded-md border border-input bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+        >
+          <ArrowRight className="h-3.5 w-3.5 rotate-180" />
+          Back
+        </Link>
+      </FadeIn>
 
       {sp.error && (
-        <div className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">
+        <FadeIn className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           {sp.error}
-        </div>
+        </FadeIn>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Product Details</CardTitle>
-          <CardDescription>Update the product information</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={updateProduct} className="space-y-4">
-            <input type="hidden" name="id" value={product.id} />
-            <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
+      <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1 sm:p-8">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Package className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-foreground">
+              Product Details
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Update the product information.
+            </p>
+          </div>
+        </div>
+
+        <form action={updateProduct} className="mt-6 space-y-6">
+          <input type="hidden" name="id" value={product.id} />
+
+          <Section title="Basics">
+            <Field id="title" label="Title" required>
               <Input id="title" name="title" required defaultValue={product.title} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="slug">Slug</Label>
+            </Field>
+            <Field id="slug" label="Slug">
               <Input id="slug" name="slug" defaultValue={product.slug} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="shortDescription">Short Description</Label>
+            </Field>
+          </Section>
+
+          <Section title="Description">
+            <Field id="shortDescription" label="Short Description">
               <Input id="shortDescription" name="shortDescription" defaultValue={product.short_description || ""} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Full Description</Label>
+            </Field>
+            <Field id="description" label="Full Description">
               <textarea
                 id="description"
                 name="description"
                 rows={4}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 defaultValue={product.description || ""}
               />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="price">Price (PHP) *</Label>
+            </Field>
+          </Section>
+
+          <Section title="Pricing">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="price" label="Price (PHP)" required>
                 <Input id="price" name="price" type="number" step="0.01" required defaultValue={product.price} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="compareAtPrice">Compare at Price</Label>
+              </Field>
+              <Field id="compareAtPrice" label="Compare at Price">
                 <Input id="compareAtPrice" name="compareAtPrice" type="number" step="0.01" defaultValue={product.compare_at_price || ""} />
-              </div>
+              </Field>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="sku">SKU</Label>
+          </Section>
+
+          <Section title="Catalog">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="sku" label="SKU">
                 <Input id="sku" name="sku" defaultValue={product.sku || ""} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <select
-                  id="status"
-                  name="status"
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  defaultValue={product.status}
-                >
+              </Field>
+              <Field id="status" label="Status">
+                <Select id="status" name="status" defaultValue={product.status}>
                   <option value="DRAFT">Draft</option>
                   <option value="ACTIVE">Active</option>
                   <option value="ARCHIVED">Archived</option>
-                </select>
-              </div>
+                </Select>
+              </Field>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="weightGrams">Weight (grams)</Label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="weightGrams" label="Weight (grams)">
                 <Input id="weightGrams" name="weightGrams" type="number" defaultValue={product.weight_grams || ""} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="featured">Featured</Label>
-                <select
-                  id="featured"
-                  name="featured"
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  defaultValue={product.featured ? "true" : "false"}
-                >
+              </Field>
+              <Field id="featured" label="Featured">
+                <Select id="featured" name="featured" defaultValue={product.featured ? "true" : "false"}>
                   <option value="false">No</option>
                   <option value="true">Yes</option>
-                </select>
-              </div>
+                </Select>
+              </Field>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="seoTitle">SEO Title</Label>
+          </Section>
+
+          <Section title="SEO">
+            <Field id="seoTitle" label="SEO Title">
               <Input id="seoTitle" name="seoTitle" defaultValue={product.seo_title || ""} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="seoDescription">SEO Description</Label>
+            </Field>
+            <Field id="seoDescription" label="SEO Description">
               <Input id="seoDescription" name="seoDescription" defaultValue={product.seo_description || ""} />
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button type="submit">Save Changes</Button>
-              <Link href="/admin/products" className="inline-flex h-9 items-center justify-center rounded-md border px-4 text-sm font-medium hover:bg-surface">
-                Cancel
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </Field>
+          </Section>
+
+          <div className="flex gap-3 border-t border-border pt-6">
+            <Button type="submit">Save Changes</Button>
+            <Link
+              href="/admin/products"
+              className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+            >
+              Cancel
+            </Link>
+          </div>
+        </form>
+      </FadeIn>
     </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-eyebrow">{title}</h3>
+      <div className="space-y-4">{children}</div>
+    </div>
+  );
+}
+
+function Field({
+  id, label, required, children,
+}: {
+  id: string; label: string; required?: boolean; children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>
+        {label}
+        {required && <span className="ml-1 text-destructive">*</span>}
+      </Label>
+      {children}
+    </div>
+  );
+}
+
+function Select({
+  id, name, defaultValue, children,
+}: {
+  id: string; name: string; defaultValue?: string; children: React.ReactNode;
+}) {
+  return (
+    <select
+      id={id}
+      name={name}
+      defaultValue={defaultValue}
+      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    >
+      {children}
+    </select>
   );
 }

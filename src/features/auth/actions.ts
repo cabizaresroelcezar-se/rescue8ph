@@ -15,39 +15,44 @@ export async function signUp(formData: FormData) {
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        first_name: firstName || null,
-        last_name: lastName || null,
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: firstName || null,
+          last_name: lastName || null,
+        },
+        emailRedirectTo: `${(await headers()).get("origin")}/auth/callback`,
       },
-      emailRedirectTo: `${(await headers()).get("origin")}/auth/callback`,
-    },
-  });
+    });
 
-  if (error) {
-    return redirect(`/auth/login?error=${encodeURIComponent(error.message)}`);
-  }
+    if (error) {
+      return redirect(`/auth/login?error=${encodeURIComponent(error.message)}`);
+    }
 
-  // If email confirmation is required, redirect to a notice page
-  if (data.user && !data.session) {
+    // If email confirmation is required, redirect to a notice page
+    if (data.user && !data.session) {
+      return redirect(
+        "/auth/login?message=" +
+          encodeURIComponent("Check your email to confirm your account."),
+      );
+    }
+
+    // If auto-confirmed, session is created
+    if (data.session) {
+      return redirect("/account");
+    }
+
     return redirect(
       "/auth/login?message=" +
         encodeURIComponent("Check your email to confirm your account."),
     );
+  } catch (err) {
+    const message = humanizeAuthError(err);
+    return redirect(`/auth/login?error=${encodeURIComponent(message)}`);
   }
-
-  // If auto-confirmed, session is created
-  if (data.session) {
-    return redirect("/account");
-  }
-
-  return redirect(
-    "/auth/login?message=" +
-      encodeURIComponent("Check your email to confirm your account."),
-  );
 }
 
 // ============================================================================
@@ -60,18 +65,25 @@ export async function signIn(formData: FormData) {
   const password = formData.get("password") as string;
   const redirectTo = (formData.get("redirectTo") as string) || "/account";
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (error) {
+    if (error) {
+      return redirect(
+        `/auth/login?error=${encodeURIComponent(error.message)}&email=${encodeURIComponent(email)}`,
+      );
+    }
+
+    return redirect(redirectTo);
+  } catch (err) {
+    const message = humanizeAuthError(err);
     return redirect(
-      `/auth/login?error=${encodeURIComponent(error.message)}&email=${encodeURIComponent(email)}`,
+      `/auth/login?error=${encodeURIComponent(message)}&email=${encodeURIComponent(email)}`,
     );
   }
-
-  return redirect(redirectTo);
 }
 
 // ============================================================================
@@ -79,8 +91,13 @@ export async function signIn(formData: FormData) {
 // ============================================================================
 
 export async function signOut() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  try {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+  } catch (err) {
+    // Swallow — still send the user to home even if Supabase is unreachable.
+    console.error("signOut error:", err);
+  }
   return redirect("/");
 }
 
@@ -165,4 +182,28 @@ export async function updateProfile(formData: FormData) {
     "/account/profile?message=" +
       encodeURIComponent("Profile updated successfully."),
   );
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/**
+ * Convert a thrown error (often a Node "fetch failed" / TypeError when the
+ * Supabase URL is unconfigured or unreachable) into something a human can act
+ * on, instead of a raw `TypeError: fetch failed` stack trace.
+ */
+function humanizeAuthError(err: unknown): string {
+  if (err instanceof Error) {
+    const name = err.name || "";
+    const msg  = err.message || "";
+    if (msg.toLowerCase().includes("fetch failed")) {
+      return "We couldn't reach the authentication service. Please try again in a moment — if the problem persists, contact us at info@rescue8ph.com.";
+    }
+    if (name === "AuthRetryableFetchError" || msg.includes("RetryableFetch")) {
+      return "The authentication service is temporarily unreachable. Please try again shortly.";
+    }
+    return msg;
+  }
+  return "Unexpected error. Please try again.";
 }

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
-import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ButtonLink } from "@/components/ui/button-link";
+import { HeaderClient } from "@/components/layout/header-client";
+import { AnnouncementBar } from "@/components/layout/announcement-bar";
 
 export async function Header() {
   const supabase = await createClient();
@@ -25,44 +26,37 @@ export async function Header() {
     : profile?.role?.name;
   const isAdmin = roleName === "admin" || roleName === "super_admin";
 
+  const navItems = [
+    { href: "/products", label: "Products" },
+    { href: "/services", label: "Services" },
+    { href: "/about",    label: "About" },
+    { href: "/blog",     label: "Blog" },
+    { href: "/faq",      label: "FAQ" },
+    { href: "/contact",  label: "Contact" },
+  ];
+
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-white">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.svg"
-              alt="Rescue 8 Philippines"
-              width={120}
-              height={62}
-              className="h-10 w-auto"
-              priority
-            />
-          </Link>
-          <nav className="hidden items-center gap-6 md:flex">
-            <Link href="/products" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-              Products
-            </Link>
-            <Link href="/about" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-              About
-            </Link>
-            <Link href="/services" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-              Services
-            </Link>
-            <Link href="/blog" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-              Blog
-            </Link>
-            <Link href="/faq" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-              FAQ
-            </Link>
-            <Link href="/contact" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-              Contact
-            </Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-2">
+    <>
+      <AnnouncementBar
+        message="Nationwide delivery on orders over ₱5,000 — Free shipping to Metro Manila, Rizal, Bulacan, Cavite, and Laguna."
+        href="/products"
+      />
+
+      <HeaderClient navItems={navItems}>
+        <Link href="/" className="flex items-center gap-2" aria-label="Rescue 8 Philippines home">
+          <Image
+            src="/logo.svg"
+            alt=""
+            width={120}
+            height={62}
+            className="h-9 w-auto sm:h-10"
+            priority
+          />
+        </Link>
+
+        <div className="hidden items-center gap-2 md:flex">
           {user ? (
-            <div className="flex items-center gap-2">
+            <>
               {isAdmin && (
                 <ButtonLink href="/admin" variant="ghost" size="sm">
                   Admin
@@ -71,20 +65,19 @@ export async function Header() {
               <ButtonLink href="/account" variant="ghost" size="sm">
                 My Account
               </ButtonLink>
-              <SignOutButton />
-            </div>
+            </>
           ) : (
-            <div className="flex items-center gap-2">
+            <>
               <ButtonLink href="/auth/login" variant="ghost" size="sm">
                 Sign In
               </ButtonLink>
               <ButtonLink href="/auth/register" size="sm">
                 Sign Up
               </ButtonLink>
-            </div>
+            </>
           )}
         </div>
-      </div>
-    </header>
+      </HeaderClient>
+    </>
   );
 }

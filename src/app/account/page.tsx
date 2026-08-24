@@ -1,13 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { ButtonLink } from "@/components/ui/button-link";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  User as UserIcon,
+  ShoppingBag,
+  MapPin,
+  ShieldCheck,
+  Mail,
+  ArrowRight,
+  Star,
+  Heart,
+  Clock,
+} from "lucide-react";
+import { ButtonLink } from "@/components/ui/button-link";
+import { FadeIn, Stagger } from "@/lib/motion";
 
 export default async function AccountPage({
   searchParams,
@@ -41,78 +46,207 @@ export default async function AccountPage({
       ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
       : user.email?.split("@")[0] || "User";
 
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((s) => s[0]?.toUpperCase())
+    .slice(0, 2)
+    .join("");
+
+  const roleName = (profile?.role as { name?: string } | undefined)?.name;
+  const isAdmin = roleName === "admin" || roleName === "super_admin";
+
+  const profileComplete =
+    Boolean(profile?.first_name && profile?.last_name && profile?.phone);
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12">
+    <div className="bg-surface">
+      {/* Greeting hero */}
+      <section className="border-b border-border bg-background">
+        <div className="container-page py-10 sm:py-12">
+          <FadeIn className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-xl font-bold text-primary shadow-elev-1">
+                {initials || "R"}
+              </div>
+              <div>
+                <p className="text-eyebrow">My Account</p>
+                <h1 className="mt-1 text-display-md text-foreground">
+                  Hello, {displayName.split(" ")[0]}
+                </h1>
+                <p className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground">
+                  <Mail className="h-3.5 w-3.5" />
+                  {user.email}
+                </p>
+              </div>
+            </div>
+            <ButtonLink href="/products">
+              Continue shopping
+              <ArrowRight />
+            </ButtonLink>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* Flash message */}
       {params.message && (
-        <div className="mb-6 rounded-md bg-primary/10 p-4 text-sm text-primary">
-          {params.message}
+        <div className="container-page pt-6">
+          <div className="rounded-md border border-primary/20 bg-primary/10 p-4 text-sm text-primary">
+            {params.message}
+          </div>
         </div>
       )}
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">
-          My Account
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Welcome back, {displayName}
-        </p>
-      </div>
-
-      <div className="grid gap-6 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Profile</CardTitle>
-            <CardDescription>Manage your personal information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1 text-sm">
-              <p className="text-muted-foreground">Email</p>
-              <p className="font-medium">{user.email}</p>
-              {profile?.role?.name && (
-                <>
-                  <p className="mt-2 text-muted-foreground">Role</p>
-                  <p className="font-medium capitalize">{profile.role.name.replace("_", " ")}</p>
-                </>
-              )}
+      {/* Profile completion nudge */}
+      {!profileComplete && (
+        <div className="container-page pt-6">
+          <FadeIn className="flex items-start gap-3 rounded-xl border border-accent/30 bg-accent/5 p-4">
+            <Clock className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">
+                Complete your profile
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Add your name and phone number for faster checkout and order
+                updates.
+              </p>
             </div>
-            <ButtonLink href="/account/profile" variant="outline" size="sm" className="mt-4">Edit Profile</ButtonLink>
-          </CardContent>
-        </Card>
+            <ButtonLink href="/account/profile" size="sm" variant="outline">
+              Update profile
+            </ButtonLink>
+          </FadeIn>
+        </div>
+      )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Orders</CardTitle>
-            <CardDescription>View your order history</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{orderCount ?? 0}</p>
-            <p className="text-sm text-muted-foreground">Total orders</p>
-            <ButtonLink href="/account/orders" variant="outline" size="sm" className="mt-4">View Orders</ButtonLink>
-          </CardContent>
-        </Card>
+      <div className="container-page py-10">
+        <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <AccountCard
+            icon={ShoppingBag}
+            title="Orders"
+            value={(orderCount ?? 0).toLocaleString()}
+            subtitle="Total orders placed"
+            cta={{ href: "/account/orders", label: "View orders" }}
+          />
+          <AccountCard
+            icon={MapPin}
+            title="Addresses"
+            subtitle="Manage your delivery addresses"
+            cta={{ href: "/account/addresses", label: "Manage addresses" }}
+          />
+          <AccountCard
+            icon={UserIcon}
+            title="Profile"
+            subtitle="Name, phone, email preferences"
+            cta={{ href: "/account/profile", label: "Edit profile" }}
+          />
+          <AccountCard
+            icon={Heart}
+            title="Wishlist"
+            subtitle="Items you&apos;re saving for later"
+            cta={{ href: "/products", label: "Browse products" }}
+          />
+          <AccountCard
+            icon={Star}
+            title="Reviews"
+            subtitle="Reviews you&apos;ve written"
+            cta={{ href: "/account/orders", label: "Write a review" }}
+          />
+          {isAdmin && (
+            <AccountCard
+              icon={ShieldCheck}
+              title="Admin Panel"
+              subtitle="Manage the store, orders, and content"
+              cta={{ href: "/admin", label: "Go to admin" }}
+              accent
+            />
+          )}
+        </Stagger>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Addresses</CardTitle>
-            <CardDescription>Manage your delivery addresses</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ButtonLink href="/account/addresses" variant="outline" size="sm" className="mt-4">Manage Addresses</ButtonLink>
-          </CardContent>
-        </Card>
+        {/* Account meta */}
+        <FadeIn delay={120} className="mt-10 rounded-xl border border-border bg-card p-6">
+          <h2 className="text-sm font-semibold text-foreground">Account details</h2>
+          <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2 md:grid-cols-3">
+            <Field label="Email" value={user.email || "—"} />
+            <Field
+              label="Name"
+              value={
+                profile?.first_name || profile?.last_name
+                  ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
+                  : "Not set"
+              }
+            />
+            <Field label="Phone" value={profile?.phone || "Not set"} />
+            {roleName && (
+              <Field
+                label="Role"
+                value={roleName.replace("_", " ").replace(/^./, (c) => c.toUpperCase())}
+              />
+            )}
+          </dl>
+        </FadeIn>
+      </div>
+    </div>
+  );
+}
 
-        {(profile?.role?.name === "admin" || profile?.role?.name === "super_admin") && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Admin Panel</CardTitle>
-              <CardDescription>Access the admin dashboard</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ButtonLink href="/admin" size="sm" className="mt-4">Go to Admin</ButtonLink>
-            </CardContent>
-          </Card>
+function AccountCard({
+  icon: Icon,
+  title,
+  value,
+  subtitle,
+  cta,
+  accent,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  value?: string;
+  subtitle?: string;
+  cta: { href: string; label: string };
+  accent?: boolean;
+}) {
+  return (
+    <FadeIn
+      className={
+        "group relative flex flex-col overflow-hidden rounded-xl border bg-card p-6 shadow-elev-1 transition-all hover:-translate-y-0.5 hover:shadow-elev-3 " +
+        (accent ? "border-accent/30 bg-accent/5" : "border-border")
+      }
+    >
+      <div className="flex items-start justify-between">
+        <div
+          className={
+            "flex h-10 w-10 items-center justify-center rounded-lg " +
+            (accent ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary")
+          }
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+        {value && (
+          <p className="text-3xl font-bold tracking-tight text-foreground">
+            {value}
+          </p>
         )}
       </div>
+      <p className="mt-4 text-sm font-semibold text-foreground">{title}</p>
+      {subtitle && (
+        <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
+      )}
+      <div className="mt-auto pt-4">
+        <ButtonLink href={cta.href} size="sm" variant="ghost" className="px-0">
+          {cta.label}
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </ButtonLink>
+      </div>
+    </FadeIn>
+  );
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </dt>
+      <dd className="mt-1 font-medium text-foreground">{value}</dd>
     </div>
   );
 }

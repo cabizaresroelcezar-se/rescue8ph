@@ -1,12 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Package,
+  Truck,
+  CreditCard,
+  Ban,
+  MapPin,
+  Clock,
+  ArrowRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FadeIn, Stagger } from "@/lib/motion";
+import { formatDateTimePh } from "@/lib/format";
 import {
   markPaymentPaid,
   updateOrderStatus,
@@ -14,7 +20,35 @@ import {
   createShipment,
   updateShipmentStatus,
 } from "@/features/orders/actions";
-import { Truck, CreditCard, Package, Ban } from "lucide-react";
+
+const ORDER_STATUSES = [
+  "PENDING", "PAYMENT_PENDING", "PAID", "PROCESSING", "READY_TO_SHIP",
+  "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "FAILED",
+];
+
+const SHIPMENT_STATUSES = [
+  "PENDING", "QUOTED", "BOOKED", "PICKED_UP", "IN_TRANSIT",
+  "OUT_FOR_DELIVERY", "DELIVERED", "FAILED", "CANCELLED",
+];
+
+const ORDER_TONE: Record<string, string> = {
+  PENDING:          "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/15 dark:text-yellow-300",
+  PAYMENT_PENDING:  "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/15 dark:text-yellow-300",
+  PAID:             "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300",
+  PROCESSING:       "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300",
+  READY_TO_SHIP:    "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-300",
+  SHIPPED:          "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-300",
+  OUT_FOR_DELIVERY: "bg-purple-100 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300",
+  DELIVERED:        "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300",
+  CANCELLED:        "bg-zinc-200 text-zinc-700 dark:bg-zinc-500/15 dark:text-zinc-300",
+  FAILED:           "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300",
+};
+
+const PAYMENT_TONE: Record<string, string> = {
+  PAID:    "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300",
+  FAILED:  "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300",
+  PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/15 dark:text-yellow-300",
+};
 
 export default async function AdminOrderDetailPage({
   params,
@@ -51,158 +85,176 @@ export default async function AdminOrderDetailPage({
     supabase.from("shipments").select("*").eq("order_id", order.id).order("created_at", { ascending: true }),
   ]);
 
-  const orderStatuses = [
-    "PENDING", "PAYMENT_PENDING", "PAID", "PROCESSING", "READY_TO_SHIP",
-    "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "FAILED",
-  ];
-
-  const shipmentStatuses = [
-    "PENDING", "QUOTED", "BOOKED", "PICKED_UP", "IN_TRANSIT",
-    "OUT_FOR_DELIVERY", "DELIVERED", "FAILED", "CANCELLED",
-  ];
+  const orderTone = ORDER_TONE[order.status] ?? "bg-zinc-100 text-zinc-700";
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
+    <div className="space-y-8">
+      {/* Header */}
+      <FadeIn className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{order.order_number}</h1>
+          <p className="text-eyebrow">Back Office · Orders</p>
+          <h1 className="mt-2 text-display-md text-foreground">
+            {order.order_number}
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {new Date(order.created_at).toLocaleString("en-PH")}
+            Placed {formatDateTimePh(order.created_at)}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+          <span
+            className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${orderTone}`}
+          >
             {order.status.replace(/_/g, " ")}
           </span>
+          <Link
+            href="/admin/orders"
+            className="inline-flex h-9 items-center gap-1 rounded-md border border-input bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+          >
+            <ArrowRight className="h-3.5 w-3.5 rotate-180" />
+            Back
+          </Link>
         </div>
-      </div>
+      </FadeIn>
 
+      {/* Flash messages */}
       {sp.error && (
-        <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+        <FadeIn className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           {sp.error}
-        </div>
+        </FadeIn>
       )}
       {sp.message && (
-        <div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-700">
+        <FadeIn className="rounded-md border border-emerald-300/40 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
           {sp.message}
-        </div>
+        </FadeIn>
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left: items + address */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* Order items */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Package className="h-5 w-5 text-primary" />
-                Items
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {(items || []).map((item) => (
-                  <div key={item.id} className="flex justify-between border-b pb-2 text-sm last:border-0">
-                    <div>
-                      <p className="font-medium">{item.product_name}</p>
-                      <p className="text-muted-foreground">
-                        {item.quantity} x PHP {item.unit_price.toFixed(2)}
-                        {item.sku && ` (SKU: ${item.sku})`}
-                      </p>
-                    </div>
-                    <p className="font-medium">PHP {item.subtotal.toFixed(2)}</p>
-                  </div>
-                ))}
+        {/* Left: items + address + shipments */}
+        <Stagger className="space-y-6 lg:col-span-2">
+          <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Package className="h-5 w-5" />
               </div>
-              <div className="mt-4 space-y-1 border-t pt-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>PHP {order.subtotal.toFixed(2)}</span>
-                </div>
-                {order.discount_total > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Discount</span>
-                    <span>-PHP {order.discount_total.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span>PHP {order.shipping_total.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between font-bold">
-                  <span>Total</span>
-                  <span>{order.currency} {order.grand_total.toFixed(2)}</span>
-                </div>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Items</h2>
+                <p className="text-xs text-muted-foreground">
+                  {(items || []).length} item{(items || []).length === 1 ? "" : "s"}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <ul className="mt-4 divide-y divide-border/60">
+              {(items || []).map((item) => (
+                <li key={item.id} className="flex justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {item.product_name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {item.quantity} × PHP {item.unit_price.toFixed(2)}
+                      {item.sku && ` (SKU: ${item.sku})`}
+                    </p>
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">
+                    PHP {item.subtotal.toFixed(2)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 space-y-1.5 border-t border-border pt-3 text-sm">
+              <SummaryRow label="Subtotal" value={`PHP ${order.subtotal.toFixed(2)}`} />
+              {order.discount_total > 0 && (
+                <SummaryRow label="Discount" value={`-PHP ${order.discount_total.toFixed(2)}`} muted />
+              )}
+              <SummaryRow label="Shipping" value={`PHP ${order.shipping_total.toFixed(2)}`} />
+              <SummaryRow label="Total" value={`${order.currency} ${order.grand_total.toFixed(2)}`} bold />
+            </div>
+          </FadeIn>
 
-          {/* Delivery address */}
           {address && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Truck className="h-5 w-5 text-primary" />
-                  Delivery Address
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm space-y-1">
-                <p className="font-medium">{address.first_name} {address.last_name}</p>
+            <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <MapPin className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-foreground">
+                    Delivery Address
+                  </h2>
+                  <p className="text-xs text-muted-foreground">Recipient details</p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-0.5 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">
+                  {address.first_name} {address.last_name}
+                </p>
                 <p>{address.phone}</p>
                 {address.email && <p>{address.email}</p>}
                 <p>{address.street_address}</p>
                 {address.building_unit && <p>{address.building_unit}</p>}
-                <p>{address.barangay}, {address.city_municipality}</p>
-                <p>{address.province}, {address.region}</p>
+                <p>
+                  {address.barangay}, {address.city_municipality}
+                </p>
+                <p>
+                  {address.province}, {address.region}
+                </p>
                 {address.postal_code && <p>{address.postal_code}</p>}
-                {address.delivery_notes && <p className="italic text-muted-foreground">Notes: {address.delivery_notes}</p>}
-              </CardContent>
-            </Card>
+                {address.delivery_notes && (
+                  <p className="italic">Notes: {address.delivery_notes}</p>
+                )}
+              </div>
+            </FadeIn>
           )}
 
-          {/* Shipments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Truck className="h-5 w-5 text-primary" />
-                Shipments
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Truck className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Shipments</h2>
+                <p className="text-xs text-muted-foreground">
+                  {(shipments || []).length} shipment{(shipments || []).length === 1 ? "" : "s"}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-3">
               {(shipments || []).length === 0 ? (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-3">No shipments created yet.</p>
-                  {/* Create shipment form */}
-                  <form action={createShipment} className="rounded-lg border p-4 space-y-3">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    No shipments created yet.
+                  </p>
+                  <form action={createShipment} className="rounded-lg border border-border bg-background p-4 space-y-3">
                     <input type="hidden" name="orderId" value={order.id} />
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs font-medium text-muted-foreground">Provider</label>
-                        <select name="provider" className="mt-1 flex h-8 w-full rounded-md border border-input bg-background px-2 text-sm">
+                        <select name="provider" className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
                           <option value="MANUAL">Manual</option>
                           <option value="LALAMOVE">Lalamove</option>
-                          <option value="JNT">J&T</option>
+                          <option value="JNT">J&amp;T</option>
                           <option value="LBC">LBC</option>
                         </select>
                       </div>
                       <div>
                         <label className="text-xs font-medium text-muted-foreground">Service Name</label>
-                        <input name="serviceName" className="mt-1 flex h-8 w-full rounded-md border border-input bg-background px-2 text-sm" placeholder="Standard Delivery" />
+                        <input name="serviceName" className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm" placeholder="Standard Delivery" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs font-medium text-muted-foreground">Tracking Number</label>
-                        <input name="trackingNumber" className="mt-1 flex h-8 w-full rounded-md border border-input bg-background px-2 text-sm" placeholder="(optional)" />
+                        <input name="trackingNumber" className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm" placeholder="(optional)" />
                       </div>
                       <div>
                         <label className="text-xs font-medium text-muted-foreground">Shipping Cost (PHP)</label>
-                        <input name="shippingCost" type="number" step="0.01" defaultValue="0" className="mt-1 flex h-8 w-full rounded-md border border-input bg-background px-2 text-sm" />
+                        <input name="shippingCost" type="number" step="0.01" defaultValue="0" className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm" />
                       </div>
                     </div>
                     <div>
                       <label className="text-xs font-medium text-muted-foreground">Estimated Delivery</label>
-                      <input name="estimatedDelivery" className="mt-1 flex h-8 w-full rounded-md border border-input bg-background px-2 text-sm" placeholder="3-5 business days" />
+                      <input name="estimatedDelivery" className="mt-1 flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm" placeholder="3-5 business days" />
                     </div>
                     <Button type="submit" size="sm">Create Shipment</Button>
                   </form>
@@ -210,89 +262,141 @@ export default async function AdminOrderDetailPage({
               ) : (
                 <div className="space-y-3">
                   {(shipments || []).map((ship) => (
-                    <div key={ship.id} className="rounded-lg border p-3">
-                      <div className="flex items-center justify-between">
+                    <div key={ship.id} className="rounded-lg border border-border bg-background p-3">
+                      <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-sm font-medium">{ship.provider} — {ship.service_name || "N/A"}</p>
-                          {ship.tracking_number && <p className="text-xs text-muted-foreground">Tracking: {ship.tracking_number}</p>}
-                          <p className="text-xs text-muted-foreground">Cost: PHP {ship.shipping_cost.toFixed(2)}</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {ship.provider} — {ship.service_name || "N/A"}
+                          </p>
+                          {ship.tracking_number && (
+                            <p className="text-xs text-muted-foreground">
+                              Tracking: {ship.tracking_number}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            Cost: PHP {ship.shipping_cost.toFixed(2)}
+                          </p>
                         </div>
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            ORDER_TONE[ship.status] ?? "bg-zinc-100 text-zinc-700"
+                          }`}
+                        >
                           {ship.status.replace(/_/g, " ")}
                         </span>
                       </div>
-                      {/* Update shipment status */}
-                      <form action={updateShipmentStatus} className="mt-3 flex items-center gap-2">
+                      <form action={updateShipmentStatus} className="mt-3 flex flex-wrap items-center gap-2">
                         <input type="hidden" name="shipmentId" value={ship.id} />
                         <input type="hidden" name="orderId" value={order.id} />
-                        <select name="status" className="h-8 rounded-md border border-input bg-background px-2 text-xs">
-                          {shipmentStatuses.map((s) => (
-                            <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
+                        <select name="status" className="h-9 rounded-md border border-input bg-background px-2 text-xs">
+                          {SHIPMENT_STATUSES.map((s) => (
+                            <option key={s} value={s}>
+                              {s.replace(/_/g, " ")}
+                            </option>
                           ))}
                         </select>
-                        <input name="description" placeholder="Description (optional)" className="h-8 flex-1 rounded-md border border-input bg-background px-2 text-xs" />
-                        <Button type="submit" size="sm" variant="outline">Update</Button>
+                        <input
+                          name="description"
+                          placeholder="Description (optional)"
+                          className="h-9 flex-1 min-w-[12rem] rounded-md border border-input bg-background px-2 text-xs"
+                        />
+                        <Button type="submit" size="sm" variant="outline">
+                          Update
+                        </Button>
                       </form>
                     </div>
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </FadeIn>
+        </Stagger>
 
-        {/* Right: status + payments + history */}
-        <div className="space-y-6">
-          {/* Order status update */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Update Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <form action={updateOrderStatus} className="space-y-2">
-                <input type="hidden" name="orderId" value={order.id} />
-                <select name="status" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" defaultValue={order.status}>
-                  {orderStatuses.map((s) => (
-                    <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
-                  ))}
-                </select>
-                <input name="note" placeholder="Note (optional)" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
-                <Button type="submit" size="sm" className="w-full">Update Status</Button>
-              </form>
-              <form action={cancelOrder}>
-                <input type="hidden" name="orderId" value={order.id} />
-                <Button type="submit" variant="destructive" size="sm" className="w-full">
-                  <Ban className="mr-1 h-3 w-3" />
-                  Cancel Order
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+        {/* Right: status, payments, history */}
+        <Stagger className="space-y-6">
+          <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <ArrowRight className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">
+                  Update Status
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Move this order forward
+                </p>
+              </div>
+            </div>
+            <form action={updateOrderStatus} className="mt-4 space-y-2">
+              <input type="hidden" name="orderId" value={order.id} />
+              <select
+                name="status"
+                defaultValue={order.status}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                {ORDER_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+              <input
+                name="note"
+                placeholder="Note (optional)"
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              />
+              <Button type="submit" size="sm" className="w-full">
+                Update Status
+              </Button>
+            </form>
+            <form action={cancelOrder} className="mt-3">
+              <input type="hidden" name="orderId" value={order.id} />
+              <Button type="submit" variant="destructive" size="sm" className="w-full">
+                <Ban className="h-3.5 w-3.5" />
+                Cancel Order
+              </Button>
+            </form>
+          </FadeIn>
 
-          {/* Payments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <CreditCard className="h-5 w-5 text-primary" />
-                Payments
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <CreditCard className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Payments</h2>
+                <p className="text-xs text-muted-foreground">
+                  {(payments || []).length} payment record{(payments || []).length === 1 ? "" : "s"}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 space-y-3">
               {(payments || []).map((payment) => (
-                <div key={payment.id} className="rounded-lg border p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{payment.provider}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      payment.status === "PAID" ? "bg-green-100 text-green-700" :
-                      payment.status === "FAILED" ? "bg-red-100 text-red-700" :
-                      "bg-yellow-100 text-yellow-700"
-                    }`}>
+                <div
+                  key={payment.id}
+                  className="rounded-lg border border-border bg-background p-3 space-y-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-foreground">
+                      {payment.provider}
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        PAYMENT_TONE[payment.status] ??
+                        "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
                       {payment.status}
                     </span>
                   </div>
-                  <p className="text-sm">Amount: {payment.currency} {payment.amount.toFixed(2)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Amount: {payment.currency} {payment.amount.toFixed(2)}
+                  </p>
                   {payment.provider_payment_id && (
-                    <p className="text-xs text-muted-foreground">Ref: {payment.provider_payment_id}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Ref: {payment.provider_payment_id}
+                    </p>
                   )}
                   {payment.status === "PENDING" && (
                     <form action={markPaymentPaid}>
@@ -305,38 +409,70 @@ export default async function AdminOrderDetailPage({
                   )}
                 </div>
               ))}
-              {!payments || payments.length === 0 && (
+              {(!payments || payments.length === 0) && (
                 <p className="text-sm text-muted-foreground">No payment records.</p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </FadeIn>
 
-          {/* Status history */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Status History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {(history || []).map((h) => (
-                  <div key={h.id} className="text-sm border-l-2 border-primary/30 pl-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium capitalize">{h.to_status.replace(/_/g, " ").toLowerCase()}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(h.created_at).toLocaleString("en-PH")}
-                      </span>
-                    </div>
-                    {h.note && <p className="text-xs text-muted-foreground mt-0.5">{h.note}</p>}
-                  </div>
-                ))}
-                {!history || history.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No history records.</p>
-                )}
+          <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Clock className="h-5 w-5" />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Status History</h2>
+                <p className="text-xs text-muted-foreground">All status changes</p>
+              </div>
+            </div>
+            <ol className="relative mt-4 space-y-4 border-l border-border pl-5">
+              {(history || []).map((h) => (
+                <li key={h.id} className="relative">
+                  <span
+                    aria-hidden
+                    className="absolute -left-[27px] top-1 h-3 w-3 rounded-full border-2 border-background bg-primary"
+                  />
+                  <p className="text-sm font-medium capitalize text-foreground">
+                    {h.to_status.replace(/_/g, " ").toLowerCase()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDateTimePh(h.created_at)}
+                  </p>
+                  {h.note && (
+                    <p className="mt-1 text-xs text-muted-foreground">{h.note}</p>
+                  )}
+                </li>
+              ))}
+              {(!history || history.length === 0) && (
+                <li className="text-sm text-muted-foreground">No history records.</li>
+              )}
+            </ol>
+          </FadeIn>
+        </Stagger>
       </div>
+    </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  bold,
+  muted,
+}: {
+  label: string;
+  value: string;
+  bold?: boolean;
+  muted?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between ${
+        bold ? "border-t border-border pt-2 text-base font-bold text-foreground" : ""
+      } ${muted ? "text-muted-foreground" : ""}`}
+    >
+      <span className={bold ? "" : "text-muted-foreground"}>{label}</span>
+      <span className={bold ? "" : "text-foreground"}>{value}</span>
     </div>
   );
 }
