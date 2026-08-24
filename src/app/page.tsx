@@ -46,14 +46,20 @@ export default async function HomePage() {
           .order("sort_order", { ascending: true })
       : { data: [] };
     const imageByProduct: Record<string, { src: string; alt: string }> = {};
-    for (const img of featuredImages ?? []) {
-      const url = getMediaUrl(img.storage_path);
-      if (!url) continue;
-      const existing = imageByProduct[img.product_id];
-      if (!existing || img.is_primary) {
-        imageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
+      for (const img of featuredImages ?? []) {
+        const url = getMediaUrl(img.storage_path);
+        if (!url) continue;
+        const existing = imageByProduct[img.product_id];
+        if (!existing || img.is_primary) {
+          imageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
+        }
       }
-    }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: wishlistRows } = user
+        ? await supabase.from("wishlist").select("product_id").eq("user_id", user.id)
+        : { data: [] };
+      const savedSet = new Set((wishlistRows ?? []).map((w) => w.product_id));
 
   const slides: HeroSlide[] = [
     {
@@ -241,20 +247,22 @@ export default async function HomePage() {
               </Link>
             </FadeIn>
             <Stagger className="grid gap-5 sm:grid-cols-2 md:grid-cols-4">
-                          {products.map((product) => (
-                            <FadeIn key={product.id}>
-                              <ProductCard
-                                slug={product.slug}
-                                title={product.title}
-                                short_description={product.short_description}
-                                price={product.price}
-                                compare_at_price={product.compare_at_price}
-                                featured={product.featured}
-                                image={imageByProduct[product.id] ?? null}
-                              />
-                            </FadeIn>
-                          ))}
-                        </Stagger>
+                                      {products.map((product) => (
+                                        <FadeIn key={product.id}>
+                                          <ProductCard
+                                            id={product.id}
+                                            slug={product.slug}
+                                            title={product.title}
+                                            short_description={product.short_description}
+                                            price={product.price}
+                                            compare_at_price={product.compare_at_price}
+                                            featured={product.featured}
+                                            image={imageByProduct[product.id] ?? null}
+                                            initialSaved={savedSet.has(product.id)}
+                                          />
+                                        </FadeIn>
+                                      ))}
+                                    </Stagger>
           </div>
         </section>
       )}

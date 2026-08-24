@@ -2,12 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, Search, X, ChevronDown, ArrowRight, User } from "lucide-react";
+import { Menu, Search, X, ChevronDown, ArrowRight, User, Heart } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { CartButton } from "@/components/shop/cart-button";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { cn } from "@/lib/utils";
+import { getWishlistCount } from "@/features/wishlist/actions";
 
 type NavItem = { href: string; label: string };
 type HeaderUser = { email: string; firstName: string | null };
@@ -17,11 +18,13 @@ export function HeaderClient({
   children,
   user = null,
   isAdmin = false,
+  initialWishlistCount = 0,
 }: {
   navItems: NavItem[];
   children: React.ReactNode;
   user?: HeaderUser | null;
   isAdmin?: boolean;
+  initialWishlistCount?: number;
 }) {
   const [scrolled, setScrolled] = React.useState(false);
   const [megaOpen, setMegaOpen] = React.useState(false);
@@ -136,10 +139,11 @@ export function HeaderClient({
         </div>
 
         <div className="ml-auto flex items-center gap-1.5">
-                  <SearchTrigger open={searchOpen} setOpen={setSearchOpen} />
-                  <ThemeToggle />
-                  <CartButton />
-                </div>
+                          <SearchTrigger open={searchOpen} setOpen={setSearchOpen} />
+                          <WishlistBadge initialCount={initialWishlistCount} />
+                          <ThemeToggle />
+                          <CartButton />
+                        </div>
               </div>
 
       <MobileDrawer
@@ -216,6 +220,36 @@ function MegaPanel({ open }: { open: boolean }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function WishlistBadge({ initialCount }: { initialCount: number }) {
+  const [count, setCount] = React.useState(initialCount);
+
+  React.useEffect(() => {
+    const onFocus = () => {
+      void (async () => {
+        const c = await getWishlistCount();
+        setCount(c);
+      })();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
+
+  return (
+    <Link
+      href="/account/wishlist"
+      aria-label={`Wishlist with ${count} item${count === 1 ? "" : "s"}`}
+      className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    >
+      <Heart className="h-4 w-4" />
+      {count > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground shadow-elev-1">
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
+    </Link>
   );
 }
 

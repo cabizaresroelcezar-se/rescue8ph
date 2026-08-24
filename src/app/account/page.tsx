@@ -142,11 +142,11 @@ export default async function AccountPage({
             cta={{ href: "/account/profile", label: "Edit profile" }}
           />
           <AccountCard
-            icon={Heart}
-            title="Wishlist"
-            subtitle="Items you&apos;re saving for later"
-            cta={{ href: "/products", label: "Browse products" }}
-          />
+                      icon={Heart}
+                      title="Wishlist"
+                      subtitle="Items you&apos;re saving for later"
+                      cta={{ href: "/account/wishlist", label: "View wishlist" }}
+                    />
           <AccountCard
             icon={Star}
             title="Reviews"

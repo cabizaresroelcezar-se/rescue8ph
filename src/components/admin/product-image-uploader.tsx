@@ -71,12 +71,19 @@ export function ProductImageUploader({ productId, images }: Props) {
     }
     try {
       const res = await uploadProductImages(fd);
-      if (res.error) setError(res.error);
-      else {
+      if (res.error) {
+        setError(res.error);
+      } else if (res.errors && res.errors.length > 0) {
+        // Surface the actual server-side upload failure so the user can fix it
+        setError(`Upload failed: ${res.errors.join(" \u00b7 ")}`);
+        if (res.uploaded > 0) {
+          setSuccess(
+            `Uploaded ${res.uploaded} image${res.uploaded === 1 ? "" : "s"} before failure`,
+          );
+        }
+      } else {
         setSuccess(
-          `Uploaded ${res.uploaded} image${res.uploaded === 1 ? "" : "s"}${
-            res.errors?.length ? ` (${res.errors.length} failed)` : ""
-          }`,
+          `Uploaded ${res.uploaded} image${res.uploaded === 1 ? "" : "s"} successfully`,
         );
         setQueue([]);
         setAlts({});

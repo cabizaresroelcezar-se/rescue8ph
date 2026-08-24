@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, Star, Plus } from "lucide-react";
+import { Star, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { WishlistButton } from "@/components/shop/wishlist-button";
 
 type ProductCardProps = {
   id?: string;
@@ -17,6 +18,7 @@ type ProductCardProps = {
   reviewCount?: number;
   inStock?: boolean;
   image?: { src: string; alt: string } | null;
+  initialSaved?: boolean;
   className?: string;
 };
 
@@ -49,16 +51,18 @@ function StarRating({ rating = 4.6, count = 0 }: { rating?: number; count?: numb
 }
 
 export function ProductCard({
+  id,
   slug,
   title,
   short_description,
   price,
   compare_at_price,
   featured,
-  rating = 4.6,
-  reviewCount,
+  rating = 0,
+  reviewCount = 0,
   inStock = true,
   image,
+  initialSaved = false,
   className,
 }: ProductCardProps) {
   const discount =
@@ -106,17 +110,11 @@ export function ProductCard({
         </div>
 
         {/* Top-right wishlist */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          aria-label="Add to wishlist"
-          className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background/90 text-muted-foreground opacity-0 shadow-elev-1 backdrop-blur transition-all duration-[var(--duration-base)] ease-[var(--ease-spring)] hover:text-rose-500 group-hover:translate-y-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <Heart className="h-4 w-4" />
-        </button>
+                {id && (
+                  <div className="absolute right-3 top-3 opacity-0 transition-all duration-[var(--duration-base)] ease-[var(--ease-spring)] group-hover:translate-y-0 group-hover:opacity-100 focus-within:opacity-100 hover:opacity-100">
+                    <WishlistButton productId={id} initialSaved={initialSaved} />
+                  </div>
+                )}
 
         {/* Bottom quick-add bar (slides in on hover) */}
         <div className="pointer-events-none absolute inset-x-3 bottom-3 translate-y-3 opacity-0 transition-all duration-[var(--duration-base)] ease-[var(--ease-spring)] group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">

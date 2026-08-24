@@ -31,6 +31,15 @@ export async function Header() {
   const isAdmin = roleName === "admin" || roleName === "super_admin";
   const firstName = profile?.first_name ?? null;
 
+  let wishlistCount = 0;
+  if (user) {
+    const { count } = await supabase
+      .from("wishlist")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    wishlistCount = count ?? 0;
+  }
+
   const navItems = [
     { href: "/products", label: "Products" },
     { href: "/services", label: "Services" },
@@ -51,6 +60,7 @@ export async function Header() {
         navItems={navItems}
         user={user ? { email: user.email ?? "", firstName } : null}
         isAdmin={isAdmin}
+        initialWishlistCount={wishlistCount}
       >
         <Link href="/" className="flex items-center gap-2" aria-label="Rescue 8 Philippines home">
           <Image

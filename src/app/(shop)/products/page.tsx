@@ -84,34 +84,44 @@ export default async function ProductsPage({
   }
 
   const [{ data: products }, { data: categories }] = await Promise.all([
-      query,
-      supabase
-        .from("categories")
-        .select("name, slug")
-        .eq("status", "PUBLISHED")
-        .order("name"),
-    ]);
+        query,
+        supabase
+          .from("categories")
+          .select("name, slug")
+          .eq("status", "PUBLISHED")
+          .order("name"),
+      ]);
 
-    // Fetch primary images for all visible products in one query
-    const productIds = (products ?? []).map((p) => p.id);
-    const { data: imageRows } = productIds.length
-      ? await supabase
-          .from("product_images")
-          .select("product_id, storage_path, alt_text, is_primary, sort_order")
-          .in("product_id", productIds)
-          .order("sort_order", { ascending: true })
-      : { data: [] };
+      // Fetch primary images for all visible products in one query
+      const productIds = (products ?? []).map((p) => p.id);
+      const { data: imageRows } = productIds.length
+        ? await supabase
+            .from("product_images")
+            .select("product_id, storage_path, alt_text, is_primary, sort_order")
+            .in("product_id", productIds)
+            .order("sort_order", { ascending: true })
+        : { data: [] };
 
-    // Pick the best image per product: primary first, else first by sort_order
-    const imageByProduct: Record<string, { src: string; alt: string }> = {};
-    for (const img of imageRows ?? []) {
-      const url = getMediaUrl(img.storage_path);
-      if (!url) continue;
-      const existing = imageByProduct[img.product_id];
-      if (!existing || img.is_primary) {
-        imageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
+      // Pick the best image per product: primary first, else first by sort_order
+      const imageByProduct: Record<string, { src: string; alt: string }> = {};
+      for (const img of imageRows ?? []) {
+        const url = getMediaUrl(img.storage_path);
+        if (!url) continue;
+        const existing = imageByProduct[img.product_id];
+        if (!existing || img.is_primary) {
+          imageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
+        }
       }
-    }
+
+      // Fetch user's wishlist so the card heart can render in the "saved" state
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: wishlistRows } = user
+        ? await supabase
+            .from("wishlist")
+            .select("product_id")
+            .eq("user_id", user.id)
+        : { data: [] };
+      const savedSet = new Set((wishlistRows ?? []).map((w) => w.product_id));
 
     const activeCategory = categories?.find((c) => c.slug === params.category);
 
@@ -190,21 +200,23 @@ export default async function ProductsPage({
           ) : (
             <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((p) => {
-                              const image = imageByProduct[p.id] ?? null;
-                              return (
-                                <FadeIn key={p.id}>
-                                  <ProductCard
-                                    slug={p.slug}
-                                    title={p.title}
-                                    short_description={p.short_description}
-                                    price={p.price}
-                                    compare_at_price={p.compare_at_price}
-                                    featured={p.featured}
-                                    image={image}
-                                  />
-                                </FadeIn>
-                              );
-                            })}
+                                            const image = imageByProduct[p.id] ?? null;
+                                            return (
+                                              <FadeIn key={p.id}>
+                                                <ProductCard
+                                                  id={p.id}
+                                                  slug={p.slug}
+                                                  title={p.title}
+                                                  short_description={p.short_description}
+                                                  price={p.price}
+                                                  compare_at_price={p.compare_at_price}
+                                                  featured={p.featured}
+                                                  image={image}
+                                                  initialSaved={savedSet.has(p.id)}
+                                                />
+                                              </FadeIn>
+                                            );
+                                          })}
             </Stagger>
           )}
         </section>
