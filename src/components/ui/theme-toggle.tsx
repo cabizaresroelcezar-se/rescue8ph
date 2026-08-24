@@ -4,36 +4,37 @@ import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function ThemeToggle({ className }: { className?: string }) {
-  const [mounted, setMounted] = React.useState(false);
-  const [isDark, setIsDark] = React.useState(false);
+function subscribeDarkMode(callback: () => void) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  return () => observer.disconnect();
+}
 
-  React.useEffect(() => {
-    setMounted(true);
-    setIsDark(document.documentElement.classList.contains("dark"));
-  }, []);
+function getDarkModeSnapshot() {
+  return document.documentElement.classList.contains("dark");
+}
+
+function getDarkModeServerSnapshot() {
+  return false;
+}
+
+export function ThemeToggle({ className }: { className?: string }) {
+  const isDark = React.useSyncExternalStore(
+    subscribeDarkMode,
+    getDarkModeSnapshot,
+    getDarkModeServerSnapshot,
+  );
 
   const toggle = React.useCallback(() => {
     const next = !isDark;
-    setIsDark(next);
     document.documentElement.classList.toggle("dark", next);
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
     } catch {}
   }, [isDark]);
-
-  if (!mounted) {
-    return (
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className={className}
-        aria-hidden
-        tabIndex={-1}
-      />
-    );
-  }
 
   return (
     <Button

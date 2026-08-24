@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { ShoppingCart, ArrowRight, Package } from "lucide-react";
-import { FadeIn, Stagger } from "@/lib/motion";
+import { FadeIn } from "@/lib/motion";
 import { formatDatePh } from "@/lib/format";
 
 const STATUS_TONE: Record<string, string> = {

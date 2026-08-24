@@ -12,15 +12,24 @@ export function AnnouncementBar({
   href?: string;
   storageKey?: string;
 }) {
-  const [visible, setVisible] = React.useState(false);
+  const visible = React.useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        return !localStorage.getItem(storageKey);
+      } catch {
+        return true;
+      }
+    },
+    () => false,
+  );
 
-  React.useEffect(() => {
+  const dismiss = React.useCallback(() => {
     try {
-      const dismissed = localStorage.getItem(storageKey);
-      if (!dismissed) setVisible(true);
-    } catch {
-      setVisible(true);
-    }
+      localStorage.setItem(storageKey, "1");
+    } catch {}
+    // Force a re-render by dispatching a storage event
+    window.dispatchEvent(new Event("storage"));
   }, [storageKey]);
 
   if (!visible) return null;
@@ -61,12 +70,7 @@ export function AnnouncementBar({
       </div>
       <button
         type="button"
-        onClick={() => {
-          setVisible(false);
-          try {
-            localStorage.setItem(storageKey, "1");
-          } catch {}
-        }}
+        onClick={dismiss}
         aria-label="Dismiss announcement"
         className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-primary-foreground/70 transition-colors hover:bg-white/10 hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
       >

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, SlidersHorizontal } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ProductCard } from "@/components/shop/product-card";
 import { ButtonLink } from "@/components/ui/button-link";

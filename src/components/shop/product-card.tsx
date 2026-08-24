@@ -16,7 +16,6 @@ type ProductCardProps = {
 };
 
 export function ProductCard({
-  id,
   slug,
   title,
   short_description,

@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
   ArrowRight,
   ShieldCheck,
   HeartPulse,
   Users,
-  GraduationCap,
   Award,
   Globe,
   Calendar,

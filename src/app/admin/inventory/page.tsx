@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
-import { Boxes, AlertTriangle, CheckCircle2, ArrowRight } from "lucide-react";
+import { Boxes, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { FadeIn, Stagger } from "@/lib/motion";
 
 type InventoryWithProduct = {
