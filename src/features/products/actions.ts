@@ -31,7 +31,7 @@ export async function createProduct(formData: FormData) {
     seo_description: formData.get("seoDescription") as string || null,
     created_by: user.id,
     published_at: formData.get("status") === "ACTIVE" ? new Date().toISOString() : null,
-  }).select("id");
+  }).select("id").single();
 
   if (error) {
     redirect(`/admin/products/new?error=${encodeURIComponent(error.message)}`);
@@ -40,12 +40,12 @@ export async function createProduct(formData: FormData) {
   await logAudit({
     action: AuditAction.CREATE,
     resourceType: "products",
-    resourceId: newProduct?.[0]?.id,
+    resourceId: newProduct?.id,
     newValues: { title, slug, price, status: formData.get("status") },
   });
 
   revalidatePath("/admin/products");
-  redirect("/admin/products");
+  redirect(`/admin/products/${newProduct?.id}`);
 }
 
 export async function updateProduct(formData: FormData) {
@@ -91,4 +91,214 @@ export async function updateProduct(formData: FormData) {
 
   revalidatePath("/admin/products");
   redirect("/admin/products");
+}
+
+// ============================================================================
+// PRODUCT IMAGES
+// ============================================================================
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+function slugifyFileName(name: string) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9.]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export async function uploadProductImages(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const productId = formData.get("productId") as string;
+  const files = formData.getAll("files") as File[];
+  if (!productId) return { error: "Missing productId" };
+  if (!files.length) return { error: "No files selected" };
+
+  const uploaded: { storage_path: string; alt_text: string }[] = [];
+  const errors: string[] = [];
+
+  // Find current max sort_order so we can append
+  const { data: existing } = await supabase
+    .from("product_images")
+    .select("sort_order")
+    .eq("product_id", productId)
+    .order("sort_order", { ascending: false })
+    .limit(1);
+  let nextOrder = (existing?.[0]?.sort_order ?? -1) + 1;
+
+  for (const file of files) {
+    if (!(file instanceof File) || file.size === 0) continue;
+    if (file.size > MAX_FILE_SIZE) {
+      errors.push(`${file.name}: exceeds 5 MB limit`);
+      continue;
+    }
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      errors.push(`${file.name}: must be JPG, PNG, WEBP, or GIF`);
+      continue;
+    }
+
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const safeName = slugifyFileName(file.name.replace(/\.[^.]+$/, "")) || "image";
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}.${ext}`;
+    const storagePath = `${productId}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("products")
+      .upload(storagePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+
+    if (uploadError) {
+      errors.push(`${file.name}: ${uploadError.message}`);
+      continue;
+    }
+
+    const alt = formData.get(`alt_${file.name}`) as string | null;
+
+    const { error: rowError } = await supabase.from("product_images").insert({
+      product_id: productId,
+      storage_path: storagePath,
+      alt_text: alt || file.name.replace(/\.[^.]+$/, ""),
+      sort_order: nextOrder++,
+      is_primary: false,
+    });
+
+    if (rowError) {
+      errors.push(`${file.name}: ${rowError.message}`);
+      // Try to clean up the uploaded file
+      await supabase.storage.from("products").remove([storagePath]);
+      continue;
+    }
+
+    uploaded.push({ storage_path: storagePath, alt_text: alt || file.name });
+  }
+
+  await logAudit({
+    action: AuditAction.CREATE,
+    resourceType: "product_images",
+    resourceId: productId,
+    metadata: { count: uploaded.length, errors: errors.length },
+  });
+
+  revalidatePath(`/admin/products/${productId}`);
+  revalidatePath("/products");
+  revalidatePath("/");
+
+  return { uploaded: uploaded.length, errors };
+}
+
+export async function deleteProductImage(imageId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { data: img } = await supabase
+    .from("product_images")
+    .select("id, product_id, storage_path")
+    .eq("id", imageId)
+    .single();
+
+  if (!img) return { error: "Image not found" };
+
+  // Remove the file from Storage first
+  const { error: storageError } = await supabase.storage
+    .from("products")
+    .remove([img.storage_path]);
+
+  if (storageError) {
+    // Continue — best-effort cleanup
+    console.warn("Storage delete failed:", storageError.message);
+  }
+
+  const { error } = await supabase
+    .from("product_images")
+    .delete()
+    .eq("id", imageId);
+
+  if (error) return { error: error.message };
+
+  await logAudit({
+    action: AuditAction.DELETE,
+    resourceType: "product_images",
+    resourceId: imageId,
+    metadata: { product_id: img.product_id, storage_path: img.storage_path },
+  });
+
+  revalidatePath(`/admin/products/${img.product_id}`);
+  revalidatePath("/products");
+  revalidatePath("/");
+
+  return { success: true };
+}
+
+export async function setPrimaryProductImage(imageId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { data: img } = await supabase
+    .from("product_images")
+    .select("id, product_id")
+    .eq("id", imageId)
+    .single();
+
+  if (!img) return { error: "Image not found" };
+
+  // Clear the current primary, then set this one
+  await supabase
+    .from("product_images")
+    .update({ is_primary: false })
+    .eq("product_id", img.product_id);
+
+  const { error } = await supabase
+    .from("product_images")
+    .update({ is_primary: true })
+    .eq("id", imageId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/admin/products/${img.product_id}`);
+  revalidatePath("/products");
+  revalidatePath("/");
+
+  return { success: true };
+}
+
+export async function updateProductImageAlt(imageId: string, altText: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { data: img } = await supabase
+    .from("product_images")
+    .select("id, product_id")
+    .eq("id", imageId)
+    .single();
+
+  if (!img) return { error: "Image not found" };
+
+  const { error } = await supabase
+    .from("product_images")
+    .update({ alt_text: altText })
+    .eq("id", imageId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/admin/products/${img.product_id}`);
+
+  return { success: true };
 }

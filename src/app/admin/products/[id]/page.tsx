@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Package } from "lucide-react";
+import { ArrowRight, Package, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FadeIn } from "@/lib/motion";
+import { ProductImageUploader } from "@/components/admin/product-image-uploader";
 import { updateProduct } from "@/features/products/actions";
 
 export default async function EditProductPage({
@@ -20,14 +21,20 @@ export default async function EditProductPage({
   const supabase = await createClient();
 
   const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", id)
-    .single();
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-  if (!product) {
-    redirect("/admin/products");
-  }
+    if (!product) {
+      redirect("/admin/products");
+    }
+
+    const { data: productImages } = await supabase
+      .from("product_images")
+      .select("id, storage_path, alt_text, is_primary, sort_order")
+      .eq("product_id", id)
+      .order("sort_order", { ascending: true });
 
   return (
     <div className="space-y-8">
@@ -135,25 +142,53 @@ export default async function EditProductPage({
           </Section>
 
           <Section title="SEO">
-            <Field id="seoTitle" label="SEO Title">
-              <Input id="seoTitle" name="seoTitle" defaultValue={product.seo_title || ""} />
-            </Field>
-            <Field id="seoDescription" label="SEO Description">
-              <Input id="seoDescription" name="seoDescription" defaultValue={product.seo_description || ""} />
-            </Field>
-          </Section>
+                      <Field id="seoTitle" label="SEO Title">
+                        <Input id="seoTitle" name="seoTitle" defaultValue={product.seo_title || ""} />
+                      </Field>
+                      <Field id="seoDescription" label="SEO Description">
+                        <Input id="seoDescription" name="seoDescription" defaultValue={product.seo_description || ""} />
+                      </Field>
+                    </Section>
 
-          <div className="flex gap-3 border-t border-border pt-6">
-            <Button type="submit">Save Changes</Button>
-            <Link
-              href="/admin/products"
-              className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-            >
-              Cancel
-            </Link>
-          </div>
-        </form>
-      </FadeIn>
+                    {/* IMAGES — separate form because it has its own server action */}
+                    <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1 sm:p-8">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                          <ImageIcon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h2 className="text-base font-semibold text-foreground">
+                            Product Images
+                          </h2>
+                          <p className="text-xs text-muted-foreground">
+                            Upload photos of the product. The first image marked as Primary will be used in listings.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-6">
+                        <ProductImageUploader
+                          productId={product.id}
+                          images={(productImages ?? []).map((i) => ({
+                            id: i.id,
+                            storagePath: i.storage_path,
+                            altText: i.alt_text,
+                            isPrimary: i.is_primary,
+                          }))}
+                        />
+                      </div>
+                    </FadeIn>
+
+                    <div className="flex gap-3 border-t border-border pt-6">
+                      <Button type="submit">Save Changes</Button>
+                      <Link
+                        href="/admin/products"
+                        className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                      >
+                        Cancel
+                      </Link>
+                    </div>
+                  </form>
+                </FadeIn>
     </div>
   );
 }
