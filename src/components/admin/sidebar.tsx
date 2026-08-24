@@ -44,7 +44,7 @@ export function AdminSidebar({ isSuperAdmin }: { isSuperAdmin: boolean }) {
       <div className="flex h-16 items-center border-b border-border px-4">
         <Link href="/admin" className="flex items-center gap-2">
           <Image
-            src="/logo.png"
+            src="/logo.svg"
             alt="Rescue 8 Admin"
             width={100}
             height={52}

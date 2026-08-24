@@ -25,7 +25,7 @@ export default async function LoginPage({
     <Card>
       <CardHeader className="text-center">
         <Image
-          src="/logo.png"
+          src="/logo.svg"
           alt="Rescue 8 Philippines"
           width={140}
           height={72}

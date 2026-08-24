@@ -31,7 +31,7 @@ export async function Header() {
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/logo.png"
+              src="/logo.svg"
               alt="Rescue 8 Philippines"
               width={120}
               height={62}

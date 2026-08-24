@@ -32,8 +32,8 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Rescue 8 Trading Philippines, Inc." }],
   icons: {
-    icon: "/favicon.png",
-    apple: "/icon.png",
+    icon: "/favicon.svg",
+    apple: "/icon.svg",
   },
   openGraph: {
     title: "Rescue 8 Philippines — EMS and Rescue Equipment",

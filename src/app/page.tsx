@@ -23,7 +23,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-6xl px-4 py-20">
           <div className="max-w-2xl">
             <Image
-              src="/logo.png"
+              src="/logo.svg"
               alt="Rescue 8 Philippines"
               width={200}
               height={103}

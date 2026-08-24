@@ -8,7 +8,7 @@ export function Footer() {
         <div className="grid gap-8 md:grid-cols-4">
           <div>
             <Image
-              src="/logo.png"
+              src="/logo.svg"
               alt="Rescue 8 Philippines"
               width={140}
               height={72}
