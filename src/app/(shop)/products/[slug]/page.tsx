@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddToCartButton } from "@/components/shop/add-to-cart-button";
 
 export default async function ProductDetailPage({
   params,
@@ -123,16 +124,17 @@ export default async function ProductDetailPage({
           </div>
 
           {/* CTA */}
-          <div className="mt-8 flex gap-3">
+          <div className="mt-8 flex flex-wrap gap-3">
+            <AddToCartButton productId={product.id} />
             <Link
               href="/contact"
-              className="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-8 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-white px-6 text-sm font-semibold transition-colors hover:bg-surface"
             >
               Inquire to Order
             </Link>
             <Link
               href="/products"
-              className="inline-flex h-12 items-center justify-center rounded-lg border border-border bg-white px-8 text-sm font-semibold transition-colors hover:bg-surface"
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-white px-6 text-sm font-semibold transition-colors hover:bg-surface"
             >
               Back to Products
             </Link>
