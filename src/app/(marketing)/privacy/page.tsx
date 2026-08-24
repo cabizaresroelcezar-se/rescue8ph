@@ -1,4 +1,8 @@
-export const metadata = { title: "Privacy Policy" };
+export const metadata = {
+  title: "Privacy Policy",
+  description: "Rescue 8 Philippines privacy policy — how we collect, use, and protect your personal data.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function PrivacyPage() {
   return (

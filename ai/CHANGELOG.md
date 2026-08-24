@@ -1,6 +1,59 @@
 # CHANGELOG
 
-## 2026-08-24
+## 2026-08-24 (Phase 12-14)
+
+### Added — ANALYTICS-001 (Phase 12: Analytics & Audit)
+
+- Admin analytics dashboard with real metrics:
+  - Total revenue from paid/fulfilled orders
+  - Gross order value (all orders)
+  - 7-day rolling revenue
+  - KPI grid: revenue, customers, products, low stock
+  - Order status breakdown with colored badges
+  - Top products by revenue (from order_items)
+  - Recent orders table (latest 10)
+- Enhanced audit logs page:
+  - Filter by action and resource_type (URL params)
+  - Expandable old_values/new_values diff viewer
+  - Action label mapping (CREATE, UPDATE, DELETE, etc.)
+  - Count display and empty state
+- Audit logging utility (lib/audit/index.ts):
+  - logAudit() function for server actions
+  - AuditAction constants
+  - Auto-resolves user_id from Supabase session
+  - Wired into products + orders server actions
+  - Fail-safe: never breaks the main operation
+- formatCurrency utility added to lib/format.ts
+
+### Added — SEO-001 (Phase 13: Performance / SEO / Accessibility)
+
+- Dynamic sitemap (src/app/sitemap.ts): products, blog posts, services + static pages
+- robots.ts: disallow admin/account/checkout/cart/api, sitemap reference
+- JSON-LD Organization schema on homepage (with address + Facebook sameAs)
+- JSON-LD Product + Breadcrumb + Organization schemas on product detail page
+- JSON-LD Article (BlogPosting) schema on blog post detail page
+- generateMetadata on product detail and blog detail pages
+- Enhanced metadata with canonical URLs on FAQ, Blog, Products listing
+- Enhanced metadata on Privacy and Terms pages
+- Organization schema updated: logo.svg, Facebook sameAs, postal address
+- Image optimization: AVIF/WebP formats, Supabase remote patterns in next.config.ts
+
+### Added — HARDENING-001 (Phase 14: Production Hardening)
+
+- Security headers in next.config.ts:
+  - Content-Security-Policy
+  - X-Frame-Options: DENY
+  - X-Content-Type-Options: nosniff
+  - Referrer-Policy: strict-origin-when-cross-origin
+  - Permissions-Policy (camera, microphone, geolocation disabled)
+  - Strict-Transport-Security with preload
+  - X-DNS-Prefetch-Control: on
+- Global error boundary (src/app/error.tsx) with retry + home navigation
+- Environment variable validation (lib/env.ts)
+- Health check endpoint (/api/health) with env validation
+- poweredByHeader disabled, compression enabled
+
+## 2026-08-24 (Earlier)
 
 ### Added — AUTH-001
 

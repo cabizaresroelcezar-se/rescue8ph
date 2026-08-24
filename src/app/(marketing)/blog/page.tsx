@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { createMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Blog" };
+export const metadata = createMetadata({
+  title: "Blog",
+  description: "Insights and articles on EMS, rescue, safety, and emergency preparedness from Rescue 8 Philippines.",
+  path: "/blog",
+});
 
 export default async function BlogPage() {
   const supabase = await createClient();

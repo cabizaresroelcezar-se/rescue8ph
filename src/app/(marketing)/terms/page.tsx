@@ -1,4 +1,8 @@
-export const metadata = { title: "Terms of Service" };
+export const metadata = {
+  title: "Terms of Service",
+  description: "Terms and conditions for using the Rescue 8 Philippines website and services.",
+  alternates: { canonical: "/terms" },
+};
 
 export default function TermsPage() {
   return (

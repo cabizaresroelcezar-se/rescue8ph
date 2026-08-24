@@ -6,6 +6,27 @@ import { AddToCartButton } from "@/components/shop/add-to-cart-button";
 import { ProductGallery } from "@/components/shop/product-gallery";
 import { ProductCard } from "@/components/shop/product-card";
 import { FadeIn, Stagger } from "@/lib/motion";
+import { createMetadata, productSchema, breadcrumbSchema, organizationSchema } from "@/lib/seo";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const { data: product } = await supabase
+    .from("products")
+    .select("title, short_description, seo_title, seo_description, slug, price")
+    .eq("slug", slug)
+    .eq("status", "ACTIVE")
+    .single();
+
+  if (!product) return {};
+
+  return createMetadata({
+    title: product.seo_title || product.title,
+    description: product.seo_description || product.short_description || undefined,
+    path: `/products/${product.slug}`,
+    type: "website",
+  });
+}
 
 export default async function ProductDetailPage({
   params,
@@ -80,6 +101,42 @@ export default async function ProductDetailPage({
 
   return (
     <div className="bg-background pb-28 md:pb-10">
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            ...productSchema({
+              title: product.title,
+              description: product.short_description || product.title,
+              price: product.price,
+              slug: product.slug,
+            }),
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            ...breadcrumbSchema([
+              { name: "Products", url: "/products" },
+              { name: product.title, url: `/products/${product.slug}` },
+            ]),
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            ...organizationSchema(),
+          }),
+        }}
+      />
       <div className="border-b border-border bg-surface">
         <div className="container-page py-3">
           <nav

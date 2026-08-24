@@ -377,13 +377,13 @@ development:
     phase_14: "production_hardening"
 
 current_phase:
-  id: "phase_3"
+  id: "phase_14"
   status: "complete"
 
 current_task:
-  id: "CMS-001"
-  title: "CMS foundation"
-  status: "pending"
+  id: "ANALYTICS-001 + SEO-001 + HARDENING-001"
+  title: "Analytics, SEO, and Production Hardening"
+  status: "complete"
 
 rules:
   - "Never expose secrets to the client."

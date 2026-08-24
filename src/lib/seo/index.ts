@@ -51,8 +51,13 @@ export function organizationSchema() {
     "@type": "Organization",
     name: SITE_NAME,
     url: SITE_URL,
-    logo: `${SITE_URL}/logo.png`,
-    sameAs: [],
+    logo: `${SITE_URL}/logo.svg`,
+    sameAs: ["https://www.facebook.com/rescue8tradingphils"],
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Quezon City",
+      addressCountry: "PH",
+    },
   };
 }
 

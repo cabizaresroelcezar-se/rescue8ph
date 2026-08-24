@@ -6,6 +6,13 @@ import { ButtonLink } from "@/components/ui/button-link";
 import { FadeIn, Stagger } from "@/lib/motion";
 import { SortSelect } from "@/components/shop/sort-select";
 import { MobileFilters } from "@/components/shop/mobile-filters";
+import { createMetadata } from "@/lib/seo";
+
+export const metadata = createMetadata({
+  title: "Products",
+  description: "Browse EMS, rescue, safety, and first aid equipment from Rescue 8 Philippines.",
+  path: "/products",
+});
 
 type SearchParams = {
   category?: string;
