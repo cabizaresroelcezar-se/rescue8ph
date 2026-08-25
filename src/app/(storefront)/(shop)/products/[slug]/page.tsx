@@ -8,6 +8,10 @@ import { ProductCard } from "@/components/shop/product-card";
 import { FadeIn, Stagger } from "@/lib/motion";
 import { createMetadata, productSchema, breadcrumbSchema, organizationSchema } from "@/lib/seo";
 import { getMediaUrl } from "@/lib/media";
+import { StarRating } from "@/components/ui/star-rating";
+import { ReviewForm } from "@/components/shop/review-form";
+import { ReviewList, ReviewHistogram } from "@/components/shop/review-list";
+import { getReviewStats } from "@/features/reviews/actions";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -107,21 +111,48 @@ export default async function ProductDetailPage({
       .map((r) => (Array.isArray(r.product) ? r.product[0]?.id : r.product?.id))
       .filter((id): id is string => Boolean(id));
     const { data: relatedImages } = relatedIds.length
-      ? await supabase
-          .from("product_images")
-          .select("product_id, storage_path, alt_text, is_primary, sort_order")
-          .in("product_id", relatedIds)
-          .order("sort_order", { ascending: true })
-      : { data: [] };
-    const relatedImageByProduct: Record<string, { src: string; alt: string }> = {};
-    for (const img of relatedImages ?? []) {
-      const url = getMediaUrl(img.storage_path);
-      if (!url) continue;
-      const existing = relatedImageByProduct[img.product_id];
-      if (!existing || img.is_primary) {
-        relatedImageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
-      }
-    }
+          ? await supabase
+              .from("product_images")
+              .select("product_id, storage_path, alt_text, is_primary, sort_order")
+              .in("product_id", relatedIds)
+              .order("sort_order", { ascending: true })
+          : { data: [] };
+        const relatedImageByProduct: Record<string, { src: string; alt: string }> = {};
+        for (const img of relatedImages ?? []) {
+          const url = getMediaUrl(img.storage_path);
+          if (!url) continue;
+          const existing = relatedImageByProduct[img.product_id];
+          if (!existing || img.is_primary) {
+            relatedImageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
+          }
+        }
+
+        // ----- Reviews -----
+                const [
+                  { data: { user: reviewUser } },
+                  reviewStats,
+                  { data: reviews },
+                ] = await Promise.all([
+                  supabase.auth.getUser(),
+                  getReviewStats(product.id),
+                  supabase
+                    .from("product_reviews")
+                    .select(
+                      "id, rating, title, body, is_verified_purchase, created_at, author:profiles!product_reviews_user_id_fkey(first_name, last_name, display_name)",
+                    )
+                    .eq("product_id", product.id)
+                    .eq("status", "APPROVED")
+                    .order("created_at", { ascending: false })
+                    .limit(20),
+                ]);
+                const ownReviewResult = reviewUser
+                  ? await supabase
+                      .from("product_reviews")
+                      .select("id, rating, title, body, status")
+                      .eq("product_id", product.id)
+                      .eq("user_id", reviewUser.id)
+                      .maybeSingle()
+                  : { data: null };
 
     return (
       <div className="bg-background pb-28 md:pb-10">
@@ -310,6 +341,93 @@ export default async function ProductDetailPage({
           </p>
         </FadeIn>
       </div>
+
+      {/* Reviews */}
+      <section className="border-t border-border bg-background">
+        <div className="container-page py-12">
+          <FadeIn className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-eyebrow">Customer reviews</p>
+              <h2 className="mt-2 flex items-baseline gap-2 text-display-md text-foreground">
+                <StarRating value={reviewStats.average} size="md" showValue />
+                <span className="text-base font-normal text-muted-foreground">
+                  {reviewStats.total === 0
+                    ? "No reviews yet"
+                    : `${reviewStats.total} review${reviewStats.total === 1 ? "" : "s"}`}
+                </span>
+              </h2>
+            </div>
+          </FadeIn>
+
+          <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+            {/* Sidebar: histogram + write-a-review form */}
+            <aside className="space-y-5">
+              {reviewStats.total > 0 && (
+                <div className="rounded-xl border border-border bg-card p-5 shadow-elev-1">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Rating breakdown
+                  </h3>
+                  <div className="mt-4">
+                    <ReviewHistogram
+                      counts={reviewStats.counts}
+                      total={reviewStats.total}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {reviewUser ? (
+                <ReviewForm
+                  productId={product.id}
+                  existing={
+                    ownReviewResult.data
+                      ? (ownReviewResult.data as {
+                          id: string;
+                          rating: number;
+                          title: string | null;
+                          body: string;
+                          status: "PENDING" | "APPROVED" | "REJECTED" | "FLAGGED";
+                        })
+                      : null
+                  }
+                />
+              ) : (
+                <div className="rounded-xl border border-border bg-card p-5 shadow-elev-1">
+                  <p className="text-sm text-muted-foreground">
+                    <Link
+                      href={`/auth/login?redirectTo=/products/${slug}`}
+                      className="font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      Sign in
+                    </Link>{" "}
+                    to write a review.
+                  </p>
+                </div>
+              )}
+            </aside>
+
+            {/* Reviews list */}
+            <div>
+              <ReviewList
+                reviews={(reviews ?? []).map((r) => ({
+                  id: r.id as string,
+                  rating: r.rating as number,
+                  title: (r.title as string | null) ?? null,
+                  body: r.body as string,
+                  is_verified_purchase: r.is_verified_purchase as boolean,
+                  created_at: r.created_at as string,
+                  author: (() => {
+                    const a = r.author;
+                    if (!a) return null;
+                    if (Array.isArray(a)) return (a[0] ?? null) as never;
+                    return a as never;
+                  })(),
+                }))}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
 
       {related.length > 0 && (
         <section className="border-t border-border bg-surface">

@@ -21,6 +21,7 @@ import {
   BarChart3,
   UserCog,
   ArrowLeft,
+  MessageSquare,
 } from "lucide-react";
 
 type NavItem = {
@@ -40,12 +41,13 @@ const groups: { title: string; items: NavItem[] }[] = [
   },
   {
     title: "Catalog",
-    items: [
-      { href: "/admin/products",  label: "Products",  icon: Package },
-      { href: "/admin/inventory", label: "Inventory", icon: Boxes },
-      { href: "/admin/media",     label: "Media",     icon: ImageIcon },
-    ],
-  },
+        items: [
+          { href: "/admin/products",  label: "Products",  icon: Package },
+          { href: "/admin/inventory", label: "Inventory", icon: Boxes },
+          { href: "/admin/reviews",   label: "Reviews",   icon: MessageSquare },
+          { href: "/admin/media",     label: "Media",     icon: ImageIcon },
+        ],
+      },
   {
     title: "Sales",
     items: [
