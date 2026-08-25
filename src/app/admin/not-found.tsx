@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/button-link";
 import { FileQuestion, ArrowLeft, RefreshCw } from "lucide-react";
