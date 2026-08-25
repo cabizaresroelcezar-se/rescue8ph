@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ProductCard } from "@/components/shop/product-card";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -15,13 +15,22 @@ export const metadata = createMetadata({
   path: "/products",
 });
 
+type SortOption = "new" | "price-asc" | "price-desc" | "popular";
+type StockOption = "any" | "in-stock";
+type OnSaleOption = "any" | "on-sale";
+
 type SearchParams = {
   category?: string;
   q?: string;
-  sort?: "new" | "price-asc" | "price-desc" | "popular";
+  sort?: SortOption;
   min?: string;
   max?: string;
+  stock?: StockOption;
+  sale?: OnSaleOption;
+  page?: string;
 };
+
+const PAGE_SIZE = 24;
 
 export default async function ProductsPage({
   searchParams,
@@ -31,19 +40,58 @@ export default async function ProductsPage({
   const params = await searchParams;
   const supabase = await createClient();
 
+  // Parse numeric params safely
+  const min = params.min ? Math.max(0, Number(params.min)) : null;
+  const max = params.max ? Math.max(0, Number(params.max)) : null;
+  const stock = params.stock === "in-stock" ? "in-stock" : "any";
+  const sale = params.sale === "on-sale" ? "on-sale" : "any";
+  const sort: SortOption = params.sort ?? "new";
+  const page = Math.max(1, Number(params.page) || 1);
+  const offset = (page - 1) * PAGE_SIZE;
+
+  // ----- Build base query -----
   let query = supabase
     .from("products")
     .select(
-      "id, title, slug, short_description, price, compare_at_price, featured, created_at"
+      "id, title, slug, short_description, price, compare_at_price, featured, created_at",
+      { count: "exact" },
     )
     .eq("status", "ACTIVE");
 
   if (params.q) {
     query = query.or(
-      `title.ilike.%${params.q}%,short_description.ilike.%${params.q}%`
+      `title.ilike.%${params.q}%,short_description.ilike.%${params.q}%`,
     );
   }
 
+  if (min !== null) query = query.gte("price", min);
+  if (max !== null) query = query.lte("price", max);
+
+  if (sale === "on-sale") {
+    query = query.not("compare_at_price", "is", null).gt("compare_at_price", 0);
+    // compare_at_price > price filters to actual discounts
+  }
+
+  // In-stock: only products that have at least one variant with stock > 0
+  let inStockProductIds: string[] | null = null;
+  if (stock === "in-stock") {
+    const { data: variants } = await supabase
+      .from("product_variants")
+      .select("product_id")
+      .eq("status", "ACTIVE")
+      .gt("stock", 0);
+    inStockProductIds = Array.from(
+      new Set((variants ?? []).map((v) => v.product_id as string)),
+    );
+    if (inStockProductIds.length === 0) {
+      // Force empty result
+      query = query.eq("id", "00000000-0000-0000-0000-000000000000");
+    } else {
+      query = query.in("id", inStockProductIds);
+    }
+  }
+
+  // Category filter (joins via product_categories)
   if (params.category) {
     const { data: category } = await supabase
       .from("categories")
@@ -61,7 +109,7 @@ export default async function ProductsPage({
       if (productIds && productIds.length > 0) {
         query = query.in(
           "id",
-          productIds.map((p) => p.product_id)
+          productIds.map((p) => p.product_id),
         );
       } else {
         query = query.eq("id", "00000000-0000-0000-0000-000000000000");
@@ -69,61 +117,94 @@ export default async function ProductsPage({
     }
   }
 
-  if (params.min) query = query.gte("price", Number(params.min));
-  if (params.max) query = query.lte("price", Number(params.max));
-
-  switch (params.sort) {
-    case "price-asc":  query = query.order("price", { ascending: true });  break;
-    case "price-desc": query = query.order("price", { ascending: false }); break;
+  // ----- Sort + pagination -----
+  switch (sort) {
+    case "price-asc":
+      query = query.order("price", { ascending: true });
+      break;
+    case "price-desc":
+      query = query.order("price", { ascending: false });
+      break;
     case "popular":
-      query = query.order("featured", { ascending: false }).order("created_at", { ascending: false });
+      query = query
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false });
       break;
     case "new":
     default:
       query = query.order("created_at", { ascending: false });
   }
 
-  const [{ data: products }, { data: categories }] = await Promise.all([
-        query,
-        supabase
-          .from("categories")
-          .select("name, slug")
-          .eq("status", "PUBLISHED")
-          .order("name"),
-      ]);
+  query = query.range(offset, offset + PAGE_SIZE - 1);
 
-      // Fetch primary images for all visible products in one query
-      const productIds = (products ?? []).map((p) => p.id);
-      const { data: imageRows } = productIds.length
-        ? await supabase
-            .from("product_images")
-            .select("product_id, storage_path, alt_text, is_primary, sort_order")
-            .in("product_id", productIds)
-            .order("sort_order", { ascending: true })
-        : { data: [] };
+  // ----- Run all queries in parallel -----
+  const [{ data: products, count: totalCount }, { data: categories }] =
+    await Promise.all([
+      query,
+      supabase
+        .from("categories")
+        .select("name, slug")
+        .eq("status", "PUBLISHED")
+        .order("name"),
+    ]);
 
-      // Pick the best image per product: primary first, else first by sort_order
-      const imageByProduct: Record<string, { src: string; alt: string }> = {};
-      for (const img of imageRows ?? []) {
-        const url = getMediaUrl(img.storage_path);
-        if (!url) continue;
-        const existing = imageByProduct[img.product_id];
-        if (!existing || img.is_primary) {
-          imageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
-        }
-      }
+  const totalPages = Math.max(1, Math.ceil((totalCount ?? 0) / PAGE_SIZE));
 
-      // Fetch user's wishlist so the card heart can render in the "saved" state
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: wishlistRows } = user
-        ? await supabase
-            .from("wishlist")
-            .select("product_id")
-            .eq("user_id", user.id)
-        : { data: [] };
-      const savedSet = new Set((wishlistRows ?? []).map((w) => w.product_id));
+  // ----- Hydrate product images + wishlist in parallel -----
+  const productIds = (products ?? []).map((p) => p.id);
+  const [
+    { data: imageRows },
+    { data: { user } },
+    wishlistResult,
+  ] = await Promise.all([
+    productIds.length
+      ? supabase
+          .from("product_images")
+          .select("product_id, storage_path, alt_text, is_primary, sort_order")
+          .in("product_id", productIds)
+          .order("sort_order", { ascending: true })
+      : Promise.resolve({ data: [] }),
+    supabase.auth.getUser(),
+    productIds.length
+      ? supabase
+          .from("wishlist")
+          .select("product_id")
+          .in("product_id", productIds)
+      : Promise.resolve({ data: [] }),
+  ]);
 
-    const activeCategory = categories?.find((c) => c.slug === params.category);
+  const imageByProduct: Record<string, { src: string; alt: string }> = {};
+  for (const img of imageRows ?? []) {
+    const url = getMediaUrl(img.storage_path);
+    if (!url) continue;
+    const existing = imageByProduct[img.product_id];
+    if (!existing || img.is_primary) {
+      imageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
+    }
+  }
+
+  const savedSet = new Set(
+    (wishlistResult.data ?? [])
+      .filter((w) => user && (w as { user_id?: string }).user_id === user.id)
+      .map((w) => (w as { product_id: string }).product_id),
+  );
+
+  const activeCategory = categories?.find((c) => c.slug === params.category);
+
+  // ----- Build active-filter chips -----
+  const chips: { label: string; removeHref: string }[] = [];
+  if (params.q)
+    chips.push({ label: `“${params.q}”`, removeHref: buildHref(params, { q: undefined }) });
+  if (params.category)
+    chips.push({ label: activeCategory?.name ?? params.category, removeHref: buildHref(params, { category: undefined }) });
+  if (min !== null)
+    chips.push({ label: `₱${min.toLocaleString("en-PH")}+`, removeHref: buildHref(params, { min: undefined }) });
+  if (max !== null)
+    chips.push({ label: `Under ₱${max.toLocaleString("en-PH")}`, removeHref: buildHref(params, { max: undefined }) });
+  if (stock === "in-stock")
+    chips.push({ label: "In stock only", removeHref: buildHref(params, { stock: undefined }) });
+  if (sale === "on-sale")
+    chips.push({ label: "On sale", removeHref: buildHref(params, { sale: undefined }) });
 
   return (
     <div className="bg-background">
@@ -147,10 +228,19 @@ export default async function ProductsPage({
               </p>
             </div>
             <p className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">
-                {products?.length ?? 0}
-              </span>{" "}
-              {products?.length === 1 ? "product" : "products"}
+              {totalCount !== null && (
+                <>
+                  Showing{" "}
+                  <span className="font-semibold text-foreground">
+                    {products?.length ?? 0}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-semibold text-foreground">
+                    {totalCount}
+                  </span>{" "}
+                  {totalCount === 1 ? "product" : "products"}
+                </>
+              )}
             </p>
           </FadeIn>
         </div>
@@ -172,6 +262,33 @@ export default async function ProductsPage({
         </div>
       )}
 
+      {/* Active filter chips */}
+      {chips.length > 0 && (
+        <div className="border-b border-border bg-secondary/30">
+          <div className="container-page flex flex-wrap items-center gap-2 py-3 text-sm">
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Active filters:
+            </span>
+            {chips.map((chip) => (
+              <Link
+                key={chip.label}
+                href={chip.removeHref}
+                className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+              >
+                {chip.label}
+                <X className="h-3 w-3" aria-hidden />
+              </Link>
+            ))}
+            <Link
+              href="/products"
+              className="ml-auto text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              Clear all
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="container-page grid gap-8 py-10 lg:grid-cols-[260px_1fr]">
         <aside className="hidden lg:block">
           <FilterPanel
@@ -179,6 +296,8 @@ export default async function ProductsPage({
             activeCategory={params.category}
             min={params.min}
             max={params.max}
+            stock={stock}
+            sale={sale}
           />
         </aside>
 
@@ -189,41 +308,109 @@ export default async function ProductsPage({
               activeCategory={params.category}
               min={params.min}
               max={params.max}
+              stock={stock}
+              sale={sale}
             />
             <div className="ml-auto">
-              <SortSelect value={params.sort ?? "new"} />
+              <SortSelect value={sort} />
             </div>
           </div>
 
           {!products || products.length === 0 ? (
-            <EmptyState />
+            <EmptyState
+              hasFilters={
+                Boolean(params.q) ||
+                Boolean(params.category) ||
+                min !== null ||
+                max !== null ||
+                stock !== "any" ||
+                sale !== "any"
+              }
+            />
           ) : (
-            <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {products.map((p) => {
-                                            const image = imageByProduct[p.id] ?? null;
-                                            return (
-                                              <FadeIn key={p.id}>
-                                                <ProductCard
-                                                  id={p.id}
-                                                  slug={p.slug}
-                                                  title={p.title}
-                                                  short_description={p.short_description}
-                                                  price={p.price}
-                                                  compare_at_price={p.compare_at_price}
-                                                  featured={p.featured}
-                                                  image={image}
-                                                  initialSaved={savedSet.has(p.id)}
-                                                />
-                                              </FadeIn>
-                                            );
-                                          })}
-            </Stagger>
+            <>
+              <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {products.map((p) => {
+                  const image = imageByProduct[p.id] ?? null;
+                  return (
+                    <FadeIn key={p.id}>
+                      <ProductCard
+                        id={p.id}
+                        slug={p.slug}
+                        title={p.title}
+                        short_description={p.short_description}
+                        price={p.price}
+                        compare_at_price={p.compare_at_price}
+                        featured={p.featured}
+                        image={image}
+                        initialSaved={savedSet.has(p.id)}
+                      />
+                    </FadeIn>
+                  );
+                })}
+              </Stagger>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <nav
+                  aria-label="Pagination"
+                  className="mt-10 flex items-center justify-center gap-2"
+                >
+                  <PaginationLink
+                    href={page > 1 ? buildHref(params, { page: String(page - 1) }) : "#"}
+                    disabled={page <= 1}
+                    label="Previous"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    Page <strong className="text-foreground">{page}</strong> of{" "}
+                    <strong className="text-foreground">{totalPages}</strong>
+                  </span>
+                  <PaginationLink
+                    href={
+                      page < totalPages
+                        ? buildHref(params, { page: String(page + 1) })
+                        : "#"
+                    }
+                    disabled={page >= totalPages}
+                    label="Next"
+                  />
+                </nav>
+              )}
+            </>
           )}
         </section>
       </div>
     </div>
   );
 }
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+function buildHref(
+  current: SearchParams,
+  overrides: Partial<SearchParams>,
+): string {
+  const merged = { ...current, ...overrides };
+  // Strip undefined / empty values
+  const cleaned: Record<string, string> = {};
+  for (const [k, v] of Object.entries(merged)) {
+    if (v !== undefined && v !== "" && v !== "any") {
+      cleaned[k] = String(v);
+    }
+  }
+  // Always reset to page 1 when changing filters (except when explicitly setting page)
+  if (!("page" in overrides)) {
+    delete cleaned.page;
+  }
+  const qs = new URLSearchParams(cleaned).toString();
+  return qs ? `/products?${qs}` : "/products";
+}
+
+// ============================================================================
+// Sub-components
+// ============================================================================
 
 function Pill({ href, active, label }: { href: string; active: boolean; label: string }) {
   return (
@@ -270,11 +457,15 @@ function FilterPanel({
   activeCategory,
   min,
   max,
+  stock,
+  sale,
 }: {
   categories: { name: string; slug: string }[];
   activeCategory?: string;
   min?: string;
   max?: string;
+  stock: StockOption;
+  sale: OnSaleOption;
 }) {
   return (
     <div className="sticky top-24 space-y-6">
@@ -314,10 +505,64 @@ function FilterPanel({
         </ul>
       </div>
 
+      {/* Availability */}
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold text-foreground">Availability</h2>
+        <Link
+          href={stock === "in-stock" ? "/products" : "/products?stock=in-stock"}
+          className={
+            "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors " +
+            (stock === "in-stock"
+              ? "bg-primary/10 font-semibold text-primary"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground")
+          }
+        >
+          <span
+            className={
+              "inline-flex h-3.5 w-3.5 items-center justify-center rounded-sm border " +
+              (stock === "in-stock"
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border")
+            }
+          >
+            {stock === "in-stock" && "✓"}
+          </span>
+          In stock only
+        </Link>
+      </div>
+
+      {/* On sale */}
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold text-foreground">Deals</h2>
+        <Link
+          href={sale === "on-sale" ? "/products" : "/products?sale=on-sale"}
+          className={
+            "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors " +
+            (sale === "on-sale"
+              ? "bg-primary/10 font-semibold text-primary"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground")
+          }
+        >
+          <span
+            className={
+              "inline-flex h-3.5 w-3.5 items-center justify-center rounded-sm border " +
+              (sale === "on-sale"
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border")
+            }
+          >
+            {sale === "on-sale" && "✓"}
+          </span>
+          On sale only
+        </Link>
+      </div>
+
       <form action="/products" method="get" className="space-y-3">
         {activeCategory && (
           <input type="hidden" name="category" value={activeCategory} />
         )}
+        {stock === "in-stock" && <input type="hidden" name="stock" value="in-stock" />}
+        {sale === "on-sale" && <input type="hidden" name="sale" value="on-sale" />}
         <h2 className="text-sm font-semibold text-foreground">Price (PHP)</h2>
         <div className="flex items-center gap-2">
           <label className="sr-only" htmlFor="min">Minimum</label>
@@ -355,17 +600,46 @@ function FilterPanel({
   );
 }
 
-function EmptyState() {
+function EmptyState({ hasFilters }: { hasFilters: boolean }) {
   return (
     <div className="rounded-xl border border-dashed border-border bg-surface p-12 text-center">
       <h3 className="text-base font-semibold text-foreground">No products found</h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        We couldn&apos;t find anything matching your filters. Try clearing them or
-        contact us for a custom order.
+        {hasFilters
+          ? "We couldn't find anything matching your filters. Try clearing them or contact us for a custom order."
+          : "There are no products available right now. Please check back later."}
       </p>
-      <div className="mt-6">
-        <ButtonLink href="/products">Clear filters</ButtonLink>
-      </div>
+      {hasFilters && (
+        <div className="mt-6">
+          <ButtonLink href="/products">Clear filters</ButtonLink>
+        </div>
+      )}
     </div>
+  );
+}
+
+function PaginationLink({
+  href,
+  disabled,
+  label,
+}: {
+  href: string;
+  disabled: boolean;
+  label: string;
+}) {
+  if (disabled) {
+    return (
+      <span className="inline-flex h-9 cursor-not-allowed items-center rounded-md border border-border bg-surface px-3 text-sm font-medium text-muted-foreground/50">
+        {label}
+      </span>
+    );
+  }
+  return (
+    <Link
+      href={href}
+      className="inline-flex h-9 items-center rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+    >
+      {label}
+    </Link>
   );
 }
