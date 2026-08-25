@@ -1,3 +1,4 @@
+import * as React from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -143,9 +144,8 @@ export default async function RolesPermissionsPage() {
             </thead>
             <tbody>
               {grouped.map(([group, perms]) => (
-                <>
+                <React.Fragment key={group}>
                   <tr
-                    key={`group-${group}`}
                     className="border-y border-border bg-surface/50"
                   >
                     <td
@@ -191,7 +191,7 @@ export default async function RolesPermissionsPage() {
                       })}
                     </tr>
                   ))}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>
