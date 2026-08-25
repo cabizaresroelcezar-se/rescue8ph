@@ -14,6 +14,7 @@ import {
   Boxes,
   FileText,
   FolderOpen,
+  Ticket,
   ImageIcon,
   Settings,
   ShieldAlert,
@@ -50,6 +51,7 @@ const groups: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/admin/orders",    label: "Orders",    icon: ShoppingCart },
       { href: "/admin/customers", label: "Customers", icon: Users },
+      { href: "/admin/coupons",   label: "Coupons",   icon: Ticket },
     ],
   },
   {

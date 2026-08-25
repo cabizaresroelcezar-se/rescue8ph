@@ -10,6 +10,7 @@ import {
 import { updateCartQuantity, removeFromCart } from "@/features/cart/actions";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
+import { CouponInput } from "@/components/shop/coupon-input";
 
 export default async function CartPage({
   searchParams,
@@ -27,12 +28,24 @@ export default async function CartPage({
     redirect("/auth/login?redirectTo=/cart");
   }
 
-  // Get cart
-  const { data: cart } = await supabase
-    .from("carts")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  // Get cart with coupon fields
+    const { data: cart } = await supabase
+      .from("carts")
+      .select("id, coupon_id, coupon_discount_amount, coupon:coupons(code, discount_type, discount_value)")
+      .eq("user_id", user.id)
+      .single();
+
+    const cartTyped = cart as unknown as {
+      id: string;
+      coupon_id: string | null;
+      coupon_discount_amount: number | null;
+      coupon: { code: string; discount_type: string; discount_value: number } | { code: string; discount_type: string; discount_value: number }[] | null;
+    } | null;
+    const couponField = cartTyped?.coupon ?? null;
+    const appliedCouponCode = Array.isArray(couponField)
+      ? (couponField[0]?.code ?? null)
+      : (couponField?.code ?? null);
+    const appliedDiscount = cartTyped?.coupon_discount_amount ?? null;
 
   if (!cart) {
     return (
@@ -176,6 +189,23 @@ export default async function CartPage({
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-medium">PHP {subtotal.toFixed(2)}</span>
                 </div>
+                {appliedDiscount !== null && appliedDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-green-700">
+                    <span className="flex items-center gap-1">
+                      Discount
+                      {appliedCouponCode && (
+                        <span className="font-mono text-xs">({appliedCouponCode})</span>
+                      )}
+                    </span>
+                    <span className="font-medium">
+                      −₱
+                      {appliedDiscount.toLocaleString("en-PH", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
                   <span className="text-muted-foreground">Calculated at checkout</span>
@@ -183,11 +213,34 @@ export default async function CartPage({
                 <div className="border-t pt-3">
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>PHP {subtotal.toFixed(2)}</span>
+                    <span>
+                      PHP{" "}
+                      {(subtotal - (appliedDiscount ?? 0)).toFixed(2)}
+                    </span>
                   </div>
                 </div>
-                <ButtonLink href="/checkout" className="w-full">Proceed to Checkout</ButtonLink>
-                <ButtonLink href="/products" variant="outline" className="w-full">Continue Shopping</ButtonLink>
+
+                {/* Coupon input */}
+                <div className="border-t pt-3">
+                  <CouponInput
+                    subtotal={subtotal}
+                    appliedCode={appliedCouponCode}
+                    appliedDiscount={appliedDiscount}
+                  />
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  <ButtonLink href="/checkout" className="w-full">
+                    Proceed to Checkout
+                  </ButtonLink>
+                  <ButtonLink
+                    href="/products"
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Continue Shopping
+                  </ButtonLink>
+                </div>
               </CardContent>
             </Card>
           </div>

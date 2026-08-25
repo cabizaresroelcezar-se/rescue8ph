@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { StorefrontShell } from "@/components/layout/storefront-shell";
-import { StorefrontFooter } from "@/components/layout/storefront-footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +54,21 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 };
 
+/**
+ * Root layout — ONLY the <html>/<head>/<body> wrapper.
+ *
+ * Per-route chrome is owned by route-group layouts:
+ *   - (admin)/admin/*       → (admin)/admin/layout.tsx  (sidebar + topbar)
+ *   - (storefront)/*        → (storefront)/layout.tsx   (Header + Footer)
+ *   - account, auth, api    → no chrome (uses this root layout only)
+ *
+ * Previously the root layout rendered <StorefrontShell /> + <StorefrontFooter />
+ * which conditionally suppressed themselves on /admin/* via headers(). That
+ * worked for direct loads but could flash the storefront chrome during client-
+ * side navigations because of cached layouts. With separate route groups, the
+ * storefront Header/Footer are LITERALLY not in the admin React tree — they
+ * cannot render.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -79,11 +92,7 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <StorefrontShell />
-                <main id="main" className="flex-1 animate-fade-in">
-                  {children}
-                </main>
-                <StorefrontFooter />
+        {children}
       </body>
     </html>
   );
