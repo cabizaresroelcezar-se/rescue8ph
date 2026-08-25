@@ -438,71 +438,90 @@ export default async function HomePage() {
       )}
 
       {/* CTA + CONTACT CARD */}
-      <section className="relative isolate overflow-hidden bg-primary text-primary-foreground">
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-grid-faint opacity-[0.07] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_50%,black,transparent)]"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-24 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-accent/20 blur-3xl"
-        />
-        <div className="container-page relative grid gap-10 py-20 lg:grid-cols-[1.2fr_1fr] lg:items-center">
-          <FadeIn>
-            <p className="text-eyebrow !text-white/70">Visit our showroom</p>
-            <h2 className="mt-2 text-display-xl !text-white">Ready to equip your team?</h2>
-            <p className="mt-3 max-w-xl text-white/80">
-              Browse our catalog or contact us for custom orders, bulk pricing, and on-site training in Quezon City.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <ButtonLink href="/products" size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                Shop Now
-              </ButtonLink>
-              <ButtonLink
-                href="/contact"
-                size="lg"
-                className="border border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20"
-              >
-                Contact Us
-              </ButtonLink>
-            </div>
-          </FadeIn>
+            <section className="relative isolate overflow-hidden text-white">
+              {/* Layered gradient — complements (not duplicates) the newsletter below */}
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900"
+              />
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-[radial-gradient(circle_at_25%_30%,color-mix(in_oklch,white_12%,transparent),transparent_55%),radial-gradient(circle_at_80%_80%,color-mix(in_oklch,var(--accent)_22%,transparent),transparent_60%)]"
+              />
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-grid-faint opacity-10 [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,black,transparent)]"
+              />
+              {/* Decorative orbs */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -top-12 right-1/4 h-56 w-56 rounded-full bg-accent/30 blur-3xl animate-float"
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-sky-400/25 blur-3xl animate-float"
+                style={{ animationDelay: "1.4s" }}
+              />
 
-          <FadeIn delay={120} className="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-sm">
-            <p className="text-eyebrow !text-white/70">Rescue 8 Trading Philippines, Inc.</p>
-            <ul className="mt-4 space-y-3 text-sm text-white/90">
-              <li className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                <span>
-                  {site.contact.address.line1}
-                  <br />
-                  {site.contact.address.line2}
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone className="h-4 w-4 shrink-0 text-accent" />
-                <a href={`tel:${site.contact.phone.tel}`} className="hover:underline">
-                  {site.contact.phone.label}
-                </a>
-                <span className="text-white/50">·</span>
-                <a href={`tel:${site.contact.phone.mobile}`} className="text-white/80 hover:underline">
-                  {site.contact.phone.mobile}
-                </a>
-              </li>
-              <li className="flex items-start gap-3">
-                <Clock className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                <span>
-                  {site.contact.hours.weekday}
-                  <br />
-                  {site.contact.hours.saturday}
-                  <br />
-                  {site.contact.hours.sunday}
-                </span>
-              </li>
-            </ul>
-          </FadeIn>
-        </div>
-      </section>
+              <div className="container-page relative grid gap-10 py-20 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+                <FadeIn>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90 backdrop-blur">
+                    <span className="pulse-dot" aria-hidden />
+                    Visit our showroom
+                  </span>
+                  <h2 className="mt-4 text-display-xl !text-white">Ready to equip your team?</h2>
+                  <p className="mt-3 max-w-xl text-white/80">
+                    Browse our catalog or contact us for custom orders, bulk pricing, and on-site training in Quezon City.
+                  </p>
+                  <div className="mt-8 flex flex-wrap gap-3">
+                    <ButtonLink href="/products" size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                      Shop Now
+                    </ButtonLink>
+                    <ButtonLink
+                      href="/contact"
+                      size="lg"
+                      className="border border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20"
+                    >
+                      Contact Us
+                    </ButtonLink>
+                  </div>
+                </FadeIn>
+
+                <FadeIn delay={120} className="rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-md shadow-elev-2">
+                  <p className="text-eyebrow !text-white/70">Rescue 8 Trading Philippines, Inc.</p>
+                  <ul className="mt-4 space-y-3 text-sm text-white/90">
+                    <li className="flex items-start gap-3">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                      <span>
+                        {site.contact.address.line1}
+                        <br />
+                        {site.contact.address.line2}
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <Phone className="h-4 w-4 shrink-0 text-accent" />
+                      <a href={`tel:${site.contact.phone.tel}`} className="hover:underline">
+                        {site.contact.phone.label}
+                      </a>
+                      <span className="text-white/50">·</span>
+                      <a href={`tel:${site.contact.phone.mobile}`} className="text-white/80 hover:underline">
+                        {site.contact.phone.mobile}
+                      </a>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Clock className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                      <span>
+                        {site.contact.hours.weekday}
+                        <br />
+                        {site.contact.hours.saturday}
+                        <br />
+                        {site.contact.hours.sunday}
+                      </span>
+                    </li>
+                  </ul>
+                </FadeIn>
+              </div>
+            </section>
     </div>
   );
 }

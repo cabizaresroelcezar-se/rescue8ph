@@ -96,25 +96,46 @@ export function HeroCarousel({ slides, autoplayMs = 6500 }: { slides: HeroSlide[
           ))}
         </div>
 
-        {/* Controls */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2 sm:px-4">
-          <button
-            type="button"
-            onClick={prev}
-            aria-label="Previous slide"
-            className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            onClick={next}
-            aria-label="Next slide"
-            className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
+        {/* Slide navigation arrows — stacked on the right edge, away from the headline.
+                      Hidden on small screens where space is tight. */}
+                <div className="pointer-events-none absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 flex-col gap-2 sm:right-4 md:flex">
+                  <button
+                    type="button"
+                    onClick={prev}
+                    aria-label="Previous slide"
+                    className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-black/30 text-white shadow-elev-1 backdrop-blur transition-all hover:bg-white/20 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={next}
+                    aria-label="Next slide"
+                    className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-black/30 text-white shadow-elev-1 backdrop-blur transition-all hover:bg-white/20 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Mobile fallback — small icon-only arrows above the slide (below 640px) */}
+                <div className="pointer-events-none absolute bottom-24 left-0 right-0 z-10 flex justify-center gap-2 md:hidden">
+                  <button
+                    type="button"
+                    onClick={prev}
+                    aria-label="Previous slide"
+                    className="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-black/30 text-white shadow-elev-1 backdrop-blur transition-all hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={next}
+                    aria-label="Next slide"
+                    className="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-black/30 text-white shadow-elev-1 backdrop-blur transition-all hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
 
         {/* Footer controls */}
         <div className="absolute inset-x-0 bottom-4 flex items-center justify-between gap-3 px-4 sm:bottom-6">
@@ -172,8 +193,8 @@ function Slide({
         active ? "opacity-100 translate-x-0" : "pointer-events-none -translate-x-2 opacity-0"
       )}
     >
-      <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-center">
-        <div className="max-w-2xl">
+      <div className="grid gap-10 pr-0 lg:grid-cols-[1fr_auto] lg:items-center md:pr-16">
+              <div className="max-w-2xl">
           <div
             className={cn(
               "space-y-4 transition-[opacity,transform] delay-[60ms] duration-[var(--duration-slower)] ease-[var(--ease-out-quart)]",
