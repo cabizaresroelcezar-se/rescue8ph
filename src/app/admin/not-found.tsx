@@ -41,14 +41,22 @@ export default function AdminNotFound() {
       <div className="mt-8 rounded-lg border border-border bg-surface p-4 text-left text-xs text-muted-foreground">
         <p className="font-medium text-foreground">Common causes</p>
         <ul className="mt-2 list-disc space-y-1 pl-4">
-          <li>The page was deleted in another tab.</li>
           <li>
-            Your admin session expired or you no longer have staff access
-            — try signing out and back in.
+            The page was deleted, renamed, or its slug changed —{" "}
+            <Link
+              href="/admin/pages"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              check the Pages list
+            </Link>{" "}
+            to confirm.
           </li>
           <li>
-            You followed a link to <code className="rounded bg-background px-1">/admin/pages/&lt;slug&gt;</code>{" "}
-            but the route uses the page&apos;s UUID, not its slug.
+            You opened a stale link from before the page existed.
+          </li>
+          <li>
+            Your admin session expired or you no longer have staff access
+            — try signing out and signing back in.
           </li>
         </ul>
         <p className="mt-3">
