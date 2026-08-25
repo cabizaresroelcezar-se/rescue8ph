@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageForm } from "@/components/admin/page-form";
@@ -16,15 +16,30 @@ export default async function EditPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
 
+  // Accept either a page UUID or a slug. Pages have UUID primary keys,
+  // but admins sometimes share /admin/pages/custom-page thinking it's
+  // a slug-based route. Try UUID first, then slug.
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      id,
+    );
+
   const { data: page, error } = await supabase
     .from("pages")
     .select(
       "id, title, slug, excerpt, body, seo_title, seo_description, status, published_at",
     )
-    .eq("id", id)
+    .eq(isUuid ? "id" : "slug", id)
     .single();
 
   if (error || !page) notFound();
+
+  // If the user came in via slug (e.g. /admin/pages/custom-page) and
+  // we resolved it to a real page, normalize the URL to the page's UUID
+  // so refreshes + share-links stay consistent.
+  if (!isUuid) {
+    redirect(`/admin/pages/${page.id}`);
+  }
 
   // Sections fetch is best-effort: if the table doesn't exist yet
   // or the query fails, fall back to an empty array so the rest
@@ -34,7 +49,7 @@ export default async function EditPage({ params }: Props) {
     const { data } = await supabase
       .from("page_sections")
       .select("id, page_id, section_type, sort_order, is_enabled, content")
-      .eq("page_id", id)
+      .eq("page_id", page.id)
       .order("sort_order", { ascending: true });
     sections = data ?? [];
   } catch (err) {
