@@ -89,10 +89,10 @@ export default async function HomePage() {
         </>
       ),
       body:
-        "CPR & First Aid, BLS, Stop the Bleed, Fire Extinguisher, Active Shooter, and Shelter-in-Place — taught by an ASHI Level 9 instructor.",
-      primary: { href: "/contact", label: "Inquire about Training" },
-      secondary: { href: "/services", label: "See Programs" },
-      badge: "ASHI Level 9",
+              "CPR & First Aid, Stop the Bleed, Fire Extinguisher, and Disaster Preparedness — taught by experienced EMS practitioners.",
+            primary: { href: "/contact", label: "Inquire about Training" },
+            secondary: { href: "/services", label: "See Programs" },
+            badge: "Training & Certification",
     },
     {
       id: "institutional",
@@ -267,18 +267,17 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* TRAINING PROGRAMS — FB-sourced */}
-      <section className="bg-background">
-        <div className="container-page py-16 sm:py-20">
-          <FadeIn className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-            <div className="max-w-2xl">
-              <p className="text-eyebrow">Training & Certification</p>
-              <h2 className="mt-2 text-display-lg text-foreground">Programs taught by an ASHI Level 9 instructor</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {site.founder.name}, our founder, brings {new Date().getFullYear() - 2002}+ years of field experience
-                as an EMT from UP-PGH. On-site or in our training facility in Quezon City.
-              </p>
-            </div>
+      {/* TRAINING PROGRAMS */}
+            <section className="bg-background">
+              <div className="container-page py-16 sm:py-20">
+                <FadeIn className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+                  <div className="max-w-2xl">
+                    <p className="text-eyebrow">Training & Certification</p>
+                    <h2 className="mt-2 text-display-lg text-foreground">Hands-on safety and first-aid training</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Practical CPR, first-aid, and emergency-response courses delivered on-site or at our training facility in Quezon City.
+                    </p>
+                  </div>
             <ButtonLink href="/contact" variant="outline">
               Request a training schedule
               <ArrowRight />
@@ -437,40 +436,32 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* CTA + CONTACT CARD */}
-            <section className="relative isolate overflow-hidden text-white">
-              {/* Layered gradient — complements (not duplicates) the newsletter below */}
+      {/* CTA + CONTACT CARD — clean light card-based layout to separate it visually
+                from the dark gradient newsletter section below. */}
+            <section className="relative isolate overflow-hidden bg-background text-foreground">
+              {/* Subtle dotted background */}
               <div
                 aria-hidden
-                className="absolute inset-0 bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900"
+                className="absolute inset-0 bg-grid-faint opacity-[0.04]"
+              />
+              {/* Soft accent blobs to add visual interest without a hard gradient */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -top-16 -right-16 h-72 w-72 rounded-full bg-primary/10 blur-3xl"
               />
               <div
                 aria-hidden
-                className="absolute inset-0 bg-[radial-gradient(circle_at_25%_30%,color-mix(in_oklch,white_12%,transparent),transparent_55%),radial-gradient(circle_at_80%_80%,color-mix(in_oklch,var(--accent)_22%,transparent),transparent_60%)]"
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-grid-faint opacity-10 [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,black,transparent)]"
-              />
-              {/* Decorative orbs */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -top-12 right-1/4 h-56 w-56 rounded-full bg-accent/30 blur-3xl animate-float"
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-sky-400/25 blur-3xl animate-float"
-                style={{ animationDelay: "1.4s" }}
+                className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-accent/10 blur-3xl"
               />
 
               <div className="container-page relative grid gap-10 py-20 lg:grid-cols-[1.2fr_1fr] lg:items-center">
                 <FadeIn>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90 backdrop-blur">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                     <span className="pulse-dot" aria-hidden />
                     Visit our showroom
                   </span>
-                  <h2 className="mt-4 text-display-xl !text-white">Ready to equip your team?</h2>
-                  <p className="mt-3 max-w-xl text-white/80">
+                  <h2 className="mt-4 text-display-xl text-foreground">Ready to equip your team?</h2>
+                  <p className="mt-3 max-w-xl text-muted-foreground">
                     Browse our catalog or contact us for custom orders, bulk pricing, and on-site training in Quezon City.
                   </p>
                   <div className="mt-8 flex flex-wrap gap-3">
@@ -480,18 +471,19 @@ export default async function HomePage() {
                     <ButtonLink
                       href="/contact"
                       size="lg"
-                      className="border border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20"
+                      variant="outline"
+                      className="border-border bg-background hover:bg-secondary"
                     >
                       Contact Us
                     </ButtonLink>
                   </div>
                 </FadeIn>
 
-                <FadeIn delay={120} className="rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-md shadow-elev-2">
-                  <p className="text-eyebrow !text-white/70">Rescue 8 Trading Philippines, Inc.</p>
-                  <ul className="mt-4 space-y-3 text-sm text-white/90">
+                <FadeIn delay={120} className="rounded-2xl border border-border bg-card p-6 shadow-elev-2">
+                  <p className="text-eyebrow text-muted-foreground">Rescue 8 Trading Philippines, Inc.</p>
+                  <ul className="mt-4 space-y-3 text-sm text-foreground">
                     <li className="flex items-start gap-3">
-                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       <span>
                         {site.contact.address.line1}
                         <br />
@@ -499,17 +491,17 @@ export default async function HomePage() {
                       </span>
                     </li>
                     <li className="flex items-center gap-3">
-                      <Phone className="h-4 w-4 shrink-0 text-accent" />
+                      <Phone className="h-4 w-4 shrink-0 text-primary" />
                       <a href={`tel:${site.contact.phone.tel}`} className="hover:underline">
                         {site.contact.phone.label}
                       </a>
-                      <span className="text-white/50">·</span>
-                      <a href={`tel:${site.contact.phone.mobile}`} className="text-white/80 hover:underline">
+                      <span className="text-muted-foreground">·</span>
+                      <a href={`tel:${site.contact.phone.mobile}`} className="text-muted-foreground hover:underline">
                         {site.contact.phone.mobile}
                       </a>
                     </li>
                     <li className="flex items-start gap-3">
-                      <Clock className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                      <Clock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       <span>
                         {site.contact.hours.weekday}
                         <br />

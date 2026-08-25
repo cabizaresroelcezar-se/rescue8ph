@@ -32,20 +32,20 @@ export const site = {
       sunday: "Closed",
     },
     social: {
-      facebook: "https://www.facebook.com/rescue8tradingphils",
-    },
+          facebook: "https://www.facebook.com/rescue8tradingphils",
+          instagram: "https://www.instagram.com/",
+        },
   },
 
   founder: {
-    name: "Allan Cabizares",
-    title: "Founder & Sole Proprietor",
-    credentials: [
-      "Emergency Medical Technician — UP-PGH, 2002",
-      "International Trauma Life Support (ITLS) Advanced Provider Course Instructor",
-      "Level 9 Instructor, American Safety & Health Institute (ASHI)",
-      "Training Officer, Fire Emergency Paramedic Assistance Group (Quezon City)",
-    ],
-  },
+      name: "Allan Cabizares",
+      title: "Founder & Sole Proprietor",
+      credentials: [
+        "Emergency medical services practitioner based in Quezon City",
+        "Founder of Rescue 8 Trading Philippines, Inc. since 2012",
+        "Equipment supplier and training provider for first responders, LGUs, and private companies",
+      ],
+    },
 
   customerSegments: [
       { name: "Local Government Units",            abbr: "LGUs" },
@@ -55,18 +55,18 @@ export const site = {
     ],
 
   trainingPrograms: [
-    { title: "CPR & First Aid",              blurb: "Adult, child, and infant CPR with AED, choking, bleeding control, and basic first response." },
-    { title: "BLS for Healthcare Workers",   blurb: "Basic Life Support certification aligned with American Heart Association standards." },
-    { title: "Stop the Bleed",               blurb: "National Stop the Bleed campaign — tourniquets, wound packing, pressure dressings." },
-    { title: "Fire Extinguisher Training",   blurb: "Hands-on use of portable extinguishers, classes A through K, and evacuation drills." },
-    { title: "Active Shooter / Workplace Violence", blurb: "Run-Hide-Fight framework, situational awareness, and emergency response coordination." },
-    { title: "Shelter-in-Place, Evacuation & Weather/Natural Disaster", blurb: "Earthquake, typhoon, and flood response procedures for office and field teams." },
-  ],
+      { title: "CPR & First Aid",              blurb: "Hands-on adult, child, and infant CPR with AED, choking response, bleeding control, and basic first response." },
+      { title: "First Aid Basics",             blurb: "Foundational first-aid skills for workplaces, schools, and community responders." },
+      { title: "Stop the Bleed",               blurb: "Tourniquets, wound packing, and pressure dressings for severe bleeding emergencies." },
+      { title: "Fire Extinguisher Training",   blurb: "Hands-on use of portable extinguishers, fire classes, and evacuation drills." },
+      { title: "Disaster Preparedness",        blurb: "Earthquake, typhoon, and flood response procedures for office and field teams." },
+      { title: "Workplace Safety & Response",  blurb: "Evacuation, shelter-in-place, and emergency coordination for office and industrial sites." },
+    ],
 
   stats: [
-    { value: "13+",  label: "Years of Service",       sub: "DTI-registered since 2012" },
-    { value: "8",    label: "Customer Segments",      sub: "Gov, military, civilian, NGO" },
-    { value: "6",    label: "Training Programs",      sub: "ASHI-aligned curriculum" },
+      { value: "13+",  label: "Years of Service",       sub: "DTI-registered since 2012" },
+      { value: "4",    label: "Customer Segments",      sub: "LGUs, hospitals, schools, private" },
+      { value: "6",    label: "Training Programs",      sub: "CPR, first-aid, safety and more" },
     { value: "100%", label: "Philippine Coverage",    sub: "Nationwide shipping" },
   ],
 } as const;

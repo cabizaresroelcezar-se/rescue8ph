@@ -34,9 +34,9 @@ const serviceLines = [
   {
     icon: GraduationCap,
     title: "Training & Certification",
-    blurb:
-      "ASHI-aligned programs taught on-site at your facility or at our Quezon City training center by an ASHI Level 9 instructor.",
-    bullets: ["CPR & First Aid", "BLS for Healthcare Workers", "Stop the Bleed"],
+        blurb:
+          "Practical first-aid, CPR, and emergency-response programs taught on-site at your facility or at our Quezon City training center.",
+        bullets: ["CPR & First Aid", "First Aid Basics", "Stop the Bleed"],
   },
   {
       icon: Building2,
@@ -87,8 +87,8 @@ export default function ServicesPage() {
             </h1>
             <p className="mt-4 max-w-2xl text-lg text-white/80 sm:text-xl">
               Rescue 8 Philippines supplies equipment, trains teams, and rolls
-              out institutional programs across the country — backed by an
-              ASHI Level 9 instructor and 13+ years of field experience.
+                            out institutional programs across the country — backed by
+                            13+ years of equipment-supply experience.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <ButtonLink
@@ -167,8 +167,8 @@ export default function ServicesPage() {
               Programs we teach on-site
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Delivered by {site.founder.name}, our founder — ASHI Level 9
-              instructor and ITLS Advanced Provider Course Instructor.
+              Delivered by {site.founder.name}, our founder, with 13+ years of
+                            equipment-supply and training experience in the EMS field.
             </p>
           </FadeIn>
 

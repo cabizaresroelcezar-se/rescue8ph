@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, MapPin, Phone, Globe, Camera, Briefcase, Clock, Check } from "lucide-react";
+import { Mail, MapPin, Phone, Clock, Check } from "lucide-react";
 import { site } from "@/lib/site";
 import { NewsletterForm } from "@/components/layout/newsletter-form";
+import { FacebookIcon, InstagramIcon } from "@/components/ui/social-icons";
 
 const linkGroups = [
   {
@@ -35,9 +36,16 @@ const linkGroups = [
 ];
 
 const socials = [
-  { href: "https://www.facebook.com/rescue8tradingphils", label: "Facebook",  Icon: Globe },
-  { href: "https://www.instagram.com/",                   label: "Instagram", Icon: Camera },
-  { href: "https://www.linkedin.com/",                    label: "LinkedIn",  Icon: Briefcase },
+  {
+    href: "https://www.facebook.com/rescue8tradingphils",
+    label: "Facebook",
+    Icon: FacebookIcon,
+  },
+  {
+    href: site.contact.social.instagram ?? "https://www.instagram.com/",
+    label: "Instagram",
+    Icon: InstagramIcon,
+  },
 ];
 
 export function Footer() {
@@ -192,19 +200,27 @@ export function Footer() {
         <div className="md:col-span-2">
                   <h4 className="text-sm font-semibold text-foreground">Follow</h4>
                   <ul className="mt-4 flex gap-2">
-                    {socials.map(({ href, label, Icon }) => (
-                      <li key={label}>
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={label}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-                        >
-                          <Icon className="h-4 w-4" />
-                        </a>
-                      </li>
-                    ))}
+                    {socials.map(({ href, label, Icon }) => {
+                      const brandColor =
+                        label === "Facebook"
+                          ? "hover:text-[#1877F2] hover:border-[#1877F2]/40"
+                          : label === "Instagram"
+                          ? "hover:text-[#E4405F] hover:border-[#E4405F]/40"
+                          : "hover:text-primary hover:border-primary/40";
+                      return (
+                        <li key={label}>
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={label}
+                            className={`inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors ${brandColor}`}
+                          >
+                            <Icon className="h-4 w-4" />
+                          </a>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               </div>

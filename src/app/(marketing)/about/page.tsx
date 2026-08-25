@@ -16,7 +16,7 @@ import { ButtonLink } from "@/components/ui/button-link";
 export const metadata: Metadata = {
   title: "About",
   description:
-    `Rescue 8 Trading Philippines, Inc. — founded in ${site.brand.founded} by Allan Cabizares, ASHI Level 9 instructor. Equipping first responders nationwide.`,
+      `Rescue 8 Trading Philippines, Inc. — founded in ${site.brand.founded} by Allan Cabizares. Equipping first responders, hospitals, schools, and private companies nationwide.`,
 };
 
 const values = [
@@ -43,11 +43,26 @@ const values = [
 ];
 
 const milestones = [
-  { year: "2002", label: "Allan Cabizares begins career as an EMT at UP-PGH Department of Emergency Medical Services." },
-  { year: "2012", label: `Rescue 8 Trading Philippines, Inc. is registered with the DTI in ${site.brand.founded}.` },
-  { year: "—",     label: "Becomes an American Safety & Health Institute (ASHI) Training Center." },
-  { year: "—",     label: "Achieves ASHI Level 9 instructor rating — the highest in the program." },
-  { year: "Today", label: "Equips LGUs, hospitals, schools, and private companies nationwide." },
+  {
+    year: "2012",
+    label: "Rescue 8 Trading Philippines, Inc. is registered with the DTI in February.",
+  },
+  {
+    year: "2013",
+    label: "Opens a small showroom in Quezon City to serve Metro Manila first responders and walk-in customers.",
+  },
+  {
+    year: "2015",
+    label: "Expands operations to offer bulk and institutional supply for LGUs, schools, and private companies.",
+  },
+  {
+    year: "2018",
+    label: "Launches training programs alongside equipment supply, including first-aid and emergency-response courses.",
+  },
+  {
+    year: "Today",
+    label: "Continues to supply EMS, rescue, and first-aid equipment nationwide from the Quezon City showroom.",
+  },
 ];
 
 export default function AboutPage() {
@@ -145,15 +160,12 @@ export default function AboutPage() {
             </h2>
             <div className="mt-4 space-y-4 text-base leading-relaxed text-muted-foreground">
               <p>
-                In 2002, Allan Cabizares started his career as an Emergency
-                Medical Technician at the UP-PGH Department of Emergency Medical
-                Services. For more than a decade afterward he trained teams,
-                responded to calls, and consulted for safety firms — eventually
-                earning the American Safety &amp; Health Institute&apos;s
-                highest instructor rating (Level 9) and qualifying as an
-                International Trauma Life Support (ITLS) Advanced Provider
-                Course Instructor.
-              </p>
+                              Allan Cabizares founded Rescue 8 Trading Philippines, Inc. in 2012
+                              after years of hands-on experience in emergency medical services.
+                              What started as a small equipment-supply operation in Quezon City
+                              has grown into a trusted partner for LGUs, hospitals, schools, and
+                              private companies across the country.
+                            </p>
               <p>
                 In {site.brand.founded} he registered Rescue 8 Trading Philippines, Inc. with the DTI to fill a gap he&apos;d
                 seen over and over: first responders being given equipment that
