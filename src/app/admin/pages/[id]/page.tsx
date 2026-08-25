@@ -26,11 +26,20 @@ export default async function EditPage({ params }: Props) {
 
   if (error || !page) notFound();
 
-  const { data: sections } = await supabase
-    .from("page_sections")
-    .select("id, page_id, section_type, sort_order, is_enabled, content")
-    .eq("page_id", id)
-    .order("sort_order", { ascending: true });
+  // Sections fetch is best-effort: if the table doesn't exist yet
+  // or the query fails, fall back to an empty array so the rest
+  // of the edit UI still loads instead of crashing with a 500.
+  let sections: unknown[] = [];
+  try {
+    const { data } = await supabase
+      .from("page_sections")
+      .select("id, page_id, section_type, sort_order, is_enabled, content")
+      .eq("page_id", id)
+      .order("sort_order", { ascending: true });
+    sections = data ?? [];
+  } catch (err) {
+    console.warn("[admin/pages/[id]] section fetch failed", err);
+  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
