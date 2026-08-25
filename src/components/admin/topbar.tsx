@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { AdminSidebarTrigger } from "@/components/admin/sidebar-trigger";
+import { AdminThemeToggle } from "@/components/admin/admin-theme-toggle";
 import { ShieldCheck, ArrowLeft, User } from "lucide-react";
 
 export function AdminTopbar({
@@ -32,8 +33,11 @@ export function AdminTopbar({
       </span>
 
       <div className="ml-auto flex items-center gap-2">
-        {/* Back to storefront */}
-        <Link
+              {/* Theme toggle */}
+              <AdminThemeToggle />
+
+              {/* Back to storefront */}
+              <Link
           href="/"
           target="_blank"
           rel="noopener noreferrer"
