@@ -94,7 +94,7 @@ export type BlogPostInput = {
 };
 
 export async function createBlogPost(input: BlogPostInput) {
-  const { supabase } = await requireAdmin();
+  const { supabase, user } = await requireAdmin();
   const slug = input.slug || slugify(input.title);
   const status = input.status || "DRAFT";
 
@@ -298,17 +298,175 @@ export async function togglePageSection(id: string) {
     .select("is_enabled")
     .eq("id", id)
     .single();
-  if (!section) return { error: "Section not found" };
-  const { error } = await supabase
-    .from("page_sections")
-    .update({ is_enabled: !section.is_enabled })
-    .eq("id", id);
-  if (error) return { error: error.message };
+      if (!section) return { error: "Section not found" };
+      const { error } = await supabase
+        .from("page_sections")
+        .update({ is_enabled: !section.is_enabled })
+        .eq("id", id);
+      if (error) return { error: error.message };
+      await logAudit({
+        action: AuditAction.UPDATE,
+        resourceType: "page_sections",
+        resourceId: id,
+      });
+      revalidatePath("/admin/content");
+      return { ok: true };
+    }
+
+// =============================================================================
+// PAGES (CMS pages)
+// =============================================================================
+
+export async function createPage(formData: FormData) {
+  const { supabase, user } = await requireAdmin();
+
+  const title = String(formData.get("title") ?? "").trim();
+  const slugRaw = String(formData.get("slug") ?? "").trim();
+  const excerpt = String(formData.get("excerpt") ?? "").trim() || null;
+  const seoTitle = String(formData.get("seo_title") ?? "").trim() || null;
+  const seoDescription =
+    String(formData.get("seo_description") ?? "").trim() || null;
+  const status =
+    (String(formData.get("status") ?? "DRAFT") as "DRAFT" | "PUBLISHED");
+
+  if (!title) return { error: "Title is required" };
+
+  const slug = slugify(slugRaw || title);
+  if (!slug) return { error: "Slug could not be generated" };
+
+  const { data, error } = await supabase
+    .from("pages")
+    .insert({
+      title,
+      slug,
+      excerpt,
+      seo_title: seoTitle,
+      seo_description: seoDescription,
+      status,
+      published_at: status === "PUBLISHED" ? new Date().toISOString() : null,
+      created_by: user.id,
+      updated_by: user.id,
+    })
+    .select("id")
+    .single();
+  if (error) {
+    if (error.code === "23505") {
+      return { error: `Slug "${slug}" is already in use` };
+    }
+    return { error: error.message };
+  }
+
+  await logAudit({
+    action: AuditAction.CREATE,
+    resourceType: "pages",
+    resourceId: data.id,
+  });
+  revalidatePath("/admin/pages");
+  redirect(`/admin/pages/${data.id}`);
+}
+
+export async function updatePage(formData: FormData) {
+  const { supabase, user } = await requireAdmin();
+
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) return { error: "Missing page id" };
+
+  const title = String(formData.get("title") ?? "").trim();
+  const slugRaw = String(formData.get("slug") ?? "").trim();
+  const excerpt = String(formData.get("excerpt") ?? "").trim() || null;
+  const seoTitle = String(formData.get("seo_title") ?? "").trim() || null;
+  const seoDescription =
+    String(formData.get("seo_description") ?? "").trim() || null;
+  const status =
+    (String(formData.get("status") ?? "DRAFT") as "DRAFT" | "PUBLISHED");
+
+  if (!title) return { error: "Title is required" };
+
+  const slug = slugify(slugRaw || title);
+  if (!slug) return { error: "Slug could not be generated" };
+
+  // Determine if we're transitioning to PUBLISHED for the first time
+  const { data: existing } = await supabase
+    .from("pages")
+    .select("status, published_at")
+    .eq("id", id)
+    .single();
+  if (!existing) return { error: "Page not found" };
+
+  const updates: Record<string, unknown> = {
+    title,
+    slug,
+    excerpt,
+    seo_title: seoTitle,
+    seo_description: seoDescription,
+    status,
+    updated_by: user.id,
+  };
+
+  // Set published_at when transitioning to PUBLISHED for the first time;
+  // do NOT touch it on subsequent edits.
+  if (status === "PUBLISHED" && !existing.published_at) {
+    updates.published_at = new Date().toISOString();
+  }
+
+  const { error } = await supabase.from("pages").update(updates).eq("id", id);
+  if (error) {
+    if (error.code === "23505") {
+      return { error: `Slug "${slug}" is already in use` };
+    }
+    return { error: error.message };
+  }
+
   await logAudit({
     action: AuditAction.UPDATE,
-    resourceType: "page_sections",
+    resourceType: "pages",
     resourceId: id,
   });
-  revalidatePath("/admin/content");
+  revalidatePath("/admin/pages");
+  revalidatePath(`/admin/pages/${id}`);
+  return { ok: true };
+}
+
+export async function togglePublishPage(id: string) {
+  const { supabase } = await requireAdmin();
+  const { data: page, error: fetchErr } = await supabase
+    .from("pages")
+    .select("status, published_at")
+    .eq("id", id)
+    .single();
+  if (fetchErr || !page) return { error: fetchErr?.message ?? "Page not found" };
+
+  const next = page.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
+  const updates: Record<string, unknown> = { status: next };
+  if (next === "PUBLISHED" && !page.published_at) {
+    updates.published_at = new Date().toISOString();
+  }
+
+  const { error } = await supabase
+    .from("pages")
+    .update(updates)
+    .eq("id", id);
+  if (error) return { error: error.message };
+
+  await logAudit({
+    action: AuditAction.UPDATE,
+    resourceType: "pages",
+    resourceId: id,
+  });
+  revalidatePath("/admin/pages");
+  revalidatePath(`/admin/pages/${id}`);
+  return { ok: true };
+}
+
+export async function deletePage(id: string) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("pages").delete().eq("id", id);
+  if (error) return { error: error.message };
+  await logAudit({
+    action: AuditAction.DELETE,
+    resourceType: "pages",
+    resourceId: id,
+  });
+  revalidatePath("/admin/pages");
   return { ok: true };
 }

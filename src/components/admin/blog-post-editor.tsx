@@ -67,7 +67,7 @@ export function BlogPostEditor({ categories, initial }: BlogPostEditorProps) {
     setBusy(false);
     if (result.ok) {
       if (isEdit) router.refresh();
-      else router.push(`/admin/blog/${(result as { id: string }).id}`);
+      else router.push(`/admin/blog/${(result as unknown as { id: string }).id}`);
     } else if (result.error) {
       setError(result.error);
     }

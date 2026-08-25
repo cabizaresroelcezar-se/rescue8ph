@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Plus, Pencil } from "lucide-react";
+import { ListPublishToggle } from "./[id]/publish-toggle";
 
 export default async function AdminPagesPage() {
   const supabase = await createClient();
@@ -46,16 +47,11 @@ export default async function AdminPagesPage() {
                   <td className="px-4 py-3 font-medium">{page.title}</td>
                   <td className="px-4 py-3 text-muted-foreground">/{page.slug}</td>
                   <td className="px-4 py-3 text-center">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        page.status === "PUBLISHED"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {page.status}
-                    </span>
-                  </td>
+                                      <ListPublishToggle
+                                        id={page.id}
+                                        initial={page.status as "DRAFT" | "PUBLISHED"}
+                                      />
+                                    </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {page.published_at
                       ? new Date(page.published_at).toLocaleDateString("en-PH")

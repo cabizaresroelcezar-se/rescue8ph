@@ -94,7 +94,7 @@ export default async function BlogPage({
               <div className="flex flex-col justify-center p-6 lg:p-10">
                 {featured.blog_categories && (
                   <span className="inline-flex w-fit items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-primary">
-                    Featured · {(featured.blog_categories as { name: string }).name}
+                    Featured · {(featured.blog_categories as unknown as { name: string } | null)?.name}
                   </span>
                 )}
                 <h2 className="mt-4 text-3xl font-bold text-foreground transition-colors group-hover:text-primary lg:text-4xl">
@@ -144,7 +144,7 @@ export default async function BlogPage({
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {rest.map((post) => {
                 const img = getMediaUrl(post.featured_image_url);
-                const cat = post.blog_categories as { name: string; slug: string } | null;
+                const cat = post.blog_categories as unknown as { name: string; slug: string } | null;
                 return (
                   <Link
                     key={post.id}

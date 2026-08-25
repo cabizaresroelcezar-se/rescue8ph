@@ -64,15 +64,16 @@ export default async function BlogPostPage({
     .limit(3);
 
   const img = getMediaUrl(post.featured_image_url);
-  const cat = post.blog_categories as { name: string; slug: string } | null;
-  const author = post.profiles as unknown as
-    | { first_name: string | null; last_name: string | null }
-    | null;
-  const authorName =
-    author && (author.first_name || author.last_name)
-      ? `${author.first_name ?? ""} ${author.last_name ?? ""}`.trim()
-      : "Rescue 8 Philippines";
-  const readMinutes = estimateReadTime(post.content ?? "");
+    const cat = post.blog_categories as unknown as { name: string; slug: string } | null;
+    const author = post.profiles as unknown as
+      | { first_name: string | null; last_name: string | null }
+      | null;
+    const authorName =
+      author && (author.first_name || author.last_name)
+        ? `${author.first_name ?? ""} ${author.last_name ?? ""}`.trim()
+        : "Rescue 8 Philippines";
+    const readMinutes = estimateReadTime(post.content ?? "");
+    const postAny = post as unknown as { created_at?: string | null };
 
   return (
     <article>
@@ -86,7 +87,7 @@ export default async function BlogPostPage({
               description: post.excerpt || post.title,
               slug: post.slug,
               author: authorName,
-              publishedAt: post.published_at || post.created_at,
+              publishedAt: post.published_at || postAny.created_at,
               image: img ?? undefined,
             }),
           }),
@@ -187,7 +188,7 @@ export default async function BlogPostPage({
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((r) => {
                 const rImg = getMediaUrl(r.featured_image_url);
-                const rCat = r.blog_categories as { name: string } | null;
+                const rCat = r.blog_categories as unknown as { name: string } | null;
                 return (
                   <Link
                     key={r.id}
