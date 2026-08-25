@@ -33,13 +33,13 @@ export default async function AdminLayout({
   return (
     <div className="flex min-h-screen bg-surface">
       <AdminSidebar isSuperAdmin={isSuperAdmin} />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-h-screen flex-1 flex-col">
         <AdminTopbar
           email={user.email || ""}
           firstName={profile.first_name}
           isSuperAdmin={isSuperAdmin}
         />
-        <main className="flex-1 overflow-auto p-6">
+        <main id="main" className="flex-1 overflow-auto p-4 sm:p-6">
           {children}
         </main>
       </div>

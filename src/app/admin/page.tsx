@@ -1,308 +1,193 @@
-import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import {
   Package,
   ShoppingCart,
-  Users,
   AlertTriangle,
   TrendingUp,
   FileText,
   Boxes,
   ArrowRight,
   BarChart3,
-  Activity,
+  Users,
+  ImageIcon,
 } from "lucide-react";
 import { FadeIn, Stagger } from "@/lib/motion";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
-  // Fetch counts in parallel — INTERFACE-ONLY refactor preserves all original queries.
-  const [productsRes, ordersRes, customersRes, pendingOrdersRes, lowStockRes, publishedPagesRes] =
-    await Promise.all([
-      supabase.from("products").select("*", { count: "exact", head: true }),
-      supabase.from("orders").select("*", { count: "exact", head: true }),
-      supabase.from("profiles").select("*", { count: "exact", head: true }),
-      supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .in("status", ["PENDING", "PAYMENT_PENDING", "PAID", "PROCESSING"]),
-      supabase
-        .from("inventory")
-        .select("quantity_on_hand, reorder_level")
-        .lt("quantity_on_hand", 10),
-      supabase
-        .from("pages")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "PUBLISHED"),
-    ]);
+  // Single round-trip per resource; counts only
+  const [products, orders, customers, pendingOrders, lowStock, posts] = await Promise.all([
+    supabase.from("products").select("*", { count: "exact", head: true }),
+    supabase.from("orders").select("*", { count: "exact", head: true }),
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase
+      .from("orders")
+      .select("*", { count: "exact", head: true })
+      .in("status", ["PENDING", "PAYMENT_PENDING", "PAID", "PROCESSING"]),
+    supabase
+      .from("inventory")
+      .select("quantity_on_hand, reorder_level")
+      .lt("quantity_on_hand", 10),
+    supabase
+      .from("blog_posts")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "PUBLISHED"),
+  ]);
 
-  const productCount = productsRes.count ?? 0;
-  const orderCount = ordersRes.count ?? 0;
-  const customerCount = customersRes.count ?? 0;
-  const pendingOrderCount = pendingOrdersRes.count ?? 0;
-  const lowStockCount = lowStockRes.data?.filter(
-    (i) => i.quantity_on_hand <= i.reorder_level,
-  ).length ?? 0;
-  const publishedPageCount = publishedPagesRes.count ?? 0;
+  const lowStockCount =
+    (lowStock.data ?? []).filter((i) => i.quantity_on_hand <= i.reorder_level).length ?? 0;
 
-  const stats = [
-    {
-      title: "Total Products",
-      value: productCount,
-      icon: Package,
-      description: "Products in catalog",
-      accent: "from-primary/10 to-primary/0",
-      tone: "text-primary",
-    },
-    {
-      title: "Total Orders",
-      value: orderCount,
-      icon: ShoppingCart,
-      description: "All orders",
-      accent: "from-primary/10 to-primary/0",
-      tone: "text-primary",
-    },
+  // Only show the 4 most actionable KPIs
+  const kpis = [
     {
       title: "Pending Orders",
-      value: pendingOrderCount,
+      value: pendingOrders.count ?? 0,
+      href: "/admin/orders",
       icon: TrendingUp,
-      description: "Need attention",
-      accent: "from-accent/10 to-accent/0",
       tone: "text-accent",
     },
     {
-      title: "Customers",
-      value: customerCount,
-      icon: Users,
-      description: "Registered users",
-      accent: "from-primary/10 to-primary/0",
-      tone: "text-primary",
-    },
-    {
-      title: "Low Stock Items",
+      title: "Low Stock",
       value: lowStockCount,
+      href: "/admin/inventory",
       icon: AlertTriangle,
-      description: "At or below reorder level",
-      accent: "from-destructive/10 to-destructive/0",
       tone: "text-destructive",
     },
     {
-      title: "Published Pages",
-      value: publishedPageCount,
+      title: "Total Products",
+      value: products.count ?? 0,
+      href: "/admin/products",
+      icon: Package,
+      tone: "text-primary",
+    },
+    {
+      title: "Published Posts",
+      value: posts.count ?? 0,
+      href: "/admin/blog",
       icon: FileText,
-      description: "CMS pages live",
-      accent: "from-primary/10 to-primary/0",
       tone: "text-primary",
     },
   ];
 
+  const sections = [
+    {
+      title: "Catalog",
+      links: [
+        { href: "/admin/products", label: "Products", icon: Package, count: products.count ?? 0 },
+        { href: "/admin/inventory", label: "Inventory", icon: Boxes, count: lowStockCount },
+        { href: "/admin/media", label: "Media library", icon: ImageIcon },
+      ],
+    },
+    {
+      title: "Sales",
+      links: [
+        { href: "/admin/orders", label: "Orders", icon: ShoppingCart, count: orders.count ?? 0 },
+        { href: "/admin/customers", label: "Customers", icon: Users, count: customers.count ?? 0 },
+      ],
+    },
+    {
+      title: "Content",
+      links: [
+        { href: "/admin/content", label: "Site content", icon: FileText },
+        { href: "/admin/blog", label: "Blog", icon: FileText, count: posts.count ?? 0 },
+        { href: "/admin/pages", label: "Pages", icon: FileText },
+      ],
+    },
+    {
+      title: "Insights",
+      links: [{ href: "/admin/analytics", label: "Analytics", icon: BarChart3 }],
+    },
+  ];
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <FadeIn className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
+    <div className="space-y-6">
+      {/* Compact greeting */}
+      <FadeIn className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-eyebrow">Back Office</p>
-          <h1 className="mt-2 text-display-md text-foreground">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Overview of your Rescue 8 Philippines store
+            What needs attention today.
           </p>
         </div>
         <Link
           href="/admin/analytics"
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium text-foreground shadow-elev-1 transition-colors hover:bg-secondary"
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
         >
-          <BarChart3 className="h-4 w-4" />
-          View analytics
+          <BarChart3 className="h-4 w-4" /> View analytics
         </Link>
       </FadeIn>
 
-      {/* KPI grid */}
-      <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
+      {/* Actionable KPIs */}
+      <Stagger className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {kpis.map((k) => {
+          const Icon = k.icon;
           return (
             <FadeIn
-              key={stat.title}
-              className={
-                "group relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-elev-1 transition-all hover:-translate-y-0.5 hover:shadow-elev-3"
-              }
+              key={k.title}
+              className="rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elev-2"
             >
-              <div
-                aria-hidden
-                className={
-                  "pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br opacity-60 transition-opacity group-hover:opacity-100 " +
-                  stat.accent
-                }
-              />
-              <div className="relative flex items-start justify-between">
+              <Link href={k.href} className="flex items-start justify-between">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    {stat.title}
+                    {k.title}
                   </p>
-                  <p className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-                    {stat.value.toLocaleString()}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {stat.description}
+                  <p className="mt-2 text-3xl font-bold tracking-tight text-foreground">
+                    {k.value.toLocaleString()}
                   </p>
                 </div>
                 <div
-                  className={
-                    "flex h-10 w-10 items-center justify-center rounded-lg bg-secondary " +
-                    stat.tone
-                  }
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg bg-secondary ${k.tone}`}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4 w-4" />
                 </div>
-              </div>
+              </Link>
             </FadeIn>
           );
         })}
       </Stagger>
 
-      {/* Two-column: quick actions + activity */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <FadeIn className="rounded-xl border border-border bg-card p-6 shadow-elev-1 lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-foreground">
-                Quick Actions
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Jump straight into common tasks.
+      {/* Section navigation — replaces the old "Quick Actions" grid */}
+      <FadeIn className="rounded-xl border border-border bg-card p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Manage your store</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">Jump to any section.</p>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {sections.map((s) => (
+            <div key={s.title}>
+              <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                {s.title}
               </p>
+              <ul className="space-y-1">
+                {s.links.map((l) => {
+                  const Icon = l.icon;
+                  return (
+                    <li key={l.href}>
+                      <Link
+                        href={l.href}
+                        className="group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-secondary"
+                      >
+                        <Icon className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
+                        <span className="flex-1">{l.label}</span>
+                        {typeof l.count === "number" && (
+                          <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                            {l.count}
+                          </span>
+                        )}
+                        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            <QuickAction
-              href="/admin/products"
-              title="Manage Products"
-              desc="Add, edit, or archive items in your catalog"
-              icon={Package}
-            />
-            <QuickAction
-              href="/admin/orders"
-              title="View Orders"
-              desc="Process payments and fulfillment"
-              icon={ShoppingCart}
-            />
-            <QuickAction
-              href="/admin/inventory"
-              title="Check Inventory"
-              desc="Reorder SKUs below threshold"
-              icon={Boxes}
-            />
-            <QuickAction
-              href="/admin/content"
-              title="Edit Content"
-              desc="Update site copy and CMS pages"
-              icon={FileText}
-            />
-          </div>
-        </FadeIn>
-
-        <FadeIn
-          delay={80}
-          className="rounded-xl border border-border bg-card p-6 shadow-elev-1"
-        >
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-accent" />
-            <h2 className="text-base font-semibold text-foreground">
-              Needs Attention
-            </h2>
-          </div>
-          <ul className="mt-4 space-y-3 text-sm">
-            <AttentionItem
-              count={pendingOrderCount}
-              label="Orders awaiting fulfillment"
-              href="/admin/orders"
-            />
-            <AttentionItem
-              count={lowStockCount}
-              label="SKUs at or below reorder level"
-              href="/admin/inventory"
-              tone="destructive"
-            />
-            <AttentionItem
-              count={0}
-              label="Customer replies to review"
-              href="/admin/customers"
-            />
-          </ul>
-          <Link
-            href="/admin/orders"
-            className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
-          >
-            Review queue
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </FadeIn>
-      </div>
+          ))}
+        </div>
+      </FadeIn>
     </div>
-  );
-}
-
-function QuickAction({
-  href,
-  title,
-  desc,
-  icon: Icon,
-}: {
-  href: string;
-  title: string;
-  desc: string;
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex items-start gap-3 rounded-lg border border-border bg-background p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elev-2"
-    >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-        <Icon className="h-4 w-4" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-foreground group-hover:text-primary">
-          {title}
-        </p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
-      </div>
-      <ArrowRight className="mt-2 h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
-    </Link>
-  );
-}
-
-function AttentionItem({
-  count,
-  label,
-  href,
-  tone,
-}: {
-  count: number;
-  label: string;
-  href: string;
-  tone?: "destructive";
-}) {
-  return (
-    <li>
-      <Link
-        href={href}
-        className="flex items-center justify-between gap-3 rounded-md px-2 py-2 transition-colors hover:bg-secondary"
-      >
-        <span className="text-muted-foreground">{label}</span>
-        <span
-          className={
-            "inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-2 text-xs font-semibold " +
-            (tone === "destructive"
-              ? "bg-destructive/10 text-destructive"
-              : "bg-accent/10 text-accent")
-          }
-        >
-          {count}
-        </span>
-      </Link>
-    </li>
   );
 }

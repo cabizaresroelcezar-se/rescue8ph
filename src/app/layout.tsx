@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { StorefrontShell } from "@/components/layout/storefront-shell";
+import { StorefrontFooter } from "@/components/layout/storefront-footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,11 +79,11 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <Header />
-        <main id="main" className="flex-1 animate-fade-in">
-          {children}
-        </main>
-        <Footer />
+        <StorefrontShell />
+                <main id="main" className="flex-1 animate-fade-in">
+                  {children}
+                </main>
+                <StorefrontFooter />
       </body>
     </html>
   );

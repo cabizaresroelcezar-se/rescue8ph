@@ -1,12 +1,137 @@
-import { AdminPlaceholder } from "@/components/admin/placeholder";
-import { FileText } from "lucide-react";
+import { HelpCircle, Tag, Layers } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { Badge } from "@/components/ui/badge";
+import { FaqForm } from "@/components/admin/faq-form";
+import { CategoryForm } from "@/components/admin/category-form";
+import { FaqRow } from "@/components/admin/faq-row";
+import { CategoryRow } from "@/components/admin/category-row";
 
-export default function AdminContentPage() {
+export default async function AdminContentPage() {
+  const supabase = await createClient();
+  const [{ data: faqs }, { data: categories }, { data: pages }] = await Promise.all([
+    supabase.from("faqs").select("id, question, answer, sort_order, is_enabled").order("sort_order"),
+    supabase.from("blog_categories").select("id, name, slug, description, _count:blog_posts(count)").order("name"),
+    supabase.from("pages").select("id, slug, title, status, _count:page_sections(count)").order("slug"),
+  ]);
+
   return (
-    <AdminPlaceholder
-      title="Content Management"
-      description="Manage pages, blog posts, FAQs, testimonials, and services"
-      icon={FileText}
-    />
+    <div className="space-y-8">
+      <header>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Content Management</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Manage FAQs, blog categories, and storefront pages from one place.
+        </p>
+      </header>
+
+      {/* FAQs */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <HelpCircle className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold text-foreground">FAQs</h2>
+          <span className="text-sm text-muted-foreground">({faqs?.length ?? 0})</span>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <FaqForm />
+        </div>
+        <div className="space-y-2">
+          {(faqs ?? []).map((f) => (
+            <FaqRow
+              key={f.id}
+              id={f.id}
+              question={f.question}
+              answer={f.answer}
+              sortOrder={f.sort_order}
+              isEnabled={f.is_enabled}
+            />
+          ))}
+          {(!faqs || faqs.length === 0) && (
+            <p className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
+              No FAQs yet. Add your first one above.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Blog categories */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Tag className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold text-foreground">Blog categories</h2>
+          <span className="text-sm text-muted-foreground">({categories?.length ?? 0})</span>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <CategoryForm />
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {(categories ?? []).map((c) => {
+            const count = (c as unknown as { _count?: { blog_posts?: number } })._count?.blog_posts ?? 0;
+            return (
+              <CategoryRow
+                key={c.id}
+                id={c.id}
+                name={c.name}
+                slug={c.slug}
+                description={c.description}
+                postCount={count}
+              />
+            );
+          })}
+          {(!categories || categories.length === 0) && (
+            <p className="col-span-full rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
+              No categories yet. Create one above to organize blog posts.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Pages */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Layers className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold text-foreground">Pages</h2>
+          <span className="text-sm text-muted-foreground">({pages?.length ?? 0})</span>
+        </div>
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 font-medium">Slug</th>
+                <th className="px-4 py-3 font-medium">Title</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 text-right font-medium">Sections</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {(pages ?? []).map((p) => {
+                const count = (p as unknown as { _count?: { page_sections?: number } })._count?.page_sections ?? 0;
+                return (
+                  <tr key={p.id} className="hover:bg-secondary/30">
+                    <td className="px-4 py-3">
+                      <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">/{p.slug}</code>
+                    </td>
+                    <td className="px-4 py-3 text-foreground">{p.title}</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={p.status === "PUBLISHED" ? "default" : "secondary"}>
+                        {p.status}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-muted-foreground">
+                      {count} section{count}
+                    </td>
+                  </tr>
+                );
+              })}
+              {(!pages || pages.length === 0) && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                    No pages defined.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
   );
 }
