@@ -314,6 +314,109 @@ export async function togglePageSection(id: string) {
     }
 
 // =============================================================================
+// PAGE SECTIONS (composable blocks on a CMS page)
+// =============================================================================
+
+export type SectionType =
+  | "HERO"
+  | "FEATURE_GRID"
+  | "PRODUCT_GRID"
+  | "IMAGE_TEXT"
+  | "SERVICE_GRID"
+  | "TESTIMONIALS"
+  | "FAQ"
+  | "BLOG_GRID"
+  | "CTA"
+  | "RICH_TEXT"
+  | "BANNER";
+
+export interface PageSectionInput {
+  page_id: string;
+  section_type: SectionType;
+  sort_order?: number;
+  is_enabled?: boolean;
+  content?: Record<string, unknown>;
+}
+
+export async function createPageSection(input: PageSectionInput) {
+  const { supabase } = await requireAdmin();
+  const { data, error } = await supabase
+    .from("page_sections")
+    .insert({
+      page_id: input.page_id,
+      section_type: input.section_type,
+      sort_order: input.sort_order ?? 0,
+      is_enabled: input.is_enabled ?? true,
+      content: input.content ?? {},
+    })
+    .select("id")
+    .single();
+  if (error) return { error: error.message };
+
+  await logAudit({
+    action: AuditAction.CREATE,
+    resourceType: "page_sections",
+    resourceId: data.id,
+  });
+  revalidatePath(`/admin/pages`);
+  revalidatePath(`/admin/pages/${input.page_id}`);
+  return { ok: true, id: data.id };
+}
+
+export async function updatePageSection(
+  id: string,
+  input: Partial<PageSectionInput>,
+) {
+  const { supabase } = await requireAdmin();
+  const updates: Record<string, unknown> = {};
+  if (input.section_type !== undefined) updates.section_type = input.section_type;
+  if (input.sort_order !== undefined) updates.sort_order = input.sort_order;
+  if (input.is_enabled !== undefined) updates.is_enabled = input.is_enabled;
+  if (input.content !== undefined) updates.content = input.content;
+  const { data: existing, error: fetchErr } = await supabase
+    .from("page_sections")
+    .select("page_id")
+    .eq("id", id)
+    .single();
+  if (fetchErr || !existing) return { error: "Section not found" };
+
+  const { error } = await supabase
+    .from("page_sections")
+    .update(updates)
+    .eq("id", id);
+  if (error) return { error: error.message };
+
+  await logAudit({
+    action: AuditAction.UPDATE,
+    resourceType: "page_sections",
+    resourceId: id,
+  });
+  revalidatePath(`/admin/pages/${existing.page_id}`);
+  return { ok: true };
+}
+
+export async function deletePageSection(id: string) {
+  const { supabase } = await requireAdmin();
+  const { data: existing, error: fetchErr } = await supabase
+    .from("page_sections")
+    .select("page_id")
+    .eq("id", id)
+    .single();
+  if (fetchErr || !existing) return { error: "Section not found" };
+
+  const { error } = await supabase.from("page_sections").delete().eq("id", id);
+  if (error) return { error: error.message };
+
+  await logAudit({
+    action: AuditAction.DELETE,
+    resourceType: "page_sections",
+    resourceId: id,
+  });
+  revalidatePath(`/admin/pages/${existing.page_id}`);
+  return { ok: true };
+}
+
+// =============================================================================
 // PAGES (CMS pages)
 // =============================================================================
 
@@ -323,6 +426,7 @@ export async function createPage(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const slugRaw = String(formData.get("slug") ?? "").trim();
   const excerpt = String(formData.get("excerpt") ?? "").trim() || null;
+  const body = String(formData.get("body") ?? "");
   const seoTitle = String(formData.get("seo_title") ?? "").trim() || null;
   const seoDescription =
     String(formData.get("seo_description") ?? "").trim() || null;
@@ -340,6 +444,7 @@ export async function createPage(formData: FormData) {
       title,
       slug,
       excerpt,
+      body,
       seo_title: seoTitle,
       seo_description: seoDescription,
       status,
@@ -374,6 +479,7 @@ export async function updatePage(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const slugRaw = String(formData.get("slug") ?? "").trim();
   const excerpt = String(formData.get("excerpt") ?? "").trim() || null;
+  const body = String(formData.get("body") ?? "");
   const seoTitle = String(formData.get("seo_title") ?? "").trim() || null;
   const seoDescription =
     String(formData.get("seo_description") ?? "").trim() || null;
@@ -397,6 +503,7 @@ export async function updatePage(formData: FormData) {
     title,
     slug,
     excerpt,
+    body,
     seo_title: seoTitle,
     seo_description: seoDescription,
     status,

@@ -3,6 +3,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ArrowLeft } from "lucide-react";
 import { createMetadata } from "@/lib/seo";
+import { Markdown } from "@/components/marketing/markdown";
+import {
+  PageSectionRenderer,
+  type PageSection,
+} from "@/components/marketing/page-section-renderer";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -51,12 +56,21 @@ export default async function StorefrontPage({ params }: Props) {
   const supabase = await createClient();
   const { data: page } = await supabase
     .from("pages")
-    .select("id, title, slug, excerpt, seo_title, seo_description, published_at")
+    .select(
+      "id, title, slug, excerpt, body, seo_title, seo_description, published_at",
+    )
     .eq("slug", slug)
     .eq("status", "PUBLISHED")
     .single();
 
   if (!page) notFound();
+
+  const { data: sections } = await supabase
+    .from("page_sections")
+    .select("id, section_type, sort_order, is_enabled, content")
+    .eq("page_id", page.id)
+    .eq("is_enabled", true)
+    .order("sort_order", { ascending: true });
 
   const published = page.published_at
     ? new Date(page.published_at).toLocaleDateString("en-PH", {
@@ -65,6 +79,8 @@ export default async function StorefrontPage({ params }: Props) {
         day: "numeric",
       })
     : null;
+
+  const body = page.body?.trim() ?? "";
 
   return (
     <article>
@@ -99,26 +115,34 @@ export default async function StorefrontPage({ params }: Props) {
         </div>
       </header>
 
-      {/* Body */}
+      {/* Sections (composable blocks) */}
+      {(sections ?? []).map((s) => (
+        <PageSectionRenderer
+          key={(s as unknown as PageSection).id}
+          section={s as unknown as PageSection}
+        />
+      ))}
+
+      {/* Body (Markdown) */}
       <div className="container-prose py-12">
-        {/* Placeholder body — pages table currently has no body column.
-            Renders the excerpt as a fallback so the page isn't empty. */}
-        <div className="rounded-xl border border-dashed border-border bg-surface p-6">
+        {body ? (
+          <Markdown source={body} />
+        ) : page.excerpt ? (
+          <div className="rounded-xl border border-dashed border-border bg-surface p-6 text-base text-muted-foreground">
+            {page.excerpt}
+          </div>
+        ) : (
           <p className="text-sm text-muted-foreground">
-            This page is managed from{" "}
+            This page has no content yet. Edit it from{" "}
             <Link
               href={`/admin/pages`}
               className="font-medium text-foreground underline-offset-4 hover:underline"
             >
               /admin/pages
             </Link>
-            . Add a body field to the <code>pages</code> table to populate
-            this section with rich content.
+            .
           </p>
-          {page.excerpt && (
-            <p className="mt-4 text-base text-foreground">{page.excerpt}</p>
-          )}
-        </div>
+        )}
       </div>
     </article>
   );

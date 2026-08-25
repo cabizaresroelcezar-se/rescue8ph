@@ -2,6 +2,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageForm } from "@/components/admin/page-form";
+import {
+  PageSectionsManager,
+  type PageSection,
+} from "@/components/admin/page-sections-manager";
 import { ListPublishToggle } from "./publish-toggle";
 import { DeletePageButton } from "./delete-button";
 import { ExternalLink } from "lucide-react";
@@ -15,12 +19,18 @@ export default async function EditPage({ params }: Props) {
   const { data: page, error } = await supabase
     .from("pages")
     .select(
-      "id, title, slug, excerpt, seo_title, seo_description, status, published_at",
+      "id, title, slug, excerpt, body, seo_title, seo_description, status, published_at",
     )
     .eq("id", id)
     .single();
 
   if (error || !page) notFound();
+
+  const { data: sections } = await supabase
+    .from("page_sections")
+    .select("id, page_id, section_type, sort_order, is_enabled, content")
+    .eq("page_id", id)
+    .order("sort_order", { ascending: true });
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
@@ -70,10 +80,16 @@ export default async function EditPage({ params }: Props) {
           title: page.title,
           slug: page.slug,
           excerpt: page.excerpt,
+          body: page.body ?? "",
           seo_title: page.seo_title,
           seo_description: page.seo_description,
           status: page.status as "DRAFT" | "PUBLISHED",
         }}
+      />
+
+      <PageSectionsManager
+        pageId={page.id}
+        sections={(sections ?? []) as unknown as PageSection[]}
       />
     </div>
   );
