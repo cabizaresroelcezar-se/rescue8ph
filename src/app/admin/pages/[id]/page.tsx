@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageForm } from "@/components/admin/page-form";
 import { ListPublishToggle } from "./publish-toggle";
 import { DeletePageButton } from "./delete-button";
+import { ExternalLink } from "lucide-react";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -43,6 +45,17 @@ export default async function EditPage({ params }: Props) {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {page.status === "PUBLISHED" && (
+            <Link
+              href={`/${page.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              View
+            </Link>
+          )}
           <ListPublishToggle
             id={page.id}
             initial={page.status as "DRAFT" | "PUBLISHED"}

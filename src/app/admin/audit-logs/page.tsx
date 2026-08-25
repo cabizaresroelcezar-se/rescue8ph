@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { FadeIn } from "@/lib/motion";
 import { ShieldAlert, Filter } from "lucide-react";
@@ -118,12 +119,12 @@ export default async function AdminAuditLogsPage({
             Apply
           </button>
           {(actionFilter || resourceFilter) && (
-            <a
+            <Link
               href="/admin/audit-logs"
               className="h-9 items-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             >
               Clear
-            </a>
+            </Link>
           )}
         </form>
       </FadeIn>

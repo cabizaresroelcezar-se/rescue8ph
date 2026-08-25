@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createMetadata } from "@/lib/seo";
 
@@ -37,12 +38,12 @@ export default async function FaqPage() {
       <div className="mt-12 rounded-lg bg-primary p-8 text-center text-white">
         <h2 className="text-xl font-bold">Still have questions?</h2>
         <p className="mt-2 text-white/80">We&apos;re here to help. Contact our team for assistance.</p>
-        <a
+        <Link
           href="/contact"
           className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-accent px-6 text-sm font-semibold text-white hover:bg-accent/90"
         >
           Contact Us
-        </a>
+        </Link>
       </div>
     </div>
   );

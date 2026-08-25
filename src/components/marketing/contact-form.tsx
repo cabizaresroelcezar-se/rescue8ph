@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import * as React from "react";
 import { useFormStatus } from "react-dom";
 import { Send, Loader2, Check, AlertCircle } from "lucide-react";
@@ -135,9 +136,9 @@ export function ContactForm() {
       <SubmitButton status={status} />
       <p className="text-xs text-muted-foreground">
         By submitting, you agree to our{" "}
-        <a href="/privacy" className="text-primary underline-offset-4 hover:underline">
+        <Link href="/privacy" className="text-primary underline-offset-4 hover:underline">
           Privacy Policy
-        </a>
+        </Link>
         . We respond within one business day.
       </p>
     </form>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import {
@@ -257,21 +258,21 @@ export default async function OrderDetailPage({
             <ul className="mt-4 space-y-2 text-sm">
               <li className="flex items-start gap-2">
                 <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <a
+                <Link
                   href="mailto:info@rescue8ph.com"
                   className="text-primary underline-offset-4 hover:underline"
                 >
                   Email support
-                </a>
+                </Link>
               </li>
               <li className="flex items-start gap-2">
                 <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <a
+                <Link
                   href="/contact"
                   className="text-primary underline-offset-4 hover:underline"
                 >
                   Open a ticket
-                </a>
+                </Link>
               </li>
             </ul>
           </FadeIn>

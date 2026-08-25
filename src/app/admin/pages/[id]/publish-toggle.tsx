@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { togglePublishPage } from "@/features/cms/actions";
+import { useDelayedRefresh } from "@/hooks/use-delayed-refresh";
 import { cn } from "@/lib/utils";
 
 export function ListPublishToggle({
@@ -13,21 +13,30 @@ export function ListPublishToggle({
   id: string;
   initial: "DRAFT" | "PUBLISHED";
 }) {
-  const router = useRouter();
   const [status, setStatus] = React.useState(initial);
   const [busy, setBusy] = React.useState(false);
+  const { refresh, pending } = useDelayedRefresh(600);
 
   async function onClick() {
+    if (busy) return;
     setBusy(true);
+    const next = status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
+    // Optimistic update so the badge flips immediately
+    setStatus(next);
     const result = await togglePublishPage(id);
     setBusy(false);
     if (result?.ok) {
-      setStatus(status === "PUBLISHED" ? "DRAFT" : "PUBLISHED");
-      router.refresh();
+      refresh(); // debounced re-fetch
+    } else if (result?.error) {
+      // Revert on error
+      setStatus(status);
+      alert(result.error);
     }
   }
 
   const isPublished = status === "PUBLISHED";
+  const isRefreshing = pending && !busy;
+
   return (
     <button
       type="button"
@@ -35,13 +44,13 @@ export function ListPublishToggle({
       disabled={busy}
       aria-pressed={isPublished}
       className={cn(
-        "inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors disabled:opacity-50",
+        "inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors disabled:opacity-60",
         isPublished
           ? "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
           : "border-yellow-200 bg-yellow-50 text-yellow-700 hover:bg-yellow-100",
       )}
     >
-      {busy ? (
+      {busy || isRefreshing ? (
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
       ) : (
         <span

@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ButtonLink } from "@/components/ui/button-link";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, ExternalLink } from "lucide-react";
 import { ListPublishToggle } from "./[id]/publish-toggle";
 
 export default async function AdminPagesPage() {
@@ -58,10 +59,27 @@ export default async function AdminPagesPage() {
                       : "—"}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <ButtonLink href={`/admin/pages/${page.id}`} variant="ghost" size="sm">
-                      <Pencil className="h-4 w-4" />
-                    </ButtonLink>
-                  </td>
+                                      <div className="inline-flex items-center gap-1">
+                                        {page.status === "PUBLISHED" && (
+                                          <Link
+                                            href={`/${page.slug}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label={`View ${page.title} on storefront`}
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                          >
+                                            <ExternalLink className="h-4 w-4" />
+                                          </Link>
+                                        )}
+                                        <ButtonLink
+                                          href={`/admin/pages/${page.id}`}
+                                          variant="ghost"
+                                          size="sm"
+                                        >
+                                          <Pencil className="h-4 w-4" />
+                                        </ButtonLink>
+                                      </div>
+                                    </td>
                 </tr>
               ))}
             </tbody>

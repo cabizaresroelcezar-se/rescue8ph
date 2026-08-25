@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Save, Loader2, ArrowLeft } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { createPage, updatePage } from "@/features/cms/actions";
+import { useDelayedRefresh } from "@/hooks/use-delayed-refresh";
 
 export interface PageFormInitial {
   id?: string;
@@ -17,7 +17,6 @@ export interface PageFormInitial {
 }
 
 export function PageForm({ initial }: { initial?: PageFormInitial }) {
-  const router = useRouter();
   const isEdit = Boolean(initial?.id);
 
   const [title, setTitle] = React.useState(initial?.title ?? "");
@@ -33,6 +32,7 @@ export function PageForm({ initial }: { initial?: PageFormInitial }) {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [savedAt, setSavedAt] = React.useState<string | null>(null);
+  const { refresh, pending } = useDelayedRefresh(700);
 
   const autoSlug = React.useMemo(() => slugify(title), [title]);
 
@@ -56,7 +56,7 @@ export function PageForm({ initial }: { initial?: PageFormInitial }) {
       setError(result.error);
     } else if (isEdit) {
       setSavedAt(new Date().toLocaleTimeString("en-PH"));
-      router.refresh();
+      refresh(); // debounced re-fetch so the form's title/slug refresh from server
     }
     // createPage redirects to /admin/pages/[id] on success
   }
@@ -82,12 +82,16 @@ export function PageForm({ initial }: { initial?: PageFormInitial }) {
             disabled={busy || !title.trim()}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {busy ? (
+            {busy || pending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Save className="h-4 w-4" />
             )}
-            {isEdit ? "Save changes" : "Create page"}
+            {pending && !busy
+              ? "Saved"
+              : isEdit
+                ? "Save changes"
+                : "Create page"}
           </button>
         </div>
       </div>
