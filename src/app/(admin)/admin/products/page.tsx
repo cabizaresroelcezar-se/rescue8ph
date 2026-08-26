@@ -20,6 +20,39 @@ export default async function AdminProductsPage() {
     .order("created_at", { ascending: false })
     .limit(50);
 
+  // Fetch all product→category assignments for the visible products,
+  // plus the category names, so we can render chips per row.
+  const productIds = (products ?? []).map((p) => p.id);
+  const { data: categoryLinks } = productIds.length
+    ? await supabase
+        .from("product_categories")
+        .select("product_id, categories:categories(id, name, slug)")
+        .in("product_id", productIds)
+    : { data: [] };
+
+  const categoriesByProduct = new Map<
+    string,
+    Array<{ id: string; name: string; slug: string }>
+  >();
+  for (const link of categoryLinks ?? []) {
+    const l = link as {
+      product_id: string;
+      categories:
+        | { id: string; name: string; slug: string }
+        | { id: string; name: string; slug: string }[]
+        | null;
+    };
+    const cats = Array.isArray(l.categories)
+      ? l.categories
+      : l.categories
+        ? [l.categories]
+        : [];
+    categoriesByProduct.set(
+      l.product_id,
+      cats.map((c) => ({ id: c.id, name: c.name, slug: c.slug })),
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -48,30 +81,27 @@ export default async function AdminProductsPage() {
             No products yet
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Add your first product to start building the catalog.
+            Get started by adding your first product.
           </p>
-          <ButtonLink href="/admin/products/new" className="mt-5">
-            <Plus className="h-4 w-4" />
-            Add Your First Product
-          </ButtonLink>
         </FadeIn>
       ) : (
-        <FadeIn className="overflow-hidden rounded-2xl border border-border bg-card shadow-elev-1">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-border bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-5 py-3">Product</th>
-                  <th className="px-5 py-3">Slug</th>
-                  <th className="px-5 py-3 text-right">Price</th>
-                  <th className="px-5 py-3 text-center">Status</th>
-                  <th className="px-5 py-3 text-center">Featured</th>
-                  <th className="px-5 py-3">Created</th>
-                  <th className="px-5 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {products.map((product) => (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="border-b border-border bg-surface text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="px-5 py-3">Product</th>
+                <th className="px-5 py-3">Categories</th>
+                <th className="px-5 py-3 text-right">Price</th>
+                <th className="px-5 py-3 text-center">Status</th>
+                <th className="px-5 py-3 text-center">Featured</th>
+                <th className="px-5 py-3">Created</th>
+                <th className="px-5 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {products.map((product) => {
+                const cats = categoriesByProduct.get(product.id) ?? [];
+                return (
                   <tr
                     key={product.id}
                     className="transition-colors hover:bg-secondary/40"
@@ -81,13 +111,32 @@ export default async function AdminProductsPage() {
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                           <Package className="h-4 w-4" />
                         </div>
-                        <span className="font-semibold text-foreground">
-                          {product.title}
-                        </span>
+                        <div>
+                          <div className="font-semibold text-foreground">
+                            {product.title}
+                          </div>
+                          <div className="font-mono text-[10px] text-muted-foreground">
+                            /{product.slug}
+                          </div>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3.5 font-mono text-xs text-muted-foreground">
-                      {product.slug}
+                    <td className="px-5 py-3.5">
+                      {cats.length === 0 ? (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {cats.map((c) => (
+                            <span
+                              key={c.id}
+                              className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary"
+                              title={`/${c.slug}`}
+                            >
+                              {c.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-5 py-3.5 text-right font-semibold text-foreground">
                       PHP {product.price.toFixed(2)}
@@ -124,11 +173,11 @@ export default async function AdminProductsPage() {
                       </Link>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </FadeIn>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FadeIn } from "@/lib/motion";
 import { ProductImageUploader } from "@/components/admin/product-image-uploader";
+import { CategoryPicker } from "@/components/admin/category-picker";
 import { updateProduct } from "@/features/products/actions";
 
 export default async function EditProductPage({
@@ -31,20 +32,37 @@ export default async function EditProductPage({
     }
 
     const { data: productImages } = await supabase
-      .from("product_images")
-      .select("id, storage_path, alt_text, is_primary, sort_order")
-      .eq("product_id", id)
-      .order("sort_order", { ascending: true });
+        .from("product_images")
+        .select("id, storage_path, alt_text, is_primary, sort_order")
+        .eq("product_id", id)
+        .order("sort_order", { ascending: true });
 
-  return (
-    <div className="space-y-8">
-      {/* Header */}
-      <FadeIn className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-eyebrow">Back Office · Products</p>
-          <h1 className="mt-2 text-display-md text-foreground">
-            Edit Product
-          </h1>
+    // Fetch all categories (staff sees DRAFT + PUBLISHED + ARCHIVED)
+    // and this product's currently-assigned category IDs in parallel.
+    const [{ data: allCategories }, { data: productCategoryRows }] =
+      await Promise.all([
+        supabase
+          .from("categories")
+          .select("id, name, slug, status, parent_id")
+          .order("name", { ascending: true }),
+        supabase
+          .from("product_categories")
+          .select("category_id")
+          .eq("product_id", id),
+      ]);
+    const assignedCategoryIds = (productCategoryRows ?? []).map(
+      (r) => (r as { category_id: string }).category_id,
+    );
+
+    return (
+  <div className="space-y-8">
+    {/* Header */}
+    <FadeIn className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
+      <div>
+        <p className="text-eyebrow">Back Office · Products</p>
+        <h1 className="mt-2 text-display-md text-foreground">
+          Edit Product
+        </h1>
           <p className="mt-1 text-sm text-muted-foreground">{product.title}</p>
         </div>
         <Link
@@ -116,32 +134,51 @@ export default async function EditProductPage({
           </Section>
 
           <Section title="Catalog">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field id="sku" label="SKU">
-                <Input id="sku" name="sku" defaultValue={product.sku || ""} />
-              </Field>
-              <Field id="status" label="Status">
-                <Select id="status" name="status" defaultValue={product.status}>
-                  <option value="DRAFT">Draft</option>
-                  <option value="ACTIVE">Active</option>
-                  <option value="ARCHIVED">Archived</option>
-                </Select>
-              </Field>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field id="weightGrams" label="Weight (grams)">
-                <Input id="weightGrams" name="weightGrams" type="number" defaultValue={product.weight_grams || ""} />
-              </Field>
-              <Field id="featured" label="Featured">
-                <Select id="featured" name="featured" defaultValue={product.featured ? "true" : "false"}>
-                  <option value="false">No</option>
-                  <option value="true">Yes</option>
-                </Select>
-              </Field>
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field id="sku" label="SKU">
+              <Input id="sku" name="sku" defaultValue={product.sku || ""} />
+            </Field>
+            <Field id="status" label="Status">
+              <Select id="status" name="status" defaultValue={product.status}>
+                <option value="DRAFT">Draft</option>
+                <option value="ACTIVE">Active</option>
+                <option value="ARCHIVED">Archived</option>
+              </Select>
+            </Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field id="weightGrams" label="Weight (grams)">
+              <Input id="weightGrams" name="weightGrams" type="number" defaultValue={product.weight_grams || ""} />
+            </Field>
+            <Field id="featured" label="Featured">
+              <Select id="featured" name="featured" defaultValue={product.featured ? "true" : "false"}>
+    <option value="false">No</option>
+    <option value="true">Yes</option>
+  </Select>
+            </Field>
+          </div>
+        </Section>
+
+<Section title="Categories">
+<p className="mb-3 text-xs text-muted-foreground">
+              Assign this product to one or more categories. Customers filter
+              products by category on the storefront, so pick the most specific
+              ones.
+            </p>
+            <CategoryPicker
+              productId={id}
+              categories={(allCategories ?? []).map((c) => ({
+                id: c.id,
+                name: c.name,
+                slug: c.slug,
+                status: c.status as "DRAFT" | "PUBLISHED" | "ARCHIVED" | "SCHEDULED",
+                parent_id: c.parent_id,
+              }))}
+              initialSelectedIds={assignedCategoryIds}
+            />
           </Section>
 
-          <Section title="SEO">
+                    <Section title="SEO">
                       <Field id="seoTitle" label="SEO Title">
                         <Input id="seoTitle" name="seoTitle" defaultValue={product.seo_title || ""} />
                       </Field>

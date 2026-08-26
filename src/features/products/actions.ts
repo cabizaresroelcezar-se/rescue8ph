@@ -302,3 +302,73 @@ export async function updateProductImageAlt(imageId: string, altText: string) {
 
   return { success: true };
 }
+/**
+ * Replace a product's category assignments (junction table).
+ * Uses a delete-all-then-insert pattern for atomicity within the
+ * action; small N (categories per product <= ~10), so it's fine.
+ */
+export async function setProductCategories(
+  productId: string,
+  categoryIds: string[],
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Not signed in" };
+
+  // Verify staff
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role_id, roles(name)")
+    .eq("id", user.id)
+    .single();
+  const roleData = (profile as { roles?: { name?: string } | { name?: string }[] | null } | null)?.roles;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+  if (roleName !== "admin" && roleName !== "super_admin") {
+    return { ok: false, error: "Only staff can edit product categories" };
+  }
+
+  // Validate all category IDs exist + are PUBLISHED/DRAFT
+  if (categoryIds.length > 0) {
+    const { data: cats } = await supabase
+      .from("categories")
+      .select("id")
+      .in("id", categoryIds);
+    const found = new Set((cats ?? []).map((c) => c.id));
+    const missing = categoryIds.filter((id) => !found.has(id));
+    if (missing.length > 0) {
+      return { ok: false, error: `Unknown category IDs: ${missing.join(", ")}` };
+    }
+  }
+
+  // Replace-all pattern
+  const { error: delErr } = await supabase
+    .from("product_categories")
+    .delete()
+    .eq("product_id", productId);
+  if (delErr) return { ok: false, error: delErr.message };
+
+  if (categoryIds.length > 0) {
+    const rows = categoryIds.map((category_id) => ({
+      product_id: productId,
+      category_id,
+    }));
+    const { error: insErr } = await supabase
+      .from("product_categories")
+      .insert(rows);
+    if (insErr) return { ok: false, error: insErr.message };
+  }
+
+  await logAudit({
+    action: AuditAction.UPDATE,
+    resourceType: "products",
+    resourceId: productId,
+    newValues: { category_ids: categoryIds },
+  }).catch(() => {});
+
+  revalidatePath(`/admin/products/${productId}`);
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
+  return { ok: true };
+}

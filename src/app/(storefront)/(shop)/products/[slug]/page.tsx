@@ -259,13 +259,31 @@ export default async function ProductDetailPage({
 
           <h1 className="text-display-md text-foreground">{product.title}</h1>
 
+          {categories && categories.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {categories.map((c) => {
+                const cat = Array.isArray(c.category) ? c.category[0] : c.category;
+                if (!cat) return null;
+                return (
+                  <Link
+                    key={cat.slug}
+                    href={`/products?category=${encodeURIComponent(cat.slug)}`}
+                    className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-0.5 text-xs font-medium text-foreground transition hover:border-primary hover:bg-primary/5 hover:text-primary"
+                  >
+                    {cat.name}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
           <div className="mt-4 flex items-baseline gap-3">
             <span className="text-3xl font-bold tracking-tight text-foreground">
               PHP {product.price.toFixed(2)}
             </span>
             {product.compare_at_price && (
               <>
-                <span className="text-base text-muted-foreground line-through">
+    <span className="text-base text-muted-foreground line-through">
                   PHP {product.compare_at_price.toFixed(2)}
                 </span>
                 {discount && (
