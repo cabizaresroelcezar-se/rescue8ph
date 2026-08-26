@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Plus, Pencil, ExternalLink } from "lucide-react";
@@ -6,6 +7,25 @@ import { ListPublishToggle } from "./[id]/publish-toggle";
 
 export default async function AdminPagesPage() {
   const supabase = await createClient();
+
+  // Auth + role guard. The pages table RLS lets anon read PUBLISHED rows,
+  // but the admin UI needs to see drafts too — so we gate on the session.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/auth/login?redirectTo=/admin/pages");
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role_id, roles(name)")
+    .eq("id", user.id)
+    .single();
+  const roleName = (profile as { roles?: { name?: string } | null } | null)?.roles?.name;
+  if (roleName !== "admin" && roleName !== "super_admin") {
+    redirect("/account");
+  }
 
   const { data: pages } = await supabase
     .from("pages")

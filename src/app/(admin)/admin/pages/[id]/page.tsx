@@ -16,6 +16,27 @@ export default async function EditPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
 
+  // Auth + role guard. We redirect to login (not 404) so the user
+  // can sign in and come back. If they're signed in but not staff,
+  // we 404 so the existence of pages stays private.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect(`/auth/login?redirectTo=/admin/pages/${id}`);
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role_id, roles(name)")
+    .eq("id", user.id)
+    .single();
+  const roleName = (profile as { roles?: { name?: string } | null } | null)?.roles?.name;
+  if (roleName !== "admin" && roleName !== "super_admin") {
+    // Not staff. Return 404 rather than 403 so the page list isn't enumerable.
+    notFound();
+  }
+
   // Accept either a page UUID or a slug. Pages have UUID primary keys,
   // but admins sometimes share /admin/pages/custom-page thinking it's
   // a slug-based route. Try UUID first, then slug.
@@ -24,6 +45,9 @@ export default async function EditPage({ params }: Props) {
       id,
     );
 
+  // Staff can read any page (see RLS), so this should always succeed
+  // for an existing page ID. Log the actual error to help diagnose
+  // future 404s.
   const { data: page, error } = await supabase
     .from("pages")
     .select(
@@ -32,7 +56,14 @@ export default async function EditPage({ params }: Props) {
     .eq(isUuid ? "id" : "slug", id)
     .single();
 
-  if (error || !page) notFound();
+  if (error || !page) {
+    // Helpful in dev: log what we tried. Don't leak details to the
+    // public 404 page.
+    console.warn(
+      `[admin/pages/[id]] page not found: id=${id} isUuid=${isUuid} error=${error?.message ?? "no rows"}`,
+    );
+    notFound();
+  }
 
   // If the user came in via slug (e.g. /admin/pages/custom-page) and
   // we resolved it to a real page, normalize the URL to the page's UUID
