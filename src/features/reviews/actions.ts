@@ -279,3 +279,43 @@ export async function getReviewStats(productId: string): Promise<ReviewStats> {
   const average = total === 0 ? 0 : Math.round((sum / total) * 10) / 10;
   return { total, average, counts };
 }
+
+/**
+ * Bulk version of getReviewStats — fetches aggregate stats for many
+ * products in a single query. Returns a Map keyed by productId. Use this
+ * on product listing pages to avoid an N+1 query storm.
+ */
+export async function getBulkReviewStats(
+  productIds: string[],
+): Promise<Map<string, { total: number; average: number }>> {
+  const result = new Map<string, { total: number; average: number }>();
+  if (productIds.length === 0) return result;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("product_reviews")
+    .select("product_id, rating")
+    .in("product_id", productIds)
+    .eq("status", "APPROVED");
+
+  const sums = new Map<string, { total: number; sum: number }>();
+  for (const r of (data ?? []) as Array<{ product_id: string; rating: number }>) {
+    const cur = sums.get(r.product_id) ?? { total: 0, sum: 0 };
+    cur.total++;
+    cur.sum += r.rating;
+    sums.set(r.product_id, cur);
+  }
+
+  for (const id of productIds) {
+    const s = sums.get(id);
+    if (!s) {
+      result.set(id, { total: 0, average: 0 });
+    } else {
+      result.set(id, {
+        total: s.total,
+        average: Math.round((s.sum / s.total) * 10) / 10,
+      });
+    }
+  }
+  return result;
+}

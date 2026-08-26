@@ -8,6 +8,7 @@ import { SortSelect } from "@/components/shop/sort-select";
 import { MobileFilters } from "@/components/shop/mobile-filters";
 import { createMetadata } from "@/lib/seo";
 import { getMediaUrl } from "@/lib/media";
+import { getBulkReviewStats } from "@/features/reviews/actions";
 
 export const metadata = createMetadata({
   title: "Products",
@@ -138,15 +139,22 @@ export default async function ProductsPage({
   query = query.range(offset, offset + PAGE_SIZE - 1);
 
   // ----- Run all queries in parallel -----
-  const [{ data: products, count: totalCount }, { data: categories }] =
-    await Promise.all([
-      query,
-      supabase
-        .from("categories")
-        .select("name, slug")
-        .eq("status", "PUBLISHED")
-        .order("name"),
-    ]);
+  const [
+    { data: products, count: totalCount },
+    { data: categories },
+  ] = await Promise.all([
+    query,
+    supabase
+      .from("categories")
+      .select("name, slug")
+      .eq("status", "PUBLISHED")
+      .order("name"),
+  ]);
+
+  // Bulk review stats (sequential — needs productIds from above)
+  const bulkReviewStats = await getBulkReviewStats(
+    (products ?? []).map((p) => (p as { id: string }).id),
+  );
 
   const totalPages = Math.max(1, Math.ceil((totalCount ?? 0) / PAGE_SIZE));
 
@@ -332,6 +340,7 @@ export default async function ProductsPage({
               <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {products.map((p) => {
                   const image = imageByProduct[p.id] ?? null;
+                  const stats = bulkReviewStats.get(p.id) ?? { total: 0, average: 0 };
                   return (
                     <FadeIn key={p.id}>
                       <ProductCard
@@ -344,6 +353,8 @@ export default async function ProductsPage({
                         featured={p.featured}
                         image={image}
                         initialSaved={savedSet.has(p.id)}
+                        rating={stats.average}
+                        reviewCount={stats.total}
                       />
                     </FadeIn>
                   );
