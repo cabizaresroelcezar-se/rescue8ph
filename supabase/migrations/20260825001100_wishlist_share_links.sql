@@ -41,10 +41,14 @@ create table if not exists public.wishlist_share_links (
 create index if not exists idx_wishlist_share_links_user_id
   on public.wishlist_share_links(user_id);
 
--- Fast token-lookup by primary key (already indexed).
+-- Plain (non-partial) index on the lookups we run for share-link fetches:
+--   - by id (PK is already indexed, but this also covers id-only queries)
+--   - by user_id for the owner's own-link listing
+-- We don't use a partial predicate here because Postgres requires
+-- index-predicate functions be IMMUTABLE, but now() is STABLE. Filtering
+-- by revoked_at/expires_at is done in the WHERE clauses / RLS policies.
 create index if not exists idx_wishlist_share_links_active
-  on public.wishlist_share_links(id)
-  where revoked_at is null and (expires_at is null or expires_at > now());
+  on public.wishlist_share_links(id, user_id);
 
 -- ============================================================================
 -- RLS
