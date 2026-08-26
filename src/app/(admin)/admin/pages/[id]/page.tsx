@@ -31,9 +31,23 @@ export default async function EditPage({ params }: Props) {
     .select("role_id, roles(name)")
     .eq("id", user.id)
     .single();
-  const roleName = (profile as { roles?: { name?: string } | null } | null)?.roles?.name;
+  // The profiles row may not exist yet (signup trigger race). Treat
+  // missing profile as 'no role' rather than letting single() throw.
+  let roleName: string | undefined;
+  if (profile) {
+    const roles = (profile as { roles?: { name?: string } | { name?: string }[] | null }).roles;
+    if (Array.isArray(roles)) {
+      roleName = roles[0]?.name;
+    } else if (roles && typeof roles === "object") {
+      roleName = roles.name;
+    }
+  }
   if (roleName !== "admin" && roleName !== "super_admin") {
-    // Not staff. Return 404 rather than 403 so the page list isn't enumerable.
+    // Not staff (or no profile yet). Return 404 rather than 403 so the
+    // page list isn't enumerable.
+    console.warn(
+      `[admin/pages/[id]] access denied for user ${user.id}: role=${roleName ?? "<none>"}`,
+    );
     notFound();
   }
 

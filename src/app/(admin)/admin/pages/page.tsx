@@ -22,7 +22,15 @@ export default async function AdminPagesPage() {
     .select("role_id, roles(name)")
     .eq("id", user.id)
     .single();
-  const roleName = (profile as { roles?: { name?: string } | null } | null)?.roles?.name;
+  let roleName: string | undefined;
+  if (profile) {
+    const roles = (profile as { roles?: { name?: string } | { name?: string }[] | null }).roles;
+    if (Array.isArray(roles)) {
+      roleName = roles[0]?.name;
+    } else if (roles && typeof roles === "object") {
+      roleName = roles.name;
+    }
+  }
   if (roleName !== "admin" && roleName !== "super_admin") {
     redirect("/account");
   }
