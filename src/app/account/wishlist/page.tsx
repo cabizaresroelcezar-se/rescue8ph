@@ -8,6 +8,8 @@ import { getMediaUrl } from "@/lib/media";
 import { formatCurrency } from "@/lib/format";
 import { WishlistButton } from "@/components/shop/wishlist-button";
 import { AddToCartButton } from "@/components/shop/add-to-cart-button";
+import { WishlistShareCard } from "@/components/account/wishlist-share-card";
+import { getActiveShareLink } from "@/features/wishlist/share-actions";
 
 export const metadata = {
   title: "My Wishlist \u00b7 Rescue 8 Philippines",
@@ -71,6 +73,11 @@ export default async function WishlistPage() {
     })
     .filter((x): x is NonNullable<typeof x> => Boolean(x));
 
+  // Check if this user has an active share link (server side, runs in
+  // parallel with the wishlist load above via Promise.all-like fetches
+  // we're doing inline; the data fetch is fast since it's a single PK).
+  const activeShareLink = await getActiveShareLink();
+
   return (
     <div className="bg-surface">
       <section className="border-b border-border bg-background">
@@ -113,7 +120,8 @@ export default async function WishlistPage() {
             </ButtonLink>
           </FadeIn>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
             {items.map((item) => {
               const discount =
                 item.compare_at_price && item.compare_at_price > item.price
@@ -186,6 +194,13 @@ export default async function WishlistPage() {
                 </FadeIn>
               );
             })}
+            </div>
+            <aside className="lg:sticky lg:top-24 lg:self-start">
+              <WishlistShareCard
+                initialLink={activeShareLink}
+                itemCount={items.length}
+              />
+            </aside>
           </div>
         )}
       </div>
