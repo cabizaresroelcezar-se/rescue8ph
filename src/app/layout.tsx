@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -79,11 +80,19 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`,
-          }}
-        />
+        {/*
+          Theme detection script. Runs synchronously before paint to prevent
+          a flash of unstyled content (FOUC) when dark mode is enabled.
+
+          Implemented as next/script with strategy="beforeInteractive" so
+          it executes in the document head before any React hydration.
+          This avoids React 19's "Encountered a script tag" warning that
+          fires when a plain <script> with dangerouslySetInnerHTML is
+          placed inside a component body.
+        */}
+        <Script id="theme-detect" strategy="beforeInteractive">
+          {`(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`}
+        </Script>
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <a
