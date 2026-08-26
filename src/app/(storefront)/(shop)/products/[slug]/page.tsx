@@ -13,6 +13,7 @@ import { ReviewForm } from "@/components/shop/review-form";
 import { ReviewList, ReviewHistogram } from "@/components/shop/review-list";
 import { TrackProductView } from "@/components/shop/track-product-view";
 import { getReviewStats } from "@/features/reviews/actions";
+import { getUserReviewVotes } from "@/features/review-votes/actions";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -138,22 +139,28 @@ export default async function ProductDetailPage({
                   getReviewStats(product.id),
                   supabase
                     .from("product_reviews")
-                    .select(
-                      "id, rating, title, body, is_verified_purchase, created_at, author:profiles!product_reviews_user_id_fkey(first_name, last_name, display_name)",
-                    )
-                    .eq("product_id", product.id)
-                    .eq("status", "APPROVED")
-                    .order("created_at", { ascending: false })
-                    .limit(20),
-                ]);
-                const ownReviewResult = reviewUser
-                  ? await supabase
-                      .from("product_reviews")
-                      .select("id, rating, title, body, status")
-                      .eq("product_id", product.id)
-                      .eq("user_id", reviewUser.id)
-                      .maybeSingle()
-                  : { data: null };
+                                        .select(
+                                          "id, rating, title, body, is_verified_purchase, helpful_count, created_at, author:profiles!product_reviews_user_id_fkey(first_name, last_name, display_name)",
+                                        )
+                                        .eq("product_id", product.id)
+                                        .eq("status", "APPROVED")
+                                        .order("created_at", { ascending: false })
+                                        .limit(20),
+                                    ]);
+                                    // Fetch this user's votes for the visible reviews (so the
+                                    // Helpful button can show its pressed state)
+                                    const reviewIdsForVotes = (reviews ?? []).map((r) => (r as { id: string }).id);
+                                    const userVotes = reviewUser
+                                      ? await getUserReviewVotes(reviewIdsForVotes)
+                                      : new Map<string, boolean>();
+                                    const ownReviewResult = reviewUser
+                                      ? await supabase
+                                          .from("product_reviews")
+                                          .select("id, rating, title, body, status")
+                                          .eq("product_id", product.id)
+                                          .eq("user_id", reviewUser.id)
+                                          .maybeSingle()
+                                      : { data: null };
 
     return (
       <div className="bg-background pb-28 md:pb-10">
@@ -411,21 +418,24 @@ export default async function ProductDetailPage({
             {/* Reviews list */}
             <div>
               <ReviewList
-                reviews={(reviews ?? []).map((r) => ({
-                  id: r.id as string,
-                  rating: r.rating as number,
-                  title: (r.title as string | null) ?? null,
-                  body: r.body as string,
-                  is_verified_purchase: r.is_verified_purchase as boolean,
-                  created_at: r.created_at as string,
-                  author: (() => {
-                    const a = r.author;
-                    if (!a) return null;
-                    if (Array.isArray(a)) return (a[0] ?? null) as never;
-                    return a as never;
-                  })(),
-                }))}
-              />
+                              reviews={(reviews ?? []).map((r) => ({
+                                id: r.id as string,
+                                rating: r.rating as number,
+                                title: (r.title as string | null) ?? null,
+                                body: r.body as string,
+                                is_verified_purchase: r.is_verified_purchase as boolean,
+                                helpful_count: (r.helpful_count as number) ?? 0,
+                                created_at: r.created_at as string,
+                                author: (() => {
+                                  const a = r.author;
+                                  if (!a) return null;
+                                  if (Array.isArray(a)) return (a[0] ?? null) as never;
+                                  return a as never;
+                                })(),
+                              }))}
+                              userVotes={userVotes}
+                              signedIn={!!reviewUser}
+                            />
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { CheckCircle2 } from "lucide-react";
 import { StarRating } from "@/components/ui/star-rating";
+import { HelpfulVoteButton } from "@/components/shop/helpful-vote-button";
 import { formatDatePh } from "@/lib/format";
 
 export interface ReviewListItem {
@@ -11,11 +12,20 @@ export interface ReviewListItem {
   title: string | null;
   body: string;
   is_verified_purchase: boolean;
+  helpful_count: number;
   created_at: string;
   author: { name: string | null; first_name: string | null; last_name: string | null } | null;
 }
 
-export function ReviewList({ reviews }: { reviews: ReviewListItem[] }) {
+export function ReviewList({
+  reviews,
+  userVotes,
+  signedIn,
+}: {
+  reviews: ReviewListItem[];
+  userVotes?: Map<string, boolean>;
+  signedIn?: boolean;
+}) {
   if (reviews.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center text-sm text-muted-foreground">
@@ -64,6 +74,17 @@ export function ReviewList({ reviews }: { reviews: ReviewListItem[] }) {
           <p className="mt-2 whitespace-pre-line text-sm text-foreground/90">
             {r.body}
           </p>
+          <footer className="mt-4 flex items-center gap-3 border-t border-border pt-3">
+            <HelpfulVoteButton
+              reviewId={r.id}
+              initialCount={r.helpful_count}
+              initialUserVote={userVotes?.get(r.id) ?? null}
+              signedIn={!!signedIn}
+            />
+            <span className="text-xs text-muted-foreground">
+              Found this helpful? Let others know.
+            </span>
+          </footer>
         </article>
       ))}
     </div>
