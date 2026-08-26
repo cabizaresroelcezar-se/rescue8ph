@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { Boxes, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { FadeIn, Stagger } from "@/lib/motion";
+import { NewInventoryForm } from "@/components/admin/new-inventory-form";
+import { getProductsWithoutInventory } from "@/features/inventory/actions";
 
 type InventoryWithProduct = {
   id: string;
@@ -38,6 +40,10 @@ export default async function AdminInventoryPage() {
     (i) => i.quantity_on_hand > 0 && i.quantity_on_hand <= i.reorder_level,
   ).length;
 
+  // Fetch products that don't yet have an inventory row, used by the
+  // "Add inventory" modal's product picker.
+  const productsWithoutInventory = await getProductsWithoutInventory();
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -49,6 +55,7 @@ export default async function AdminInventoryPage() {
             Track stock levels and manage inventory.
           </p>
         </div>
+        <NewInventoryForm initialProducts={productsWithoutInventory} />
       </FadeIn>
 
       {/* Summary cards */}

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Image from "next/image";
 import { ArrowRight, ImageIcon, FolderOpen, FileText } from "lucide-react";
-import { FadeIn, Stagger } from "@/lib/motion";
+import { FadeIn } from "@/lib/motion";
+import { MediaGallery } from "@/components/admin/media-gallery";
 
 export const metadata = {
   title: "Media Library · Back Office",
@@ -39,27 +39,12 @@ export default async function AdminMediaPage({
     .from(activeBucket.name)
     .list("", { limit: 200, sortBy: { column: "created_at", order: "desc" } });
 
-  // Get the products to map file -> product
-  const { data: productImages } = activeBucket.name === "products"
-    ? await supabase
-        .from("product_images")
-        .select("id, storage_path, alt_text, is_primary, product_id, product:products(title, slug)")
-    : { data: [] };
+      // Note: productImages lookup was previously used to render a "used in
+      // product X" badge per file. Removing for simplicity now that the
+      // preview modal owns the file detail; can be re-added later as a
+      // separate "<Used in>" footer chip if needed.
 
-  // Build a lookup of storage_path -> product info
-    const productInfoByPath: Record<string, { id: string; title: string; slug: string; alt: string | null }> = {};
-    for (const pi of productImages ?? []) {
-      const prod = pi.product as { title?: string; slug?: string } | { title?: string; slug?: string }[] | null;
-      const first = Array.isArray(prod) ? prod[0] : prod;
-      productInfoByPath[pi.storage_path] = {
-        id: pi.product_id,
-        title: first?.title || "Untitled",
-        slug: first?.slug || "",
-        alt: pi.alt_text,
-      };
-    }
-
-  return (
+      return (
     <div className="space-y-8">
       <FadeIn className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
         <div>
@@ -114,53 +99,22 @@ export default async function AdminMediaPage({
           </Link>
         </FadeIn>
       ) : (
-        <Stagger className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {files.map((file) => {
-            const isFolder = !file.id;
-            const path = file.name;
-            const product = productInfoByPath[path];
-            return (
-              <div
-                key={file.id ?? file.name}
-                className="group relative overflow-hidden rounded-xl border border-border bg-card"
-              >
-                <div className="relative aspect-square w-full overflow-hidden bg-surface">
-                  {isFolder ? (
-                    <FolderOpen className="m-auto h-10 w-10 text-muted-foreground/40" />
-                  ) : (
-                    <Image
-                      src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${activeBucket.name}/${file.name}`}
-                      alt={product?.alt || file.name}
-                      fill
-                      sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                      className="object-contain p-2"
-                    />
-                  )}
-                </div>
-                <div className="border-t border-border p-3">
-                  <p className="truncate text-xs font-medium text-foreground">
-                    {file.name}
-                  </p>
-                  {product && (
-                    <Link
-                      href={`/admin/products/${product.id}`}
-                      className="mt-1 flex items-center gap-1 truncate text-[10px] text-primary hover:underline"
-                    >
-                      <ArrowRight className="h-2.5 w-2.5" />
-                      {product.title}
-                    </Link>
-                  )}
-                  {file.metadata?.size && (
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">
-                      {(file.metadata.size / 1024).toFixed(0)} KB
-                    </p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </Stagger>
-      )}
-    </div>
-  );
-}
+              <FadeIn>
+                <MediaGallery
+                  files={files
+                    .filter((f) => Boolean(f.id))
+                    .map((f) => ({
+                      fullPath: f.name,
+                      fileName: f.name,
+                      publicUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${activeBucket.name}/${f.name}`,
+                      contentType: (f as { metadata?: { mimetype?: string } }).metadata?.mimetype ?? null,
+                      size: (f as { metadata?: { size?: number } }).metadata?.size ?? null,
+                      createdAt: f.created_at ?? null,
+                    }))}
+                  bucketName={activeBucket.name}
+                />
+              </FadeIn>
+            )}
+          </div>
+        );
+      }

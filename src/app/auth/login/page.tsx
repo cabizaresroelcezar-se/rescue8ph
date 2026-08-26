@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -29,10 +28,10 @@ export default async function LoginPage({
     supabaseUrl.includes("your-project");
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {isPlaceholder && (
-        <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200">
-          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <div>
             <p className="font-semibold">Supabase is not configured yet.</p>
             <p className="mt-0.5 text-amber-800 dark:text-amber-300/80">
@@ -45,37 +44,42 @@ export default async function LoginPage({
         </div>
       )}
 
-      <Card>
-        <CardHeader className="text-center">
+      {/* Compact card: size="sm" tightens internal spacing; smaller logo
+          + smaller title + smaller inputs all combine to make the form
+          feel less heavy on small screens. */}
+      <Card size="sm" className="shadow-elev-3 ring-foreground/10 backdrop-blur-sm">
+        <CardHeader className="items-center gap-1 text-center pb-2">
           <Image
             src="/logo.svg"
             alt="Rescue 8 Philippines"
-            width={140}
-            height={72}
-            className="mx-auto h-12 w-auto"
+            width={120}
+            height={62}
+            className="mx-auto h-10 w-auto"
           />
-          <CardTitle className="mt-4 text-2xl">Welcome back</CardTitle>
-          <CardDescription>Sign in to your Rescue 8 account</CardDescription>
+          <CardTitle className="mt-2 text-lg">Welcome back</CardTitle>
+          <CardDescription className="text-xs">
+            Sign in to your Rescue 8 account
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           {params.error && (
             <div
               role="alert"
-              className="mb-4 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+              className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive"
             >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>{params.error}</span>
             </div>
           )}
           {params.message && (
-            <div className="mb-4 rounded-md bg-primary/10 p-3 text-sm text-primary">
+            <div className="rounded-md bg-primary/10 p-2.5 text-xs text-primary">
               {params.message}
             </div>
           )}
-          <form action={signIn} className="space-y-4">
+          <form action={signIn} className="space-y-3">
             <input type="hidden" name="redirectTo" value={params.redirectTo || "/account"} />
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -83,12 +87,16 @@ export default async function LoginPage({
                 placeholder="you@example.com"
                 required
                 defaultValue={params.email || ""}
+                className="h-9 text-sm"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/auth/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+                <Label htmlFor="password" className="text-xs">Password</Label>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-[11px] text-muted-foreground hover:text-primary"
+                >
                   Forgot password?
                 </Link>
               </div>
@@ -99,19 +107,22 @@ export default async function LoginPage({
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isPlaceholder}>
+            <Button type="submit" className="h-9 w-full text-sm" disabled={isPlaceholder}>
               Sign In
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="justify-center">
-          <p className="text-sm text-muted-foreground">
+        <CardContent className="pt-0 text-center">
+          <p className="text-xs text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/auth/register" className="font-medium text-primary hover:underline">
+            <Link
+              href="/auth/register"
+              className="font-medium text-primary hover:underline"
+            >
               Sign up
             </Link>
           </p>
-        </CardFooter>
+        </CardContent>
       </Card>
     </div>
   );
