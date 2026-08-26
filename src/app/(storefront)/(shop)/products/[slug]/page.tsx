@@ -11,6 +11,7 @@ import { getMediaUrl } from "@/lib/media";
 import { StarRating } from "@/components/ui/star-rating";
 import { ReviewForm } from "@/components/shop/review-form";
 import { ReviewList, ReviewHistogram } from "@/components/shop/review-list";
+import { TrackProductView } from "@/components/shop/track-product-view";
 import { getReviewStats } from "@/features/reviews/actions";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -192,6 +193,7 @@ export default async function ProductDetailPage({
           }),
         }}
       />
+      <TrackProductView productId={product.id} />
       <div className="border-b border-border bg-surface">
         <div className="container-page py-3">
           <nav

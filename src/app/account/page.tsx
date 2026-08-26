@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { RecentlyViewedSection } from "@/components/account/recently-viewed-section";
 import { FadeIn, Stagger } from "@/lib/motion";
 
 export default async function AccountPage({
@@ -198,6 +199,9 @@ export default async function AccountPage({
             )}
           </dl>
         </FadeIn>
+
+        {/* Recently viewed */}
+        <RecentlyViewedSection />
       </div>
     </div>
   );
