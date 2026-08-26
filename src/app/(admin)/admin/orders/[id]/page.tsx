@@ -20,6 +20,8 @@ import {
   createShipment,
   updateShipmentStatus,
 } from "@/features/orders/actions";
+import { listOrderNotes } from "@/features/order-notes/actions";
+import { OrderNotesTimeline } from "@/components/admin/order-notes-timeline";
 
 const ORDER_STATUSES = [
   "PENDING", "PAYMENT_PENDING", "PAID", "PROCESSING", "READY_TO_SHIP",
@@ -72,20 +74,38 @@ export default async function AdminOrderDetailPage({
   }
 
   const [
-    { data: items },
-    { data: address },
-    { data: history },
-    { data: payments },
-    { data: shipments },
-  ] = await Promise.all([
-    supabase.from("order_items").select("*").eq("order_id", order.id),
-    supabase.from("order_addresses").select("*").eq("order_id", order.id).single(),
-    supabase.from("order_status_history").select("*").eq("order_id", order.id).order("created_at", { ascending: true }),
-    supabase.from("payments").select("*").eq("order_id", order.id).order("created_at", { ascending: true }),
-    supabase.from("shipments").select("*").eq("order_id", order.id).order("created_at", { ascending: true }),
-  ]);
+      { data: items },
+      { data: address },
+      { data: history },
+      { data: payments },
+      { data: shipments },
+      { data: notes },
+      { data: { user } },
+    ] = await Promise.all([
+      supabase.from("order_items").select("*").eq("order_id", order.id),
+      supabase.from("order_addresses").select("*").eq("order_id", order.id).single(),
+      supabase.from("order_status_history").select("*").eq("order_id", order.id).order("created_at", { ascending: true }),
+      supabase.from("payments").select("*").eq("order_id", order.id).order("created_at", { ascending: true }),
+      supabase.from("shipments").select("*").eq("order_id", order.id).order("created_at", { ascending: true }),
+      listOrderNotes(order.id).then((data) => ({ data })),
+      supabase.auth.getUser(),
+    ]);
 
-  const orderTone = ORDER_TONE[order.status] ?? "bg-zinc-100 text-zinc-700";
+    // Check if user is super_admin (they can delete any note). Admin users
+    // can only delete their own notes.
+    let canDeleteAny = false;
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role_id, roles(name)")
+        .eq("id", user.id)
+        .single();
+      const roleData = (profile as { roles?: { name?: string } | { name?: string }[] | null } | null)?.roles;
+      const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+      canDeleteAny = roleName === "super_admin";
+    }
+
+    const orderTone = ORDER_TONE[order.status] ?? "bg-zinc-100 text-zinc-700";
 
   return (
     <div className="space-y-8">
@@ -303,20 +323,29 @@ export default async function AdminOrderDetailPage({
                         <Button type="submit" size="sm" variant="outline">
                           Update
                         </Button>
-                      </form>
-                    </div>
-                  ))}
-                </div>
-              )}
+            </form>
             </div>
-          </FadeIn>
-        </Stagger>
-
-        {/* Right: status, payments, history */}
-        <Stagger className="space-y-6">
-          <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1">
+            ))}
+            </div>
+            )}
+            </div>
+            </FadeIn>
+            
+            {notes && (
+            <OrderNotesTimeline
+            orderId={order.id}
+            initialNotes={notes}
+            currentUserId={user?.id ?? ""}
+            canDeleteAny={canDeleteAny}
+            />
+            )}
+            </Stagger>
+            
+            {/* Right: status, payments, history */}
+            <Stagger className="space-y-6">
+            <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <ArrowRight className="h-5 w-5" />
               </div>
               <div>

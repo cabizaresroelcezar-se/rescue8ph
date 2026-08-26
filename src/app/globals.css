@@ -632,3 +632,91 @@
     @apply sr-only;
   }
 }
+
+/* ============================================================================
+   TipTap rich text editor styles
+   ============================================================================ */
+.tiptap {
+  outline: none;
+}
+.tiptap p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+.tiptap p:first-child {
+  margin-top: 0;
+}
+.tiptap p:last-child {
+  margin-bottom: 0;
+}
+.tiptap h2 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.tiptap h3 {
+  margin: 1rem 0 0.4rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.tiptap ul,
+.tiptap ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+.tiptap ul { list-style: disc; }
+.tiptap ol { list-style: decimal; }
+.tiptap li {
+  margin: 0.2rem 0;
+}
+.tiptap blockquote {
+  margin: 0.75rem 0;
+  padding: 0.4rem 0.9rem;
+  border-left: 3px solid var(--primary);
+  background: color-mix(in oklch, var(--primary) 6%, transparent);
+  border-radius: 0.25rem;
+  color: var(--muted-foreground);
+}
+.tiptap pre {
+  margin: 0.75rem 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  overflow-x: auto;
+}
+.tiptap code:not(pre code) {
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.85em;
+}
+.tiptap a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.tiptap hr {
+  margin: 1rem 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.4rem;
+  margin: 0.5rem 0;
+}
+.tiptap strong { font-weight: 700; }
+.tiptap em { font-style: italic; }
+.tiptap s { text-decoration: line-through; }
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  height: 0;
+}

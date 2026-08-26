@@ -65,7 +65,7 @@ export default async function EditPage({ params }: Props) {
   const { data: page, error } = await supabase
     .from("pages")
     .select(
-      "id, title, slug, excerpt, body, seo_title, seo_description, status, published_at",
+      "id, title, slug, excerpt, body, seo_title, seo_description, status, published_at, published_by, updated_at, publish_at, featured_image_url, og_image_url",
     )
     .eq(isUuid ? "id" : "slug", id)
     .single();
@@ -152,7 +152,13 @@ export default async function EditPage({ params }: Props) {
           body: page.body ?? "",
           seo_title: page.seo_title,
           seo_description: page.seo_description,
-          status: page.status as "DRAFT" | "PUBLISHED",
+          status: page.status as "DRAFT" | "PUBLISHED" | "SCHEDULED" | "ARCHIVED",
+          publish_at: page.publish_at,
+          published_at: page.published_at,
+          published_by: page.published_by,
+          updated_at: page.updated_at,
+          featured_image_url: page.featured_image_url,
+          og_image_url: page.og_image_url,
         }}
       />
 
