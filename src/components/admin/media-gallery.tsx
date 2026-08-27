@@ -29,7 +29,10 @@ export function MediaGallery({ files, bucketName }: MediaGalleryProps) {
     return deleteMediaFile(bucketName, item.fullPath);
   }
 
-  if (files.length === 0) return null;
+  // Don't early-return null here — the parent passes a `<FadeIn>` that
+  // should always render *something*. If files is empty, we still want
+  // the FadeIn animation to fire and the surrounding layout to be stable.
+  // The parent's ternary already handles the empty case.
 
   return (
     <>
