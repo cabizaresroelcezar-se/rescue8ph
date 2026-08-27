@@ -9,6 +9,7 @@ import {
   MapPin,
   Clock,
   ArrowRight,
+  Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeIn, Stagger } from "@/lib/motion";
@@ -126,6 +127,15 @@ export default async function AdminOrderDetailPage({
           >
             {order.status.replace(/_/g, " ")}
           </span>
+          <Link
+            href={`/admin/orders/${order.id}/receipt`}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex h-9 items-center gap-1 rounded-md border border-input bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            Receipt
+          </Link>
           <Link
             href="/admin/orders"
             className="inline-flex h-9 items-center gap-1 rounded-md border border-input bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"

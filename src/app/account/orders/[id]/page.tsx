@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Circle,
   Receipt,
+  Printer,
 } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { FadeIn, Stagger } from "@/lib/motion";
@@ -96,6 +97,14 @@ export default async function OrderDetailPage({
               >
                 {order.status.replace(/_/g, " ")}
               </span>
+              <ButtonLink
+                href={`/account/orders/${order.order_number}/receipt`}
+                variant="outline"
+                size="sm"
+              >
+                <Printer className="h-3.5 w-3.5" />
+                Receipt
+              </ButtonLink>
               <ButtonLink href="/account/orders" variant="outline" size="sm">
                 Back
               </ButtonLink>
