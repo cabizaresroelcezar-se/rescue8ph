@@ -247,6 +247,15 @@ export default async function ProductsPage({
                     {totalCount}
                   </span>{" "}
                   {totalCount === 1 ? "product" : "products"}
+                  {params.q && (
+                    <>
+                      {" "}
+                      matching{" "}
+                      <span className="font-semibold text-foreground">
+                        &ldquo;{params.q}&rdquo;
+                      </span>
+                    </>
+                  )}
                 </>
               )}
             </p>
@@ -334,6 +343,7 @@ export default async function ProductsPage({
                 stock !== "any" ||
                 sale !== "any"
               }
+              query={params.q}
             />
           ) : (
             <>
@@ -355,6 +365,7 @@ export default async function ProductsPage({
                         initialSaved={savedSet.has(p.id)}
                         rating={stats.average}
                         reviewCount={stats.total}
+                        highlightQuery={params.q}
                       />
                     </FadeIn>
                   );
@@ -611,14 +622,24 @@ function FilterPanel({
   );
 }
 
-function EmptyState({ hasFilters }: { hasFilters: boolean }) {
+function EmptyState({ hasFilters, query }: { hasFilters: boolean; query?: string | null }) {
   return (
     <div className="rounded-xl border border-dashed border-border bg-surface p-12 text-center">
       <h3 className="text-base font-semibold text-foreground">No products found</h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        {hasFilters
-          ? "We couldn't find anything matching your filters. Try clearing them or contact us for a custom order."
-          : "There are no products available right now. Please check back later."}
+        {query ? (
+          <>
+            We couldn&rsquo;t find anything matching{" "}
+            <span className="font-semibold text-foreground">
+              &ldquo;{query}&rdquo;
+            </span>
+            . Try a different search or browse all categories.
+          </>
+        ) : hasFilters ? (
+          "We couldn\u2019t find anything matching your filters. Try clearing them or contact us for a custom order."
+        ) : (
+          "There are no products available right now. Please check back later."
+        )}
       </p>
       {hasFilters && (
         <div className="mt-6">

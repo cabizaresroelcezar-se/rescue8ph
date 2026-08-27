@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Star, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WishlistButton } from "@/components/shop/wishlist-button";
+import { HighlightText } from "@/components/shop/highlight-text";
 
 type ProductCardProps = {
   id?: string;
@@ -19,6 +20,8 @@ type ProductCardProps = {
   inStock?: boolean;
   image?: { src: string; alt: string } | null;
   initialSaved?: boolean;
+  /** Pass the current page search query to highlight matched text inside title & description. */
+  highlightQuery?: string | null;
   className?: string;
 };
 
@@ -60,6 +63,7 @@ export function ProductCard({
   featured,
   rating = 0,
   reviewCount = 0,
+  highlightQuery,
   inStock = true,
   image,
   initialSaved = false,
@@ -135,7 +139,7 @@ export function ProductCard({
       <div className="flex flex-1 flex-col gap-2.5 p-4">
         <div className="flex items-start justify-between gap-2">
           <h3 className="line-clamp-1 text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
-            {title}
+            <HighlightText text={title} query={highlightQuery} />
           </h3>
           {/* In-stock indicator */}
           {inStock && (
@@ -151,7 +155,7 @@ export function ProductCard({
 
         {short_description && (
           <p className="line-clamp-2 text-xs text-muted-foreground">
-            {short_description}
+            <HighlightText text={short_description} query={highlightQuery} />
           </p>
         )}
 

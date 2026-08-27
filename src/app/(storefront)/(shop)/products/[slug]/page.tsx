@@ -12,6 +12,7 @@ import { StarRating } from "@/components/ui/star-rating";
 import { ReviewForm } from "@/components/shop/review-form";
 import { ReviewList, ReviewHistogram } from "@/components/shop/review-list";
 import { TrackProductView } from "@/components/shop/track-product-view";
+import { ShareBar } from "@/components/shop/share-bar";
 import { getReviewStats } from "@/features/reviews/actions";
 import { getUserReviewVotes } from "@/features/review-votes/actions";
 
@@ -307,6 +308,13 @@ export default async function ProductDetailPage({
             <TrustChip icon={RotateCcw} label="Easy returns" />
             <TrustChip icon={Phone}     label="Expert help" />
           </ul>
+
+          {/* Share bar — copy link + native share + Messenger + Facebook */}
+          <ShareBar
+            className="mt-5"
+            url={`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://rescue8ph.com"}/products/${product.slug}`}
+            text={`${product.title} — Rescue 8 Philippines`}
+          />
 
           <div className="mt-7 hidden flex-wrap items-center gap-3 md:flex">
             <AddToCartButton productId={product.id} />
