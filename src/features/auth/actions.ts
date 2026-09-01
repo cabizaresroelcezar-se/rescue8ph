@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { logAudit, AuditAction } from "@/lib/audit";
 
 // ============================================================================
 // Sign Up
@@ -66,7 +67,7 @@ export async function signIn(formData: FormData) {
   const redirectTo = (formData.get("redirectTo") as string) || "/account";
 
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -75,6 +76,17 @@ export async function signIn(formData: FormData) {
       return redirect(
         `/auth/login?error=${encodeURIComponent(error.message)}&email=${encodeURIComponent(email)}`,
       );
+    }
+
+    // Audit: successful login. logAudit resolves user_id from session internally,
+    // so we can fire this right after signIn returns success.
+    if (data.user) {
+      await logAudit({
+        action: AuditAction.LOGIN,
+        resourceType: "auth.sessions",
+        resourceId: data.user.id,
+        metadata: { email, method: "password" },
+      });
     }
 
     return redirect(redirectTo);
@@ -91,9 +103,25 @@ export async function signIn(formData: FormData) {
 // ============================================================================
 
 export async function signOut() {
+  const supabase = await createClient();
+
+  // Capture the user_id BEFORE signing out — after signOut the session is gone
+  // and logAudit's internal getUser() would return null.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   try {
-    const supabase = await createClient();
     await supabase.auth.signOut();
+
+    if (user) {
+      await logAudit({
+        action: AuditAction.LOGOUT,
+        resourceType: "auth.sessions",
+        resourceId: user.id,
+        metadata: { email: user.email ?? null },
+      });
+    }
   } catch (err) {
     // Swallow — still send the user to home even if Supabase is unreachable.
     console.error("signOut error:", err);
@@ -120,6 +148,15 @@ export async function requestPasswordReset(formData: FormData) {
     );
   }
 
+  // Audit: password reset requested. This fires whether or not the email
+  // actually exists — Supabase's resetPasswordForEmail always succeeds to avoid
+  // account-enumeration leaks. We log "requested" not "delivered".
+  await logAudit({
+    action: "PASSWORD_RESET_REQUESTED",
+    resourceType: "auth.users",
+    metadata: { email, origin: origin ?? null },
+  });
+
   return redirect(
     "/auth/forgot-password?message=" +
       encodeURIComponent("Check your email for a password reset link."),
@@ -134,12 +171,22 @@ export async function updatePassword(formData: FormData) {
   const supabase = await createClient();
   const password = formData.get("password") as string;
 
-  const { error } = await supabase.auth.updateUser({ password });
+  const { data, error } = await supabase.auth.updateUser({ password });
 
   if (error) {
     return redirect(
       `/auth/reset-password?error=${encodeURIComponent(error.message)}`,
     );
+  }
+
+  // Audit: password changed. logAudit reads the user_id from the current session,
+  // which is the user who just changed their password.
+  if (data.user) {
+    await logAudit({
+      action: "PASSWORD_CHANGED",
+      resourceType: "auth.users",
+      resourceId: data.user.id,
+    });
   }
 
   return redirect("/account?message=" + encodeURIComponent("Password updated successfully."));
