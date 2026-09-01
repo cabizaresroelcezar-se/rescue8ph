@@ -112,9 +112,20 @@ CUSTOMER:
 ## Current Status
 
 ALL PHASES 0-14: COMPLETE (code, lint, build verified locally)
-LOCAL MAIN IS IN SYNC WITH REMOTE MAIN (commit 0ba9075)
-12 SUPABASE MIGRATIONS PENDING APPLICATION TO PRODUCTION DB
+LOCAL MAIN IS IN SYNC WITH REMOTE MAIN (commit a12c625)
+12 SUPABASE MIGRATIONS Pending Application (no separate prod DB — free plan uses dev project as prod)
 SUPABASE MIGRATION WORKFLOW INSTALLED (.github/workflows/supabase-migrate.yml — requires 3 repo secrets)
+
+##### Completed Feature Branches (pre-Phase 16)
+
+- e8929f0 feat(audit): log order placement in checkout placeOrder [feature/audit-checkout-place-order]
+- 61fb08a feat(audit): log sign-in, sign-out, password reset/change [feature/audit-auth-actions]
+- (next) feat(audit): log customer address add/update/delete [feature/audit-address-actions] (commit 03ae4ab, branch only — not yet merged to main)
+
+These three branches close the highest-impact gaps in DEVELOPMENT_RULES.md
+rule 2 ("Audit privileged actions") — placeOrder moves money, auth events
+gate access, and address CRUD mutates PII. All branches cut from main,
+each commit is single-purpose and reversible.
 
 ## Active Phase
 
@@ -125,6 +136,10 @@ Phase 15 — DEPLOY-001: Production Deployment
 ### A. Production Supabase (do first)
 
 1. Create production Supabase project (separate from dev). Pick a region close to users (ap-southeast-1 Singapore is best for PH).
+
+> Note: user is on Supabase free plan — no separate "production" project exists.
+> The single Supabase project is being used for both dev and prod. Migrations
+> listed below apply directly to that project's SQL Editor.
 2. Capture project ref from the dashboard URL: https://supabase.com/dashboard/project/<REF>
 3. In the production project's SQL Editor, paste each of the 12 pending migration files in order:
    - 20260824000200_storage_buckets_and_wishlist.sql
