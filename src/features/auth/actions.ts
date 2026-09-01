@@ -8,6 +8,19 @@ import { logAudit, AuditAction } from "@/lib/audit";
 // ============================================================================
 // Sign Up
 // ============================================================================
+//
+// Phase 16a: email verification is required.
+//
+// Supabase's "Confirm email" setting (Auth → Providers → Email) must be ON for
+// this to actually take effect. We always assume it's on and treat any
+// auto-confirmed session as a misconfiguration (defensive — Supabase sends a
+// confirmation email and returns null session if Confirm email is enabled).
+//
+// The "auto-confirm and redirect to /account" branch was removed because it
+// would let a user with an unconfirmed email place orders. Now we always land
+// on /auth/verify-email which shows the "check your inbox" UI with a resend
+// button.
+// ============================================================================
 
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
@@ -33,27 +46,94 @@ export async function signUp(formData: FormData) {
       return redirect(`/auth/login?error=${encodeURIComponent(error.message)}`);
     }
 
-    // If email confirmation is required, redirect to a notice page
-    if (data.user && !data.session) {
-      return redirect(
-        "/auth/login?message=" +
-          encodeURIComponent("Check your email to confirm your account."),
-      );
+    // Audit: signup accepted. We always log this regardless of whether
+    // email confirmation is required — it's useful to track signup attempts
+    // even if some bounce or get spam-filtered.
+    if (data.user) {
+      await logAudit({
+        action: AuditAction.CREATE,
+        resourceType: "auth.users",
+        resourceId: data.user.id,
+        metadata: {
+          email,
+          method: "password",
+          email_verified: Boolean(data.user.email_confirmed_at),
+        },
+      });
     }
 
-    // If auto-confirmed, session is created
-    if (data.session) {
-      return redirect("/account");
+    // If Supabase somehow returned a session without email confirmation,
+    // something is misconfigured — sign out immediately so the user is
+    // forced through the verification flow.
+    if (data.session && !data.user?.email_confirmed_at) {
+      await supabase.auth.signOut();
     }
 
+    // Always land on the verify-email page; if email confirmation is
+    // disabled in Supabase, the user will be auto-confirmed and the
+    // verify-email page will detect that on first load and forward to /account.
     return redirect(
-      "/auth/login?message=" +
-        encodeURIComponent("Check your email to confirm your account."),
+      `/auth/verify-email?email=${encodeURIComponent(email)}`,
     );
   } catch (err) {
     const message = humanizeAuthError(err);
     return redirect(`/auth/login?error=${encodeURIComponent(message)}`);
   }
+}
+
+// ============================================================================
+// Resend Verification Email
+// ============================================================================
+//
+// Supabase v2 doesn't expose a public "resend confirmation email" method on
+// the auth client. The official workaround is to call signInWithOtp with
+// { shouldCreateUser: false } to send a magic link, OR call resend on the
+// newer SDK API.
+//
+// For this codebase we use the recommended pattern: re-trigger signUp with
+// the same email. Supabase treats it as a "no-op" (user already exists) and
+// re-sends the confirmation email.
+//
+// Note: this reveals whether the email exists (account-enumeration leak).
+// We mitigate by always returning the same success message regardless of
+// whether the email is on file — see the redirect below.
+// ============================================================================
+
+export async function resendVerificationEmail(formData: FormData) {
+  const supabase = await createClient();
+  const email = formData.get("email") as string;
+  const origin = (await headers()).get("origin");
+
+  if (!email) {
+    return redirect("/auth/verify-email?message=" + encodeURIComponent("Missing email"));
+  }
+
+  try {
+    // Re-trigger signUp — Supabase will send a fresh confirmation email if
+    // the user exists but isn't confirmed. We don't care about the result;
+    // we always show the same "check your inbox" UI.
+    await supabase.auth.signUp({
+      email,
+      password: "__no_password_used_for_resend__", // Supabase ignores this for existing users
+      options: {
+        emailRedirectTo: `${origin}/auth/callback`,
+      },
+    });
+
+    await logAudit({
+      action: AuditAction.EMAIL_VERIFICATION_RESENT,
+      resourceType: "auth.users",
+      metadata: { email, origin: origin ?? null },
+    });
+  } catch (err) {
+    // Don't surface the error to the user — could leak whether email exists
+    console.error("resendVerificationEmail error:", err);
+  }
+
+  return redirect(
+    `/auth/verify-email?email=${encodeURIComponent(email)}&message=` +
+      encodeURIComponent("If an account exists for that email, a new confirmation link has been sent."),
+  );
 }
 
 // ============================================================================

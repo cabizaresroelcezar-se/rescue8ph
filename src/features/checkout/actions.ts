@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAudit, AuditAction } from "@/lib/audit";
+import { requireVerifiedEmail } from "@/lib/auth/require-verified-email";
 
 // ============================================================================
 // Place Order — Transactional checkout
@@ -30,6 +31,10 @@ import { logAudit, AuditAction } from "@/lib/audit";
 
 export async function placeOrder(formData: FormData) {
   const supabase = await createClient();
+
+  // Phase 16a: gate placeOrder on a verified email. Unverified users are
+  // redirected to /auth/verify-email before any cart/order logic runs.
+  await requireVerifiedEmail("/checkout");
 
   // --- Step 4: Validate customer ownership ---
   const {

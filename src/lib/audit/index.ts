@@ -13,6 +13,10 @@ export const AuditAction = {
   PRICE_OVERRIDE: "PRICE_OVERRIDE",
   REFUND: "REFUND",
   CANCEL: "CANCEL",
+  // Auth lifecycle events (added Phase 16a)
+  EMAIL_VERIFIED: "EMAIL_VERIFIED",
+  EMAIL_VERIFICATION_RESENT: "EMAIL_VERIFICATION_RESENT",
+  EMAIL_VERIFICATION_BLOCKED: "EMAIL_VERIFICATION_BLOCKED",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
