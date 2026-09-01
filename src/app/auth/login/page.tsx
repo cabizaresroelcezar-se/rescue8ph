@@ -12,12 +12,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle, Info } from "lucide-react";
+import { AlertCircle, Info, Mail } from "lucide-react";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; message?: string; email?: string; redirectTo?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; email?: string; redirectTo?: string; verify?: string }>;
 }) {
   const params = await searchParams;
 
@@ -26,6 +26,13 @@ export default async function LoginPage({
     !supabaseUrl ||
     supabaseUrl.includes("placeholder.supabase.co") ||
     supabaseUrl.includes("your-project");
+
+  // Phase 16a: ?verify=true shows a "please verify your email" banner. Set
+  // by signIn when it detects the user just signed in but email_confirmed_at
+  // is null (Supabase Auth's auto-refresh kept them signed in but the gate
+  // still blocked them). Avoid leaking account existence by only showing
+  // the banner when explicitly flagged.
+  const showVerifyBanner = params.verify === "true";
 
   return (
     <div className="space-y-3">
@@ -74,6 +81,24 @@ export default async function LoginPage({
           {params.message && (
             <div className="rounded-md bg-primary/10 p-2.5 text-xs text-primary">
               {params.message}
+            </div>
+          )}
+          {showVerifyBanner && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200">
+              <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <div>
+                <p className="font-semibold">Please verify your email.</p>
+                <p className="mt-0.5 text-amber-800 dark:text-amber-300/80">
+                  Check your inbox for the confirmation link, or{" "}
+                  <Link
+                    href={`/auth/verify-email?email=${encodeURIComponent(params.email ?? "")}`}
+                    className="font-medium underline"
+                  >
+                    resend it
+                  </Link>
+                  .
+                </p>
+              </div>
             </div>
           )}
           <form action={signIn} className="space-y-3">

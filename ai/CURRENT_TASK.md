@@ -112,7 +112,9 @@ CUSTOMER:
 ## Current Status
 
 ALL PHASES 0-14: COMPLETE (code, lint, build verified locally)
-LOCAL MAIN IS IN SYNC WITH REMOTE MAIN (commit a12c625)
+PHASE 15 (DEPLOY-001) IN PROGRESS
+LOCAL MAIN IS IN SYNC WITH REMOTE MAIN (commit 6a2e608)
+PHASE 16a EMAIL VERIFICATION: code on branch feature/email-verification-enforcement, pending merge
 12 SUPABASE MIGRATIONS Pending Application (no separate prod DB — free plan uses dev project as prod)
 SUPABASE MIGRATION WORKFLOW INSTALLED (.github/workflows/supabase-migrate.yml — requires 3 repo secrets)
 

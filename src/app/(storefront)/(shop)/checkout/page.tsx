@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { placeOrder } from "@/features/checkout/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { ShieldCheck, Truck, CreditCard, ClipboardCheck } from "lucide-react";
+import { ShieldCheck, Truck, CreditCard, ClipboardCheck, Mail } from "lucide-react";
 
 export default async function CheckoutPage({
   searchParams,
@@ -28,6 +29,11 @@ export default async function CheckoutPage({
   if (!user) {
     redirect("/auth/login?redirectTo=/checkout");
   }
+
+  // Phase 16a: check email verification before allowing checkout.
+  // We render a banner + disable the Place Order button if unverified;
+  // the server action also gates this defensively (requireVerifiedEmail).
+  const emailVerified = Boolean(user.email_confirmed_at);
 
   // Get cart
   const { data: cart } = await supabase
@@ -324,8 +330,29 @@ export default async function CheckoutPage({
               </div>
 
               {/* Place order */}
-              <Button type="submit" className="w-full">
-                Place Order
+              {!emailVerified && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200"
+                >
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-semibold">Verify your email to place this order</p>
+                    <p className="mt-0.5 text-amber-800 dark:text-amber-300/80">
+                      We sent a confirmation link to{" "}
+                      <span className="font-medium">{user.email}</span>. Click it to enable checkout.
+                    </p>
+                    <Link
+                      href={`/auth/verify-email?email=${encodeURIComponent(user.email ?? "")}`}
+                      className="mt-1 inline-block font-medium text-amber-900 underline hover:text-amber-700 dark:text-amber-200"
+                    >
+                      Resend confirmation email
+                    </Link>
+                  </div>
+                </div>
+              )}
+              <Button type="submit" className="w-full" disabled={!emailVerified}>
+                {emailVerified ? "Place Order" : "Verify email to continue"}
               </Button>
               <p className="text-center text-xs text-muted-foreground">
                 By placing your order, you agree to our terms of service.

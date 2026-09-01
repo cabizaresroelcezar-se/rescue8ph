@@ -88,6 +88,22 @@ Then every merge to `main` triggers a production redeploy automatically.
 
 `vercel.json` is set to `hnd1` (Tokyo) — the closest Vercel hobby-tier region to the Philippines. Sub-100ms latency to Manila. Singapore (`sin1`) is closer but Pro/Enterprise only.
 
+## Required Supabase config
+
+After creating the project (or for an existing one), verify these settings in the Supabase Dashboard:
+
+1. **Authentication → Providers → Email**
+   - "Confirm email" toggle: **ON**
+   - This is what Phase 16a (email verification enforcement) depends on.
+   - If it's off, signUp auto-confirms users and they can immediately place orders — defeating the anti-fraud gate.
+
+2. **Authentication → URL Configuration**
+   - Site URL: `https://<your-vercel-domain>.vercel.app` (or custom domain)
+   - Redirect URLs: add `https://<same>/auth/callback`
+
+3. **Authentication → Email Templates** (optional)
+   - The default "Confirm signup" template is fine for v1. Customize later if you want branding.
+
 ## Smoke test after deploy
 
 In order:
@@ -97,10 +113,13 @@ In order:
 - [ ] `/products` → list renders
 - [ ] `/blog` → list renders
 - [ ] `/sitemap.xml` → XML renders
-- [ ] Sign in as `customer@rescue8ph.com` → can browse /account
-- [ ] Place a COD test order → order shows up in /admin/orders (as admin user)
+- [ ] Sign up a NEW account with a real email → confirmation email arrives within 1 minute
+- [ ] Try to sign in before clicking the confirmation link → "Please verify your email" banner appears
+- [ ] Click the confirmation link → `/auth/verify-email?verified=true` shows success message
+- [ ] Sign in as the now-verified user → browse /account works
+- [ ] Place a COD test order → order shows up in /admin/orders
 - [ ] Sign in as `admin@rescue8ph.com` → admin dashboard loads
-- [ ] `/admin/audit-logs` → shows the new audit rows (login, placeOrder, etc.)
+- [ ] `/admin/audit-logs` → shows audit rows (login, placeOrder, EMAIL_VERIFIED, EMAIL_VERIFICATION_BLOCKED if any blocked attempts)
 
 ## What to do if things break
 
