@@ -24,6 +24,9 @@ jobs:
       - name: Run lint
         run: npm run lint
 
+      - name: Run unit tests
+        run: npm run test:run
+
       - name: Run type check
         run: npx tsc --noEmit
 
