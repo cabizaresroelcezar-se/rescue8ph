@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { logAudit, AuditAction } from "@/lib/audit";
 
 // ============================================================================
 // Place Order — Transactional checkout
@@ -229,6 +230,53 @@ export async function placeOrder(formData: FormData) {
 
   // --- Step 15: Clear cart (items are now in the order) ---
   await supabase.from("cart_items").delete().eq("cart_id", cart.id);
+
+  // --- Step 17: Audit log the order placement ---
+  // This is the single most important audit event — money changed hands.
+  // Captures: who placed the order, what they ordered, totals, payment provider.
+  await logAudit({
+    action: AuditAction.CREATE,
+    resourceType: "orders",
+    resourceId: order.id,
+    newValues: {
+      order_number: order.order_number,
+      status: "PAYMENT_PENDING",
+      currency: "PHP",
+      item_count: orderItemPayloads.length,
+      total_quantity: orderItemPayloads.reduce((n, i) => n + i.quantity, 0),
+      subtotal,
+      discount_total: discountTotal,
+      shipping_total: shippingTotal,
+      tax_total: taxTotal,
+      grand_total: grandTotal,
+      payment_provider: paymentProvider,
+      delivery_region: region,
+      delivery_province: province,
+      delivery_city: cityMunicipality,
+    },
+    metadata: {
+      items: orderItemPayloads.map((i) => ({
+        product_id: i.product_id,
+        product_name: i.product_name,
+        sku: i.sku,
+        quantity: i.quantity,
+        unit_price: i.unit_price,
+        subtotal: i.subtotal,
+      })),
+      delivery_address: {
+        first_name: firstName,
+        last_name: lastName,
+        phone,
+        email,
+        street_address: streetAddress,
+        barangay,
+        city_municipality: cityMunicipality,
+        province,
+        region,
+        postal_code: postalCode,
+      },
+    },
+  });
 
   revalidatePath("/cart");
   revalidatePath("/account/orders");
