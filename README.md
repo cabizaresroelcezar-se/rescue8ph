@@ -34,8 +34,8 @@ Built with **Next.js + React 19 + TypeScript** on the front end and **Supabase**
 - **Validation**: Zod (server actions)
 - **Rich text**: TipTap (StarterKit + Link + Image + Placeholder + CharacterCount)
 - **Hosting**: Vercel-ready
-- **Payments** (planned): Xendit, PayMongo, Manual/COD (provider abstraction in `src/lib/payments/`)
-- **Shipping** (planned): Manual, Lalamove, J&T, LBC (provider abstraction in `src/lib/shipping/`)
+- **Payments** (implemented): Manual / COD (in `src/lib/payments/`). Xendit + PayMongo adapters pending — providers can be plugged into the existing `PaymentProvider` interface without further code changes when credentials are available.
+- **Shipping** (implemented): Manual (flat-rate placeholder in `src/lib/shipping/`). Lalamove / J&T / LBC adapters pending — same plug-in pattern as payments.
 
 ---
 
@@ -95,6 +95,7 @@ Migrations live in `supabase/migrations/` and must be applied **in order**. Each
 20260825000800_add_pages_body_column.sql
 20260825000900_order_notes.sql                -- order conversation thread
 20260825001000_cms_enhancements.sql           -- TipTap content + revision history
+20260825001100_wishlist_share_links.sql       -- public /wishlist/[token] sharing
 ```
 
 For fresh DB setup, paste each file **top to bottom** into Supabase SQL Editor. All migrations are idempotent (`do $$ ... if not exists` guards on every CREATE).
@@ -255,7 +256,7 @@ ai/                       # Project memory (PROJECT_CONTEXT.yaml, CHANGELOG.md, 
 - **Blog** — Post CRUD with rich-text editor + publication scheduling
 - **CMS pages** — **TipTap rich-text editor** (B/I/U, H2/H3, lists, links, images, code, undo), autosave (1.5s debounce), revision history with restore, schedule-publish (future-dated with SCHEDULED status), featured image, slug history → automatic 301 redirects, "Published by {user}" attribution
 - **Composable content sections** — Hero / FAQ / CTA / Rich-text blocks per page
-- **User management** — Roles matrix (admin, super_admin, staff, customer), per-user permissions override, audit trail
+- **User management** — Roles matrix (admin, super_admin, customer), per-user permissions override, audit trail
 - **Analytics** — AOV, conversion, top products, customer cohorts
 - **Audit log** — Every privileged write logs actor + action + resource to `private.audit_log`
 - **Site settings** — Key-value store with typed values (text, number, boolean, JSON, monospace)
@@ -341,23 +342,23 @@ create policy "Customers can read their own orders"
 
 ## Role & Permission System
 
-- Roles: `super_admin`, `admin`, `staff`, `customer`
+- Roles: `super_admin`, `admin`, `customer`
 - Each role has a default permission set in `private.role_permissions`
 - A user can additionally be granted individual permissions in `private.user_permission_overrides`
 - All permission checks go through `private.has_permission(text)` (returns bool) or `private.has_any_permission(text[])` (returns bool)
-- `private.is_staff()` is a shortcut for `has_any_permission(['admin_root', 'super_admin_root'])`
+- `private.is_staff()` is a SQL helper that returns true for `admin` or `super_admin` (used by RLS policies; not a role name itself)
 - The `/admin/users/roles` matrix UI shows the effective permission set per role
 
-Standard permission keys (sample):
+Standard permission keys (sample, plural form):
 
 ```
-PRODUCT_CREATE, PRODUCT_UPDATE, PRODUCT_DELETE
-ORDER_CREATE, ORDER_UPDATE, ORDER_DELETE
-COUPON_CREATE, COUPON_UPDATE, COUPON_DELETE
-REVIEW_CREATE, REVIEW_MODERATE, REVIEW_DELETE
-PAGE_CREATE, PAGE_UPDATE, PAGE_DELETE, PAGE_PUBLISH
-USER_CREATE, USER_UPDATE, USER_DELETE, USER_PERMISSION_GRANT
-SETTING_UPDATE
+PRODUCTS_VIEW, PRODUCTS_CREATE, PRODUCTS_UPDATE, PRODUCTS_DELETE
+ORDERS_VIEW, ORDERS_UPDATE, ORDERS_CANCEL, ORDERS_REFUND
+COUPONS_VIEW, COUPONS_CREATE, COUPONS_UPDATE, COUPONS_DELETE
+REVIEWS_MODERATE, REVIEWS_DELETE
+PAGES_VIEW, PAGES_CREATE, PAGES_UPDATE, PAGES_DELETE, PAGES_PUBLISH
+USERS_VIEW, USERS_MANAGE
+SETTINGS_VIEW, SETTINGS_MANAGE
 BLOG_CREATE, BLOG_UPDATE, BLOG_DELETE
 ```
 
@@ -365,9 +366,20 @@ BLOG_CREATE, BLOG_UPDATE, BLOG_DELETE
 
 ## Recent Commits
 
-PR [#6 — feat/wishlist-and-storage-buckets](https://github.com/cabizaresroelcezar-se/rescue8ph/pull/6):
+Last synced to `main`: 0d1cc64 — see `git log --oneline -20` for the current tip.
+
+A full vertical slice shipped to `main` via fast-forward from `feat/wishlist-and-storage-buckets` (originally PR #6):
 
 ```
+5c5c750 feat(shop): search-term highlighting + product detail share bar
+3610d68 feat(admin): dashboard widgets — low-stock alert, recent orders, revenue sparkline
+5e7d91f feat(orders): printable receipts at /admin/orders/[id]/receipt + /account/orders/[id]/receipt
+42ad2da fix(media): tiles not rendering on /admin/media after gallery refactor
+8d0dd1c feat(admin): media library preview modal + inventory add form + compact login
+55fe16f feat(audit): search, date range, actor lookup, JSON diff, pagination
+d19f765 fix(db): drop now() from partial index predicate on wishlist_share_links
+9d3554a feat(wishlist): share wishlist via public /wishlist/[token] URL
+a893dfe docs: comprehensive README rewrite
 cf6673a feat(products): multi-category tagging on products
 0e8ce57 feat(cms): WordPress/Optimizely-grade CMS with rich-text editor
 b5d3f42 fix(cms): add missing body column to pages table
@@ -379,8 +391,8 @@ e76921e feat(shop): recently viewed products on /account dashboard
 ac48961 feat(admin): full CRUD for site_settings + add/delete
 f0c6f12 chore: product/category seed migration + debug dump script
 46845ff feat(reviews): end-to-end product reviews + ratings + moderation queue
-01bde04 feat(shop): in-stock + on-sale filters, pagination, active filter chips
-2f146fe feat(admin): dark/light mode toggle in admin topbar
+01bde04 feat(shop): add in-stock + on-sale filters, pagination, active filter chips
+2f146fe feat(admin): add dark/light mode toggle to admin topbar
 cff30d4 refactor: split admin + storefront into separate route groups
 ```
 
@@ -441,6 +453,4 @@ MIT
 ## Maintainers
 
 - **Repository**: [github.com/cabizaresroelcezar-se/rescue8ph](https://github.com/cabizaresroelcezar-se/rescue8ph)
-- **Live PR**: [#6 — feat/wishlist-and-storage-buckets](https://github.com/cabizaresroelcezar-se/rescue8ph/pull/6)
-
 For deeper architectural decisions, see `ai/ARCHITECTURE.md` and `ai/PROJECT_CONTEXT.yaml`.

@@ -60,8 +60,7 @@ async function loadOrder(idOrNumber: string): Promise<{
       .maybeSingle();
     const roleData = (profile as { roles?: { name?: string } | { name?: string }[] | null } | null)?.roles;
     const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-    const isStaff =
-      roleName === "admin" || roleName === "super_admin" || roleName === "staff";
+    const isStaff = roleName === "admin" || roleName === "super_admin";
     if (!isStaff) notFound();
   }
 
