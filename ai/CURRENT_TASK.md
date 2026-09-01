@@ -114,8 +114,10 @@ CUSTOMER:
 ALL PHASES 0-14: COMPLETE (code, lint, build verified locally)
 PHASE 15 (DEPLOY-001) IN PROGRESS
 LOCAL MAIN IS IN SYNC WITH REMOTE MAIN (commit 6a2e608)
-PHASE 16a EMAIL VERIFICATION: code on branch feature/email-verification-enforcement, pending merge
+PHASE 16a EMAIL VERIFICATION: MERGED to main at bc6cd69
+PHASE 16b PROFILE EDITOR + AVATAR UPLOAD: code on branch feature/profile-editor, pending merge
 12 SUPABASE MIGRATIONS Pending Application (no separate prod DB — free plan uses dev project as prod)
+13 MIGRATIONS Pending Application (was 12; +1 for avatar UPDATE/DELETE policies)
 SUPABASE MIGRATION WORKFLOW INSTALLED (.github/workflows/supabase-migrate.yml — requires 3 repo secrets)
 
 ##### Completed Feature Branches (pre-Phase 16)

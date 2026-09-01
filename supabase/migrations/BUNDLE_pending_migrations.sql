@@ -1,12 +1,12 @@
 -- ============================================================================
 -- RESCUE8PH PENDING MIGRATIONS BUNDLE
--- Generated: 2026-09-01T15:31:58Z
--- Source: supabase/migrations/ on main (commit 3ae9c8f)
+-- Generated: 2026-09-01T20:20:41Z
+-- Source: supabase/migrations/ on branch feature/profile-editor (commit bc6cd69)
 --
--- Apply these in order via Supabase SQL Editor if the workflow file is not active:
+-- Apply via Supabase SQL Editor if the workflow file is not active:
 --   https://github.com/cabizaresroelcezar-se/rescue8ph/blob/main/.github/workflows/supabase-migrate.yml
 --
--- 12 migrations (20260824000200 through 20260825001100). The original schema
+-- 13 migrations (20260824000200 through 20260901001000). The original schema
 -- (20260824000100_initial_rescue8_schema.sql) is assumed already applied.
 -- ============================================================================
 
@@ -1547,4 +1547,49 @@ end $$;
 -- wishlist_share_links WHERE revoked_at < now() - interval '90 days' AND
 -- service_role_key bypasses RLS.)
 -- <<< END MIGRATION: 20260825001100_wishlist_share_links.sql
+
+
+-- ============================================================================
+-- >>> BEGIN MIGRATION: 20260901001000_avatar_storage_policies.sql
+-- ============================================================================
+
+-- ============================================================================
+-- AVATAR STORAGE POLICIES (UPDATE + DELETE)
+-- ============================================================================
+-- The 20260824000200 migration created the 'avatars' bucket and a policy
+-- allowing users to INSERT files into their own folder:
+--   (storage.foldername(name))[1] = auth.uid()::text
+--
+-- But it didn't include UPDATE or DELETE policies, which means a user can't
+-- replace their avatar (they'd hit "row violates row-level security policy"
+-- on update) or remove it (same on delete).
+--
+-- This migration adds both policies with the same folder restriction.
+--
+-- Run this AFTER 20260824000200_storage_buckets_and_wishlist.sql.
+-- ============================================================================
+
+drop policy if exists "User update own avatar" on storage.objects;
+drop policy if exists "User delete own avatar" on storage.objects;
+
+-- Avatars: authenticated user can update files in their own folder
+create policy "User update own avatar" on storage.objects for update
+  to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  )
+  with check (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Avatars: authenticated user can delete files in their own folder
+create policy "User delete own avatar" on storage.objects for delete
+  to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+-- <<< END MIGRATION: 20260901001000_avatar_storage_policies.sql
 
