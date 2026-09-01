@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { logAudit, AuditAction } from "@/lib/audit";
 
 // ============================================================================
 // Get or create cart for current user
@@ -189,25 +190,40 @@ export async function addAddress(formData: FormData) {
       .eq("is_default", true);
   }
 
-  const { error } = await supabase.from("customer_addresses").insert({
-    user_id: user.id,
-    label: (formData.get("label") as string) || null,
-    first_name: formData.get("firstName") as string,
-    last_name: formData.get("lastName") as string,
-    phone: formData.get("phone") as string,
-    region: formData.get("region") as string,
-    province: formData.get("province") as string,
-    city_municipality: formData.get("cityMunicipality") as string,
-    barangay: formData.get("barangay") as string,
-    street_address: formData.get("streetAddress") as string,
-    building_unit: (formData.get("buildingUnit") as string) || null,
-    postal_code: (formData.get("postalCode") as string) || null,
-    delivery_notes: (formData.get("deliveryNotes") as string) || null,
-    is_default: isDefault,
-  });
+  const { data: newAddress, error } = await supabase
+    .from("customer_addresses")
+    .insert({
+      user_id: user.id,
+      label: (formData.get("label") as string) || null,
+      first_name: formData.get("firstName") as string,
+      last_name: formData.get("lastName") as string,
+      phone: formData.get("phone") as string,
+      region: formData.get("region") as string,
+      province: formData.get("province") as string,
+      city_municipality: formData.get("cityMunicipality") as string,
+      barangay: formData.get("barangay") as string,
+      street_address: formData.get("streetAddress") as string,
+      building_unit: (formData.get("buildingUnit") as string) || null,
+      postal_code: (formData.get("postalCode") as string) || null,
+      delivery_notes: (formData.get("deliveryNotes") as string) || null,
+      is_default: isDefault,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     redirect(`/account/addresses?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // Audit: address added. Don't log the full address in metadata — too much PII.
+  // The row id is enough to look up the actual record via the audit log.
+  if (newAddress) {
+    await logAudit({
+      action: AuditAction.CREATE,
+      resourceType: "customer_addresses",
+      resourceId: newAddress.id,
+      metadata: { is_default: isDefault, has_label: Boolean(formData.get("label")) },
+    });
   }
 
   revalidatePath("/account/addresses");
@@ -225,6 +241,13 @@ export async function updateAddress(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/auth/login");
+
+  // Capture the current address for the audit diff BEFORE mutating.
+  const { data: oldAddress } = await supabase
+    .from("customer_addresses")
+    .select("id, label, first_name, last_name, phone, region, province, city_municipality, barangay, street_address, building_unit, postal_code, is_default")
+    .eq("id", addressId)
+    .maybeSingle();
 
   if (isDefault) {
     await supabase
@@ -257,6 +280,32 @@ export async function updateAddress(formData: FormData) {
     redirect(`/account/addresses?error=${encodeURIComponent(error.message)}`);
   }
 
+  // Audit: address updated. Log diff so reviewers can see what changed.
+  // We capture only the scalar fields (no PII beyond what RLS already permits).
+  if (oldAddress) {
+    const newSnapshot = {
+      label: (formData.get("label") as string) || null,
+      first_name: formData.get("firstName") as string,
+      last_name: formData.get("lastName") as string,
+      phone: formData.get("phone") as string,
+      region: formData.get("region") as string,
+      province: formData.get("province") as string,
+      city_municipality: formData.get("cityMunicipality") as string,
+      barangay: formData.get("barangay") as string,
+      street_address: formData.get("streetAddress") as string,
+      building_unit: (formData.get("buildingUnit") as string) || null,
+      postal_code: (formData.get("postalCode") as string) || null,
+      is_default: isDefault,
+    };
+    await logAudit({
+      action: AuditAction.UPDATE,
+      resourceType: "customer_addresses",
+      resourceId: addressId,
+      oldValues: oldAddress,
+      newValues: newSnapshot,
+    });
+  }
+
   revalidatePath("/account/addresses");
   redirect("/account/addresses");
 }
@@ -267,6 +316,13 @@ export async function deleteAddress(formData: FormData) {
   const supabase = await createClient();
   const addressId = formData.get("id") as string;
 
+  // Capture label + is_default BEFORE deletion so the audit row is useful.
+  const { data: existing } = await supabase
+    .from("customer_addresses")
+    .select("id, label, is_default")
+    .eq("id", addressId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("customer_addresses")
     .delete()
@@ -274,6 +330,16 @@ export async function deleteAddress(formData: FormData) {
 
   if (error) {
     redirect(`/account/addresses?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // Audit: address deleted.
+  if (existing) {
+    await logAudit({
+      action: AuditAction.DELETE,
+      resourceType: "customer_addresses",
+      resourceId: addressId,
+      oldValues: { label: existing.label, is_default: existing.is_default },
+    });
   }
 
   revalidatePath("/account/addresses");
