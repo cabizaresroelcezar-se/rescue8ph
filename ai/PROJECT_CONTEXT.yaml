@@ -377,13 +377,25 @@ development:
     phase_14: "production_hardening"
 
 current_phase:
-  id: "phase_14"
-  status: "complete"
+  id: "phase_15"
+  status: "in_progress"
 
 current_task:
-  id: "ANALYTICS-001 + SEO-001 + HARDENING-001"
-  title: "Analytics, SEO, and Production Hardening"
-  status: "complete"
+  id: "DEPLOY-001"
+  title: "Production deployment — Vercel + production Supabase + payment/shipping keys"
+  status: "in_progress"
+
+deployment_status:
+  last_verified_locally: "2026-08-27"
+  lint: "passing (npm run lint)"
+  build: "passing (npm run build)"
+  pending_supabase_migrations: 12
+  payment_providers_implemented: ["MANUAL"]
+  payment_providers_planned: ["XENDIT", "PAYMONGO"]
+  shipping_providers_implemented: ["MANUAL"]
+  shipping_providers_planned: ["LALAMOVE", "JNT", "LBC"]
+  vercel_project: "not yet created"
+  production_supabase: "not yet provisioned"
 
 rules:
   - "Never expose secrets to the client."

@@ -109,9 +109,71 @@ CUSTOMER:
   Password: Rescue8Customer2026!
   Role: customer (browse, purchase, manage account)
 
-## Status
+## Current Status
 
-ALL PHASES 0-14: COMPLETE
-PROJECT READY FOR PRODUCTION DEPLOYMENT
+ALL PHASES 0-14: COMPLETE (code, lint, build verified locally)
+LOCAL MAIN IS IN SYNC WITH REMOTE MAIN (commit 0ba9075)
+12 SUPABASE MIGRATIONS PENDING APPLICATION TO PRODUCTION DB
+SUPABASE MIGRATION WORKFLOW INSTALLED (.github/workflows/supabase-migrate.yml — requires 3 repo secrets)
 
-NEXT: Deploy to Vercel + connect production Supabase + configure payment/shipping provider keys
+## Active Phase
+
+Phase 15 — DEPLOY-001: Production Deployment
+
+## Deploy Checklist
+
+### A. Production Supabase (do first)
+
+1. Create production Supabase project (separate from dev). Pick a region close to users (ap-southeast-1 Singapore is best for PH).
+2. Capture project ref from the dashboard URL: https://supabase.com/dashboard/project/<REF>
+3. In the production project's SQL Editor, paste each of the 12 pending migration files in order:
+   - 20260824000200_storage_buckets_and_wishlist.sql
+   - 20260825000100_seed_blog_posts.sql
+   - 20260825000200_pages_body.sql
+   - 20260825000300_cart_coupon.sql
+   - 20260825000400_product_reviews.sql
+   - 20260825000500_seed_products_and_categories.sql
+   - 20260825000600_recently_viewed.sql
+   - 20260825000700_review_helpful_votes.sql
+   - 20260825000800_add_pages_body_column.sql
+   - 20260825000900_order_notes.sql
+   - 20260825001000_cms_enhancements.sql
+   - 20260825001100_wishlist_share_links.sql
+   (The 20260824000100_initial_rescue8_schema.sql migration is assumed already applied — that was the original DB-001 setup.)
+4. After all 12 apply, run the root `supabase/seed.sql` for site_settings + navigation + homepage page records.
+5. Create the 3 test users in Authentication → Users:
+   - superadmin@rescue8ph.com / Rescue8Admin2026! (then UPDATE profiles SET role = 'super_admin')
+   - admin@rescue8ph.com / Rescue8Staff2026! (UPDATE profiles SET role = 'admin')
+   - customer@rescue8ph.com / Rescue8Customer2026! (UPDATE profiles SET role = 'customer')
+6. In Storage, create public buckets: `product-images`, `media`, `page-images`, `blog-images` (the 20260824000200 migration creates these but verify they exist).
+7. Configure Auth: Site URL = production URL, redirect URLs include `/auth/callback`.
+
+### B. Vercel (after Supabase is ready)
+
+1. https://vercel.com/new → import `cabizaresroelcezar-se/rescue8ph` → Next.js auto-detected.
+2. Set environment variables (Project Settings → Environment Variables):
+   - NEXT_PUBLIC_SUPABASE_URL
+   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+   - SUPABASE_SERVICE_ROLE_KEY  (Production + Preview, sensitive)
+   - NEXT_PUBLIC_SITE_URL  (your production domain or https://rescue8ph.vercel.app)
+   - XENDIT_SECRET_KEY, XENDIT_WEBHOOK_TOKEN  (only if you have them — otherwise leave empty, MANUAL provider will be used)
+   - PAYMONGO_SECRET_KEY, PAYMONGO_WEBHOOK_SECRET  (same)
+   - LALAMOVE_API_KEY, LALAMOVE_API_SECRET, JNT_API_KEY, LBC_API_KEY  (same)
+3. Build command: `npm run build` (default). Output: `.next` (default).
+4. First deploy → verify /api/health returns 200 and validateEnv() reports no missing vars.
+
+### C. Smoke test
+
+- Visit /, /products, /products/[slug], /cart, /checkout, /blog, /faq, /contact
+- Log in as customer, place a COD test order, confirm order appears in /admin/orders
+- Log in as admin, confirm dashboard widgets + audit logs work
+- Log in as super admin, confirm /admin/users + role management work
+- Check /api/health returns 200 JSON
+- Check /sitemap.xml and /robots.txt are served
+- Confirm no console errors in browser dev tools
+
+### D. Provider keys (optional, can come later)
+
+Payment providers (Xendit, PayMongo) and shipping providers (Lalamove, J&T, LBC) are NOT YET IMPLEMENTED in the codebase — only the MANUAL provider is wired up. The interface and registry are ready (`src/lib/payments/providers.ts`, `src/lib/shipping/providers.ts`); implementing a real provider requires real API credentials AND reading their actual docs (per DEVELOPMENT_RULES.md rule 12: "Do not invent provider API behavior").
+
+For go-live, MANUAL/COD works. Add real providers in a follow-up phase (Phase 16+) once you have credentials and have read the provider docs.

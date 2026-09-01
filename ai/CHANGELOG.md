@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 2026-08-27 (Phase 15 — Deployment Prep)
+
+### Added
+
+- `.github/workflows/supabase-migrate.yml`: Auto-applies pending migrations on push to main
+  - Triggers only when `supabase/migrations/**` changes
+  - Runs `supabase db push` after linking to project via secrets
+  - Required repo secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`
+  - Can also be manually triggered via `workflow_dispatch`
+
+### Reconciled
+
+- Fast-forwarded main to `feat/wishlist-and-storage-buckets` (HEAD `5c5c750`)
+- Closed 5 stale PRs (#2-#6) from 2026-08-24; their feature branches preserved locally + on remote
+- Local main in sync with origin/main at commit `0ba9075`
+
+### Verified
+
+- `npm run lint` — exit 0, no errors
+- `npm run build` — exit 0, full route table printed
+
+### Status
+
+- All phases 0-14 code complete on local + remote main
+- 12 pending Supabase migrations not yet applied to any production DB
+- Vercel project not yet created
+- Production Supabase project not yet provisioned
+
 ## 2026-08-24 (Phase 12-14)
 
 ### Added — ANALYTICS-001 (Phase 12: Analytics & Audit)
