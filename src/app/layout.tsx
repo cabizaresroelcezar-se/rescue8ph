@@ -32,14 +32,16 @@ export const metadata: Metadata = {
     "Philippines",
   ],
   authors: [{ name: "Rescue 8 Trading Philippines, Inc." }],
+  manifest: "/favicons/site.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.png", type: "image/png", sizes: "489x480" },
+      { url: "/favicons/favicon.ico", sizes: "any" },
+      { url: "/favicons/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicons/favicon-16x16.png", type: "image/png", sizes: "16x16" },
       { url: "/favicon.svg", type: "image/svg+xml" },
     ],
     apple: [
-      { url: "/favicon.png", sizes: "180x180" },
-      { url: "/icon.svg" },
+      { url: "/favicons/apple-touch-icon.png", sizes: "180x180" },
     ],
   },
   openGraph: {
