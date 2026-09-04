@@ -2,14 +2,12 @@
 
 import { useRef, useTransition } from "react";
 import { Camera, Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
+import { useRouter } from "next/navigation";
 
 /**
- * Avatar upload input — auto-submits when a file is selected so the user
- * doesn't need a separate "Upload" click. Shows a brief loading state during
- * the server action.
- *
- * Server action is passed in as a prop so this component stays a pure
- * client component (the action signature is preserved through serialization).
+ * Avatar upload input — auto-submits when a file is selected.
+ * Shows toast notifications on success/error.
  */
 export function AvatarUploadInput({
   uploadAction,
@@ -20,14 +18,27 @@ export function AvatarUploadInput({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+  const router = useRouter();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.currentTarget.files?.[0];
     if (!file) return;
     const formData = new FormData();
     formData.append("avatar", file);
+    toast({ title: "Uploading photo...", variant: "loading" });
     startTransition(async () => {
-      await uploadAction(formData);
+      try {
+        await uploadAction(formData);
+        toast({ title: "Photo updated", description: "Your profile photo has been updated successfully.", variant: "success" });
+        router.refresh();
+      } catch (err) {
+        toast({
+          title: "Upload failed",
+          description: err instanceof Error ? err.message : "Could not upload photo. Please try again.",
+          variant: "error",
+        });
+      }
     });
   }
 

@@ -52,8 +52,8 @@ export async function Header() {
   return (
     <>
       <AnnouncementBar
-        message="Nationwide delivery on orders over ₱5,000 — Free shipping to Metro Manila, Rizal, Bulacan, Cavite, and Laguna."
-        href="/products"
+        message="Equipping Filipino first responders since 2012 — EMS, rescue, and safety equipment you can trust."
+        href="/about"
       />
 
       <HeaderClient
