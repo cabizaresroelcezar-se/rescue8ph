@@ -33,8 +33,14 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Rescue 8 Trading Philippines, Inc." }],
   icons: {
-    icon: "/favicon.svg",
-    apple: "/icon.svg",
+    icon: [
+      { url: "/favicon.png", type: "image/png", sizes: "489x480" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/favicon.png", sizes: "180x180" },
+      { url: "/icon.svg" },
+    ],
   },
   openGraph: {
     title: "Rescue 8 Philippines — EMS and Rescue Equipment",

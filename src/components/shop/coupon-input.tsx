@@ -80,7 +80,7 @@ export function CouponInput({
             onClick={remove}
             disabled={busy}
             aria-label="Remove coupon"
-            className="inline-flex h-7 items-center gap-1 rounded-md border border-green-200 bg-white px-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-100 disabled:opacity-60"
+            className="inline-flex h-7 items-center gap-1 rounded-md border border-green-200 bg-card px-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-100 disabled:opacity-60"
           >
             {busy ? (
               <Loader2 className="h-3 w-3 animate-spin" />
