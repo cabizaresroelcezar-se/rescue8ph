@@ -1,16 +1,18 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Plus, Pencil, Eye, Calendar, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ButtonLink } from "@/components/ui/button-link";
 import { BlogStatusToggle } from "./status-toggle";
 import { DeleteBlogButton } from "./delete-button";
+import { getMediaUrl } from "@/lib/media";
 
 export default async function AdminBlogPage() {
   const supabase = await createClient();
   const { data: posts } = await supabase
     .from("blog_posts")
     .select(
-      "id, title, slug, status, published_at, created_at, excerpt, blog_categories(name, slug)"
+      "id, title, slug, status, published_at, created_at, excerpt, featured_image_url, blog_categories(name, slug)"
     )
     .order("created_at", { ascending: false });
 
@@ -64,20 +66,40 @@ export default async function AdminBlogPage() {
               <tbody className="divide-y divide-border">
                 {list.map((p) => {
                   const cat = p.blog_categories as unknown as { name?: string; slug?: string } | null;
+                  const thumb = getMediaUrl(p.featured_image_url, "blog");
                   return (
                     <tr key={p.id} className="hover:bg-secondary/30">
                       <td className="px-4 py-3">
-                        <Link
-                          href={`/admin/blog/${p.id}`}
-                          className="font-medium text-foreground hover:text-primary"
-                        >
-                          {p.title}
-                        </Link>
-                        {p.excerpt && (
-                          <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-                            {p.excerpt}
-                          </p>
-                        )}
+                        <div className="flex items-center gap-3">
+                          {thumb ? (
+                            <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded border border-border bg-secondary">
+                              <Image
+                                src={thumb}
+                                alt={p.title}
+                                fill
+                                sizes="64px"
+                                className="object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded border border-dashed border-border bg-secondary">
+                              <FileText className="h-4 w-4 text-muted-foreground/40" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <Link
+                              href={`/admin/blog/${p.id}`}
+                              className="font-medium text-foreground hover:text-primary"
+                            >
+                              {p.title}
+                            </Link>
+                            {p.excerpt && (
+                              <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                                {p.excerpt}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <BlogStatusToggle id={p.id} initial={p.status as "DRAFT" | "PUBLISHED" | "ARCHIVED"} />
