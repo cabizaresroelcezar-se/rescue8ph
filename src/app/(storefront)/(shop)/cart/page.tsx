@@ -11,6 +11,8 @@ import { updateCartQuantity, removeFromCart } from "@/features/cart/actions";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { CouponInput } from "@/components/shop/coupon-input";
+import { getMediaUrl } from "@/lib/media";
+import Image from "next/image";
 
 export default async function CartPage({
   searchParams,
@@ -80,6 +82,30 @@ export default async function CartPage({
   };
   const typedItems = (cartItems || []) as unknown as CartItemWithProduct[];
 
+  // Fetch primary images for cart products
+  const cartProductIds = typedItems.map((item) => {
+    const p = Array.isArray(item.product) ? item.product[0] : item.product;
+    return p?.id;
+  }).filter(Boolean) as string[];
+
+  const { data: cartImages } = cartProductIds.length
+    ? await supabase
+        .from("product_images")
+        .select("product_id, storage_path, alt_text, is_primary, sort_order")
+        .in("product_id", cartProductIds)
+        .order("sort_order", { ascending: true })
+    : { data: [] };
+
+  const imageByProduct: Record<string, { src: string; alt: string }> = {};
+  for (const img of cartImages ?? []) {
+    const url = getMediaUrl(img.storage_path);
+    if (!url) continue;
+    const existing = imageByProduct[img.product_id];
+    if (!existing || img.is_primary) {
+      imageByProduct[img.product_id] = { src: url, alt: img.alt_text || "" };
+    }
+  }
+
   // Calculate totals
   let subtotal = 0;
   typedItems.forEach((item) => {
@@ -116,8 +142,18 @@ export default async function CartPage({
               return (
                 <Card key={item.id}>
                   <CardContent className="flex items-center gap-4 p-4">
-                    <div className="flex aspect-square h-20 w-20 shrink-0 items-center justify-center rounded-md bg-surface">
-                      <span className="text-2xl text-muted-foreground/30">+</span>
+                    <div className="relative flex aspect-square h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface">
+                      {imageByProduct[p.id] ? (
+                        <Image
+                          src={imageByProduct[p.id].src}
+                          alt={imageByProduct[p.id].alt || p.title}
+                          fill
+                          sizes="80px"
+                          className="object-contain p-1"
+                        />
+                      ) : (
+                        <span className="text-2xl text-muted-foreground/30">+</span>
+                      )}
                     </div>
                     <div className="flex-1">
                       <Link href={`/products/${p.slug}`} className="font-semibold hover:text-primary">
