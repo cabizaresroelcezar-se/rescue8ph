@@ -17,15 +17,16 @@ export default async function FaqPage() {
     .order("sort_order");
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
+    <div className="bg-surface">
+      <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="text-3xl font-bold tracking-tight">Frequently Asked Questions</h1>
       <p className="mt-2 text-muted-foreground">
         Common questions about our products and services
       </p>
 
-      <div className="mt-10 space-y-6">
+      <div className="mt-10 space-y-4">
         {(faqs || []).map((faq, i) => (
-          <div key={i} className="rounded-lg border bg-card p-6">
+          <div key={i} className="rounded-lg border bg-card p-6 shadow-elev-1">
             <h2 className="text-lg font-semibold">{faq.question}</h2>
             <p className="mt-3 text-sm text-muted-foreground">{faq.answer}</p>
           </div>
@@ -44,6 +45,7 @@ export default async function FaqPage() {
         >
           Contact Us
         </Link>
+      </div>
       </div>
     </div>
   );

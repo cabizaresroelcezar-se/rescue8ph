@@ -43,10 +43,10 @@
 
   /* Neutral */
   --neutral-0:    oklch(1     0     0);
-  --neutral-50:   oklch(0.985 0.003 265);
-  --neutral-100:  oklch(0.970 0.004 265);
-  --neutral-200:  oklch(0.935 0.005 265);
-  --neutral-300:  oklch(0.890 0.006 265);
+  --neutral-50:   oklch(0.965 0.004 265);
+  --neutral-100:  oklch(0.950 0.005 265);
+  --neutral-200:  oklch(0.920 0.006 265);
+  --neutral-300:  oklch(0.875 0.007 265);
   --neutral-400:  oklch(0.780 0.008 265);
   --neutral-500:  oklch(0.620 0.010 265);
   --neutral-600:  oklch(0.520 0.012 265);
@@ -131,6 +131,10 @@
 
   --surface:                var(--neutral-50);
   --surface-foreground:     var(--neutral-900);
+  
+  /* Tertiary — slight gray for alternating sections */
+  --tertiary:               var(--neutral-50);
+  --tertiary-foreground:    var(--neutral-900);
 
   /* Brand aliases — keep these names since they're already used. */
   --color-brand-blue:         var(--blue-700);
@@ -207,6 +211,10 @@
 
   --surface:                var(--neutral-950);
   --surface-foreground:     var(--neutral-50);
+  
+  /* Tertiary — slight gray for alternating sections (dark) */
+  --tertiary:               var(--neutral-900);
+  --tertiary-foreground:    var(--neutral-50);
 
   --color-brand-blue:         var(--blue-400);
   --color-brand-blue-light:   var(--blue-300);
@@ -249,6 +257,8 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-surface-foreground: var(--surface-foreground);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-foreground: var(--tertiary-foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
