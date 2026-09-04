@@ -137,6 +137,15 @@ export default async function AdminOrderDetailPage({
             Receipt
           </Link>
           <Link
+            href={`/admin/orders/${order.id}/waybill`}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex h-9 items-center gap-1 rounded-md border border-input bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+          >
+            <Truck className="h-3.5 w-3.5" />
+            Waybill
+          </Link>
+          <Link
             href="/admin/orders"
             className="inline-flex h-9 items-center gap-1 rounded-md border border-input bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
           >
