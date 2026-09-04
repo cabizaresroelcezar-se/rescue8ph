@@ -5,14 +5,11 @@ import Link from "next/link";
 import {
   User as UserIcon,
   Mail,
-  Phone,
   AlertCircle,
   Check,
   Camera,
-  Trash2,
   ShieldCheck,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +18,7 @@ import { updateProfile } from "@/features/auth/actions";
 import { requestEmailChange } from "@/features/profile/actions";
 import { uploadAvatarAction, deleteAvatarAction } from "@/features/profile/upload-action";
 import { AvatarUploadInput } from "@/features/profile/avatar-upload-input";
+import { ProfileFormWrapper, DeleteAvatarButton, EmailChangeWrapper } from "@/components/account/profile-forms";
 
 export default async function ProfilePage({
   searchParams,
@@ -141,17 +139,7 @@ export default async function ProfilePage({
                 />
 
                 {avatarUrl && (
-                  <form action={deleteAvatarAction}>
-                    <Button
-                      type="submit"
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                      Remove photo
-                    </Button>
-                  </form>
+                  <DeleteAvatarButton deleteAction={deleteAvatarAction} />
                 )}
 
                 <p className="text-[11px] text-muted-foreground">
@@ -180,50 +168,12 @@ export default async function ProfilePage({
               </div>
             </div>
 
-            <form action={updateProfile} className="mt-6 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First name</Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    defaultValue={profile?.first_name || ""}
-                    placeholder="Juan"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last name</Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    defaultValue={profile?.last_name || ""}
-                    placeholder="Dela Cruz"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone number</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  defaultValue={profile?.phone || ""}
-                  placeholder="+63 9XX XXX XXXX"
-                />
-                <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Phone className="h-3 w-3" />
-                  Used for delivery updates and order coordination.
-                </p>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <Button type="submit">Save Changes</Button>
-                <ButtonLink href="/account" variant="outline">
-                  Cancel
-                </ButtonLink>
-              </div>
-            </form>
+            <ProfileFormWrapper
+              updateAction={updateProfile}
+              initialFirstName={profile?.first_name || ""}
+              initialLastName={profile?.last_name || ""}
+              initialPhone={profile?.phone || ""}
+            />
           </FadeIn>
 
           {/* ===== Email change ===== */}
@@ -268,25 +218,7 @@ export default async function ProfilePage({
                 )}
               </div>
 
-              <form action={requestEmailChange} className="space-y-2">
-                <Label htmlFor="newEmail">New email</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="newEmail"
-                    name="newEmail"
-                    type="email"
-                    placeholder="newemail@example.com"
-                    required
-                  />
-                  <Button type="submit" variant="outline">
-                    Request change
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  We&apos;ll send a confirmation link to both your current and new email.
-                  Your address only changes after you click both.
-                </p>
-              </form>
+              <EmailChangeWrapper requestAction={requestEmailChange} />
             </div>
           </FadeIn>
         </div>
