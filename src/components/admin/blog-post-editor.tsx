@@ -15,6 +15,7 @@ type BlogPostEditorProps = {
     excerpt: string;
     content: string;
     featured_image_url: string;
+    resolved_image_url?: string | null;
     category_id: string | null;
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     seo_title: string;
@@ -30,6 +31,7 @@ export function BlogPostEditor({ categories, initial }: BlogPostEditorProps) {
   const [excerpt, setExcerpt] = React.useState(initial?.excerpt ?? "");
   const [content, setContent] = React.useState(initial?.content ?? "");
   const [featuredImage, setFeaturedImage] = React.useState(initial?.featured_image_url ?? "");
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(initial?.resolved_image_url ?? null);
   const [categoryId, setCategoryId] = React.useState(initial?.category_id ?? "");
   const [status, setStatus] = React.useState(initial?.status ?? "DRAFT");
   const [seoTitle, setSeoTitle] = React.useState(initial?.seo_title ?? "");
@@ -239,10 +241,10 @@ export function BlogPostEditor({ categories, initial }: BlogPostEditorProps) {
           <div className="rounded-lg border border-border bg-card p-4">
             <h3 className="text-sm font-semibold text-foreground">Featured image</h3>
             <div className="mt-2 space-y-2">
-              {featuredImage ? (
+              {previewUrl ? (
                 <div className="relative aspect-video overflow-hidden rounded-md border border-border bg-secondary">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={featuredImage} alt="Featured" className="h-full w-full object-cover" />
+                  <img src={previewUrl} alt="Featured" className="h-full w-full object-cover" />
                 </div>
               ) : (
                 <div className="flex aspect-video items-center justify-center rounded-md border border-dashed border-border bg-secondary text-xs text-muted-foreground">
@@ -250,14 +252,30 @@ export function BlogPostEditor({ categories, initial }: BlogPostEditorProps) {
                 </div>
               )}
               <input
-                type="url"
+                type="text"
                 value={featuredImage}
-                onChange={(e) => setFeaturedImage(e.target.value)}
-                placeholder="https://..."
+                onChange={(e) => {
+                  setFeaturedImage(e.target.value);
+                  // If the user types a full URL, use it directly for preview.
+                  // If it's a relative path (e.g. from the media library), we
+                  // can't resolve it client-side, so clear the preview.
+                  const val = e.target.value.trim();
+                  if (/^https?:\/\//i.test(val) || val.startsWith("/")) {
+                    setPreviewUrl(val);
+                  } else if (val === "") {
+                    setPreviewUrl(null);
+                  } else {
+                    // Relative storage path — can't resolve client-side.
+                    // Keep the old preview if any, or clear it.
+                    setPreviewUrl(null);
+                  }
+                }}
+                placeholder="path/to/image.jpg or https://..."
                 className="block w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
               <p className="text-xs text-muted-foreground">
-                Paste a URL or upload via /admin/media, then paste the link here.
+                Paste a storage path (e.g. folder/file.jpg) or a full URL.
+                Upload via /admin/media first, then paste the path here.
               </p>
             </div>
           </div>
