@@ -23,6 +23,10 @@ import { getMediaUrl } from "@/lib/media";
 import { HeroCarousel, type HeroSlide } from "@/components/marketing/hero-carousel";
 import { site } from "@/lib/site";
 import { organizationSchema } from "@/lib/seo";
+import {
+  PageSectionRenderer,
+  type PageSection,
+} from "@/components/marketing/page-section-renderer";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -61,7 +65,26 @@ export default async function HomePage() {
         : { data: [] };
       const savedSet = new Set((wishlistRows ?? []).map((w) => w.product_id));
 
-  const slides: HeroSlide[] = [
+      // Fetch CMS page sections for the "home" page (editable from admin)
+      const { data: homePage } = await supabase
+        .from("pages")
+        .select("id, title, slug, body")
+        .eq("slug", "home")
+        .eq("status", "PUBLISHED")
+        .single();
+
+      let cmsSections: PageSection[] = [];
+      if (homePage) {
+        const { data: sections } = await supabase
+          .from("page_sections")
+          .select("id, section_type, sort_order, is_enabled, content")
+          .eq("page_id", homePage.id)
+          .eq("is_enabled", true)
+          .order("sort_order", { ascending: true });
+        cmsSections = (sections ?? []) as unknown as PageSection[];
+      }
+
+      const slides: HeroSlide[] = [
     {
       id: "ems",
       eyebrow: `Emergency Disaster Preparedness · ${site.brand.founded}`,
@@ -114,6 +137,16 @@ export default async function HomePage() {
 
   return (
     <div>
+      {/* CMS-editable sections from the "home" page */}
+      {cmsSections.length > 0 && (
+        <>
+          {cmsSections.map((s) => (
+            <PageSectionRenderer key={s.id} section={s} />
+          ))}
+        </>
+      )}
+
+      {/* Hero carousel */}
       {/* Organization JSON-LD */}
       <script
         type="application/ld+json"

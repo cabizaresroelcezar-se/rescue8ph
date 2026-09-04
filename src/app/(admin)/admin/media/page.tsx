@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { FadeIn } from "@/lib/motion";
 import { MediaGallery } from "@/components/admin/media-gallery";
+import { MediaUploader } from "@/components/admin/media-uploader";
 
 export const metadata = {
   title: "Media Library · Back Office",
@@ -97,6 +98,11 @@ export default async function AdminMediaPage({
             </Link>
           );
         })}
+      </FadeIn>
+
+      {/* Upload area */}
+      <FadeIn>
+        <MediaUploader bucketName={activeBucket.name} />
       </FadeIn>
 
       {/* Files grid */}

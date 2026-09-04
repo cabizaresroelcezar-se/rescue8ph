@@ -257,12 +257,11 @@ export default async function AdminDashboardPage() {
       links: [
         { href: "/admin/content", label: "Site content", icon: FileText },
         {
-          href: "/admin/blog",
-          label: "Blog",
+          href: "/admin/pages",
+          label: "Pages",
           icon: FileText,
-          count: posts.count ?? 0,
         },
-        { href: "/admin/pages", label: "Pages", icon: FileText },
+        { href: "/admin/blog", label: "Blog", icon: FileText, count: posts.count ?? 0 },
       ],
     },
     {
@@ -283,12 +282,20 @@ export default async function AdminDashboardPage() {
             What needs attention today.
           </p>
         </div>
-        <Link
-          href="/admin/analytics"
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-        >
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/pages"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+          >
+            <FileText className="h-4 w-4" /> Edit pages
+          </Link>
+          <Link
+            href="/admin/analytics"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+          >
           <BarChart3 className="h-4 w-4" /> View analytics
-        </Link>
+          </Link>
+        </div>
       </FadeIn>
 
       {/* Actionable KPIs */}
