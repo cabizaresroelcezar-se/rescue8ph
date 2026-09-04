@@ -40,7 +40,7 @@ export default async function BlogPage({
   }
 
   const [featured, ...rest] = list;
-  const featuredImage = featured ? getMediaUrl(featured.featured_image_url) : null;
+  const featuredImage = featured ? getMediaUrl(featured.featured_image_url, "blog") : null;
   const wordCount = featured ? (featured.content ?? "").trim().split(/\s+/).filter(Boolean).length : 0;
   const readMinutes = Math.max(1, Math.round(wordCount / 200));
 
@@ -143,7 +143,7 @@ export default async function BlogPage({
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {rest.map((post) => {
-                const img = getMediaUrl(post.featured_image_url);
+                const img = getMediaUrl(post.featured_image_url, "blog");
                 const cat = post.blog_categories as unknown as { name: string; slug: string } | null;
                 return (
                   <Link
