@@ -3,9 +3,23 @@
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
+import { fetchCartCount } from "@/features/cart/actions";
 
 export function CartButton({ initialCount = 0 }: { initialCount?: number }) {
   const [count, setCount] = useState(initialCount);
+
+  // Fetch real count on mount (handles logged-in users with existing carts)
+  useEffect(() => {
+    let mounted = true;
+    fetchCartCount()
+      .then((c) => {
+        if (mounted) setCount(c);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onUpdate = (e: Event) => {
