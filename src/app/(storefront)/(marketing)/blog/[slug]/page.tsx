@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .single();
 
   if (!post) return {};
-  const img = getMediaUrl(post.featured_image_url);
+  const img = getMediaUrl(post.featured_image_url, "blog");
 
   return createMetadata({
     title: post.seo_title || post.title,
@@ -63,7 +63,7 @@ export default async function BlogPostPage({
     .order("published_at", { ascending: false })
     .limit(3);
 
-  const img = getMediaUrl(post.featured_image_url);
+  const img = getMediaUrl(post.featured_image_url, "blog");
     const cat = post.blog_categories as unknown as { name: string; slug: string } | null;
     const author = post.profiles as unknown as
       | { first_name: string | null; last_name: string | null }
@@ -187,7 +187,7 @@ export default async function BlogPostPage({
             <h2 className="text-2xl font-bold text-foreground">Related posts</h2>
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((r) => {
-                const rImg = getMediaUrl(r.featured_image_url);
+                const rImg = getMediaUrl(r.featured_image_url, "blog");
                 const rCat = r.blog_categories as unknown as { name: string } | null;
                 return (
                   <Link
