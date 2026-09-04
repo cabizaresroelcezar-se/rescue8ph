@@ -25,7 +25,7 @@ export default async function FaqPage() {
 
       <div className="mt-10 space-y-6">
         {(faqs || []).map((faq, i) => (
-          <div key={i} className="rounded-lg border bg-white p-6">
+          <div key={i} className="rounded-lg border bg-card p-6">
             <h2 className="text-lg font-semibold">{faq.question}</h2>
             <p className="mt-3 text-sm text-muted-foreground">{faq.answer}</p>
           </div>
