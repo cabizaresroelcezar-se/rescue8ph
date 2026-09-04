@@ -24,7 +24,13 @@ export function AddToCartButton({
   const handleAdd = async (formData: FormData) => {
     setPending(true);
     try {
-      await addToCart(formData);
+      const result = await addToCart(formData);
+      // Dispatch cart:updated event so the header badge updates
+      if (result && typeof result.count === "number") {
+        window.dispatchEvent(
+          new CustomEvent("cart:updated", { detail: { count: result.count } })
+        );
+      }
       setAdded(true);
       setTimeout(() => setAdded(false), 1600);
     } catch {

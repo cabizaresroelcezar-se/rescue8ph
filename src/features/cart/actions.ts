@@ -77,7 +77,7 @@ export async function addToCart(formData: FormData) {
       }
 
       revalidatePath("/cart");
-      redirect("/cart");
+      return { count: await getCartItemCount(supabase, cartId) };
     }
   } else {
     const { data: existing } = await supabase
@@ -99,7 +99,7 @@ export async function addToCart(formData: FormData) {
       }
 
       revalidatePath("/cart");
-      redirect("/cart");
+      return { count: await getCartItemCount(supabase, cartId) };
     }
   }
 
@@ -116,7 +116,41 @@ export async function addToCart(formData: FormData) {
   }
 
   revalidatePath("/cart");
-  redirect("/cart");
+  return { count: await getCartItemCount(supabase, cartId) };
+}
+
+// ============================================================================
+// Get cart item count (for header badge)
+// ============================================================================
+
+async function getCartItemCount(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  cartId: string
+): Promise<number> {
+  const { count } = await supabase
+    .from("cart_items")
+    .select("id", { count: "exact", head: true })
+    .eq("cart_id", cartId);
+  return count ?? 0;
+}
+
+export async function fetchCartCount(): Promise<number> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return 0;
+
+  const { data: cart } = await supabase
+    .from("carts")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!cart) return 0;
+
+  return getCartItemCount(supabase, cart.id);
 }
 
 // ============================================================================
@@ -146,7 +180,7 @@ export async function updateCartQuantity(formData: FormData) {
   }
 
   revalidatePath("/cart");
-  redirect("/cart");
+  // Stay on the cart page — revalidate will refresh the data
 }
 
 // ============================================================================
@@ -164,7 +198,7 @@ export async function removeFromCart(formData: FormData) {
   }
 
   revalidatePath("/cart");
-  redirect("/cart");
+  // Stay on the cart page — revalidate will refresh the data
 }
 
 // ============================================================================

@@ -49,6 +49,7 @@ export function HeaderClient({
         if (e.key === "Escape") {
           setSearchOpen(false);
           setMegaOpen(false);
+          setDrawerOpen(false);
         }
       };
       window.addEventListener("keydown", onKey);
@@ -75,6 +76,7 @@ export function HeaderClient({
   };
 
   return (
+    <>
     <header
       className={cn(
         "sticky top-0 z-40 w-full transition-[background,box-shadow,border-color] duration-[var(--duration-base)] ease-[var(--ease-out-quart)]",
@@ -145,15 +147,16 @@ export function HeaderClient({
                           <CartButton />
                         </div>
               </div>
+    </header>
 
       <MobileDrawer
-              open={drawerOpen}
-              onClose={() => setDrawerOpen(false)}
-              navItems={navItems}
-              user={user}
-              isAdmin={isAdmin}
-            />
-    </header>
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        navItems={navItems}
+        user={user}
+        isAdmin={isAdmin}
+      />
+    </>
   );
 }
 
@@ -338,7 +341,7 @@ function MobileDrawer({
         onClick={onClose}
         aria-hidden
         className={cn(
-          "fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm transition-opacity duration-[var(--duration-base)] md:hidden",
+          "fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm transition-opacity duration-[var(--duration-base)] md:hidden",
           open ? "opacity-100" : "pointer-events-none opacity-0"
         )}
       />
@@ -347,7 +350,7 @@ function MobileDrawer({
         aria-modal="true"
         aria-label="Site navigation"
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[min(360px,86vw)] flex-col border-r border-border bg-background shadow-elev-4 md:hidden",
+          "fixed inset-y-0 left-0 z-[60] flex w-[min(360px,86vw)] flex-col border-r border-border bg-background shadow-elev-4 md:hidden",
           "transition-transform duration-[var(--duration-slow)] ease-[var(--ease-in-out-quart)]",
           open ? "translate-x-0" : "-translate-x-full"
         )}
