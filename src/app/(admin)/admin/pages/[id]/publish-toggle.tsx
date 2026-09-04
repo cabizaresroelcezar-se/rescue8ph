@@ -4,6 +4,7 @@ import * as React from "react";
 import { Loader2 } from "lucide-react";
 import { togglePublishPage } from "@/features/cms/actions";
 import { useDelayedRefresh } from "@/hooks/use-delayed-refresh";
+import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
 export function ListPublishToggle({
@@ -16,6 +17,7 @@ export function ListPublishToggle({
   const [status, setStatus] = React.useState(initial);
   const [busy, setBusy] = React.useState(false);
   const { refresh, pending } = useDelayedRefresh(600);
+  const { toast } = useToast();
 
   async function onClick() {
     if (busy) return;
@@ -26,11 +28,16 @@ export function ListPublishToggle({
     const result = await togglePublishPage(id);
     setBusy(false);
     if (result?.ok) {
+      toast({
+        title: "Success",
+        description: next === "PUBLISHED" ? "Page published." : "Page unpublished.",
+        variant: "success",
+      });
       refresh(); // debounced re-fetch
     } else if (result?.error) {
       // Revert on error
       setStatus(status);
-      alert(result.error);
+      toast({ title: "Error", description: result.error, variant: "error" });
     }
   }
 

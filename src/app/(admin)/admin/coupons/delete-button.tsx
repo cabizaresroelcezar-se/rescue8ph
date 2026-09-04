@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
 import { useDelayedRefresh } from "@/hooks/use-delayed-refresh";
 import { deleteCoupon } from "@/features/coupons/actions";
+import { useToast } from "@/components/ui/toast";
 
 export function DeleteCouponButton({
   id,
@@ -14,6 +15,7 @@ export function DeleteCouponButton({
   code: string;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [busy, setBusy] = React.useState(false);
   const { refresh, pending } = useDelayedRefresh(400);
 
@@ -29,9 +31,10 @@ export function DeleteCouponButton({
     const result = await deleteCoupon(id);
     setBusy(false);
     if (result?.error) {
-      alert(result.error);
+      toast({ title: "Error", description: result.error, variant: "error" });
       return;
     }
+    toast({ title: "Success", description: "Coupon deleted.", variant: "success" });
     setTimeout(() => router.push("/admin/coupons"), 300);
     refresh();
   }

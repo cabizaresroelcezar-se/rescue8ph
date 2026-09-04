@@ -4,6 +4,7 @@ import * as React from "react";
 import { Loader2, Trash2, FileText } from "lucide-react";
 import { deleteBlogCategory } from "@/features/cms/actions";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/toast";
 
 export function CategoryRow({
   id,
@@ -19,6 +20,7 @@ export function CategoryRow({
   postCount: number;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [busy, setBusy] = React.useState(false);
 
   const onDelete = async () => {
@@ -33,8 +35,12 @@ export function CategoryRow({
     setBusy(true);
     const result = await deleteBlogCategory(id);
     setBusy(false);
-    if (result.ok) router.refresh();
-    else if (result.error) window.alert(result.error);
+    if (result.ok) {
+      toast({ title: "Success", description: "Category deleted.", variant: "success" });
+      router.refresh();
+    } else if (result.error) {
+      toast({ title: "Error", description: result.error, variant: "error" });
+    }
   };
 
   return (

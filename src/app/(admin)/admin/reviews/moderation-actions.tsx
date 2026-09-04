@@ -14,6 +14,7 @@ import {
   moderateReview,
   staffDeleteReview,
 } from "@/features/reviews/actions";
+import { useToast } from "@/components/ui/toast";
 
 type Status = "PENDING" | "APPROVED" | "REJECTED" | "FLAGGED";
 
@@ -25,6 +26,7 @@ export function ReviewModerationActions({
   currentStatus: Status;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [busy, setBusy] = React.useState<string | null>(null);
   const { refresh, pending } = useDelayedRefresh(400);
 
@@ -34,9 +36,14 @@ export function ReviewModerationActions({
     const result = await moderateReview(id, status);
     setBusy(null);
     if (result?.error) {
-      alert(result.error);
+      toast({ title: "Error", description: result.error, variant: "error" });
       return;
     }
+    toast({
+      title: "Success",
+      description: `Review marked as ${status.toLowerCase()}.`,
+      variant: "success",
+    });
     router.refresh();
     refresh();
   }
@@ -52,9 +59,10 @@ export function ReviewModerationActions({
     const result = await staffDeleteReview(id);
     setBusy(null);
     if (result?.error) {
-      alert(result.error);
+      toast({ title: "Error", description: result.error, variant: "error" });
       return;
     }
+    toast({ title: "Success", description: "Review deleted.", variant: "success" });
     router.refresh();
     refresh();
   }

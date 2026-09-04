@@ -25,7 +25,6 @@ export function AddToCartButton({
     setPending(true);
     try {
       const result = await addToCart(formData);
-      // Dispatch cart:updated event so the header badge updates
       if (result && typeof result.count === "number") {
         window.dispatchEvent(
           new CustomEvent("cart:updated", { detail: { count: result.count } })
@@ -34,7 +33,7 @@ export function AddToCartButton({
       setAdded(true);
       setTimeout(() => setAdded(false), 1600);
     } catch {
-      /* swallow */
+      /* swallow — redirect throws are expected */
     } finally {
       setPending(false);
     }

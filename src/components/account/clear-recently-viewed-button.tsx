@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { Loader2, Trash2 } from "lucide-react";
 import { useDelayedRefresh } from "@/hooks/use-delayed-refresh";
 import { clearRecentlyViewed } from "@/features/recently-viewed/actions";
+import { useToast } from "@/components/ui/toast";
 
 export function ClearRecentlyViewedButton() {
   const router = useRouter();
+  const { toast } = useToast();
   const { refresh } = useDelayedRefresh(400);
   const [busy, setBusy] = React.useState(false);
 
@@ -17,9 +19,10 @@ export function ClearRecentlyViewedButton() {
     const result = await clearRecentlyViewed();
     setBusy(false);
     if (result?.error) {
-      alert(result.error);
+      toast({ title: "Error", description: result.error, variant: "error" });
       return;
     }
+    toast({ title: "Success", description: "Recently viewed products cleared.", variant: "success" });
     router.refresh();
     refresh();
   }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
 import { deletePage } from "@/features/cms/actions";
 import { useDelayedRefresh } from "@/hooks/use-delayed-refresh";
+import { useToast } from "@/components/ui/toast";
 
 export function DeletePageButton({
   id,
@@ -14,6 +15,7 @@ export function DeletePageButton({
   title: string;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [busy, setBusy] = React.useState(false);
   const { refresh, pending } = useDelayedRefresh(400);
 
@@ -28,13 +30,16 @@ export function DeletePageButton({
     setBusy(true);
     const result = await deletePage(id);
     if (result?.ok) {
+      toast({ title: "Success", description: "Page deleted.", variant: "success" });
       // Brief delay so the user sees the "Deleting..." state, then navigate
       setTimeout(() => router.push("/admin/pages"), 350);
       refresh(); // ensure list view is up-to-date
       return;
     }
     setBusy(false);
-    if (result?.error) alert(result.error);
+    if (result?.error) {
+      toast({ title: "Error", description: result.error, variant: "error" });
+    }
   }
 
   const isLoading = busy || pending;

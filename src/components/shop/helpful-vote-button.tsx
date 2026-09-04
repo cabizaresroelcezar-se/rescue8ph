@@ -5,6 +5,7 @@ import { ThumbsUp, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDelayedRefresh } from "@/hooks/use-delayed-refresh";
 import { voteOnReview, removeReviewVote } from "@/features/review-votes/actions";
+import { useToast } from "@/components/ui/toast";
 
 export function HelpfulVoteButton({
   reviewId,
@@ -19,6 +20,7 @@ export function HelpfulVoteButton({
 }) {
   const router = useRouter();
   const { refresh } = useDelayedRefresh(400);
+  const { toast } = useToast();
   const [count, setCount] = React.useState(initialCount);
   const [userVote, setUserVote] = React.useState<boolean | null>(initialUserVote);
   const [busy, setBusy] = React.useState(false);
@@ -48,7 +50,7 @@ export function HelpfulVoteButton({
       // Revert
       setUserVote(previousVote);
       setCount(previousCount);
-      alert(result.error);
+      toast({ title: "Error", description: result.error, variant: "error" });
       return;
     }
 

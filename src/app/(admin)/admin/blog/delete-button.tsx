@@ -4,9 +4,11 @@ import * as React from "react";
 import { Trash2, Loader2 } from "lucide-react";
 import { deleteBlogPost } from "@/features/cms/actions";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/toast";
 
 export function DeleteBlogButton({ id, title }: { id: string; title: string }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [busy, setBusy] = React.useState(false);
 
   const onClick = async () => {
@@ -16,8 +18,12 @@ export function DeleteBlogButton({ id, title }: { id: string; title: string }) {
     setBusy(true);
     const result = await deleteBlogPost(id);
     setBusy(false);
-    if (result.ok) router.refresh();
-    else if (result.error) window.alert(result.error);
+    if (result.ok) {
+      toast({ title: "Success", description: "Blog post deleted.", variant: "success" });
+      router.refresh();
+    } else if (result.error) {
+      toast({ title: "Error", description: result.error, variant: "error" });
+    }
   };
 
   return (
