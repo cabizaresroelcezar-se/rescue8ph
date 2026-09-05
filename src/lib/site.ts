@@ -33,7 +33,7 @@ export const site = {
     },
     social: {
           facebook: "https://www.facebook.com/rescue8tradingphils",
-          instagram: "https://www.instagram.com/",
+          instagram: "https://www.instagram.com/rescue8trading.ph.inc",
         },
   },
 

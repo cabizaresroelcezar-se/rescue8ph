@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { X, Copy, Check, Trash2, Calendar, FileIcon, ExternalLink, AlertTriangle } from "lucide-react";
-import Image from "next/image";
+import { useToast } from "@/components/ui/toast";
 
 export interface MediaPreviewItem {
   /** Storage key path, e.g. "products/abc-uuid/r8prod-foo.jpg" */
@@ -39,8 +39,10 @@ export function MediaPreviewModal({
   bucketName,
 }: MediaPreviewModalProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [copied, setCopied] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   // Close on Escape
@@ -85,12 +87,6 @@ export function MediaPreviewModal({
 
   async function handleDelete() {
     if (!onDelete) return;
-    if (
-      !window.confirm(
-        `Delete ${item!.fileName} from ${bucketName}? This cannot be undone.`,
-      )
-    )
-      return;
     setDeleting(true);
     setError(null);
     try {
@@ -102,6 +98,11 @@ export function MediaPreviewModal({
         setDeleting(false);
         return;
       }
+      toast({
+        title: "File deleted",
+        description: `${item!.fileName} was removed from ${bucketName}.`,
+        variant: "success",
+      });
       onClose();
       router.refresh();
     } catch (e) {
@@ -134,7 +135,7 @@ export function MediaPreviewModal({
       role="dialog"
       aria-modal="true"
       aria-label={`Preview ${item.fileName}`}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/60 p-4 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -152,7 +153,7 @@ export function MediaPreviewModal({
             {onDelete && (
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={() => setConfirmingDelete(true)}
                 disabled={deleting}
                 title="Delete from storage"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
@@ -188,17 +189,12 @@ export function MediaPreviewModal({
         <div className="flex max-h-[70vh] flex-col sm:flex-row">
           <div className="relative flex-1 overflow-auto bg-secondary/40 p-6">
             {isImage ? (
-              <div className="relative mx-auto max-h-[60vh] w-full">
-                <Image
-                  src={item.publicUrl}
-                  alt={item.fileName}
-                  width={item.width ?? 1200}
-                  height={item.height ?? 1200}
-                  unoptimized
-                  className="mx-auto max-h-[60vh] w-auto rounded-lg object-contain"
-                  style={{ width: "auto", height: "auto" }}
-                />
-              </div>
+              /* eslint-disable-next-line @next/next/no-img-element -- Supabase storage URLs have unknown dimensions; plain img avoids next/image sizing issues */
+              <img
+                src={item.publicUrl}
+                alt={item.fileName}
+                className="mx-auto max-h-[60vh] w-auto rounded-lg object-contain"
+              />
             ) : (
               <div className="flex h-[60vh] flex-col items-center justify-center gap-3 text-muted-foreground">
                 <FileIcon className="h-16 w-16" />
@@ -294,6 +290,49 @@ export function MediaPreviewModal({
             )}
           </aside>
         </div>
+
+        {/* Inline delete confirmation panel */}
+        {confirmingDelete && (
+          <div className="border-t border-border bg-card px-4 py-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                <AlertTriangle className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">
+                  Delete {item.fileName}?
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  This will permanently remove the file from the {bucketName} bucket. This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDelete(false)}
+                  disabled={deleting}
+                  className="inline-flex h-8 items-center rounded-md border border-border bg-background px-3 text-xs font-medium hover:bg-secondary disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-md bg-destructive px-3 text-xs font-medium text-destructive-foreground shadow-elev-1 hover:bg-destructive/90 disabled:opacity-50"
+                >
+                  {deleting ? (
+                    <>
+                      <span className="block h-3 w-3 animate-spin rounded-full border-2 border-destructive-foreground/30 border-t-destructive-foreground" /> Deleting…
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

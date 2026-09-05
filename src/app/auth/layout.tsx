@@ -4,7 +4,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-8 sm:py-12">
       {/* Gradient background — three radial blobs so it looks rich in both
           dark and light modes. pointer-events-none keeps it decorative. */}
       <div
@@ -19,7 +19,7 @@ export default function AuthLayout({
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/5 to-transparent dark:via-primary/10" />
       </div>
 
-      <div className="relative w-full max-w-md">{children}</div>
+      <div className="relative w-full max-w-[440px]">{children}</div>
     </div>
   );
 }
