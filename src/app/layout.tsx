@@ -34,6 +34,14 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Rescue 8 Trading Philippines, Inc." }],
   manifest: "/favicons/site.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Rescue 8",
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: true,
+  },
   icons: {
     icon: [
       { url: "/favicons/favicon.ico", sizes: "any" },

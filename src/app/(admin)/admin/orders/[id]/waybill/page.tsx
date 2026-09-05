@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { site } from "@/lib/site";
+import { WaybillPrintButton } from "./print-button";
 
 export const dynamic = "force-dynamic";
 
@@ -254,12 +255,7 @@ export default async function AdminOrderWaybillPage({
             Print date: {new Date().toLocaleString("en-PH")}
           </p>
           <p className="mt-1 no-print">
-            <button
-              onClick={() => window.print()}
-              className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-            >
-              Print Waybill
-            </button>
+            <WaybillPrintButton />
           </p>
         </div>
       </div>

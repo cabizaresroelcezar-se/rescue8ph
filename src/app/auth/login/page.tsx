@@ -101,10 +101,10 @@ export default async function LoginPage({
               </div>
             </div>
           )}
-          <form action={signIn} className="space-y-3">
+          <form action={signIn} className="space-y-4">
             <input type="hidden" name="redirectTo" value={params.redirectTo || "/account"} />
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs">Email</Label>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -112,12 +112,12 @@ export default async function LoginPage({
                 placeholder="you@example.com"
                 required
                 defaultValue={params.email || ""}
-                className="h-9 text-sm"
+                className="h-11 text-sm"
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-xs">Password</Label>
+                <Label htmlFor="password">Password</Label>
                 <Link
                   href="/auth/forgot-password"
                   className="text-[11px] text-muted-foreground hover:text-primary"
@@ -132,7 +132,7 @@ export default async function LoginPage({
                 required
               />
             </div>
-            <Button type="submit" className="h-9 w-full text-sm" disabled={isPlaceholder}>
+            <Button type="submit" className="h-11 w-full text-sm" disabled={isPlaceholder}>
               Sign In
             </Button>
           </form>

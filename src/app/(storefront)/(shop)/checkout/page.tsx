@@ -174,40 +174,40 @@ export default async function CheckoutPage({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="region">Region *</Label>
-                  <Input id="region" name="region" required defaultValue={defaultAddress?.region || ""} placeholder="NCR" />
+                  <Input id="region" name="region" required defaultValue={defaultAddress?.region || ""} placeholder="e.g. NCR, Region IV-A" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="province">Province *</Label>
-                  <Input id="province" name="province" required defaultValue={defaultAddress?.province || ""} placeholder="Metro Manila" />
+                  <Input id="province" name="province" required defaultValue={defaultAddress?.province || ""} placeholder="e.g. Metro Manila, Rizal" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="cityMunicipality">City/Municipality *</Label>
-                  <Input id="cityMunicipality" name="cityMunicipality" required defaultValue={defaultAddress?.city_municipality || ""} placeholder="Quezon City" />
+                  <Input id="cityMunicipality" name="cityMunicipality" required defaultValue={defaultAddress?.city_municipality || ""} placeholder="e.g. Quezon City, Antipolo" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="barangay">Barangay *</Label>
-                  <Input id="barangay" name="barangay" required defaultValue={defaultAddress?.barangay || ""} placeholder="Masambong" />
+                  <Input id="barangay" name="barangay" required defaultValue={defaultAddress?.barangay || ""} placeholder="e.g. Masambong, San Roque" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="streetAddress">Street Address *</Label>
-                <Input id="streetAddress" name="streetAddress" required defaultValue={defaultAddress?.street_address || ""} placeholder="Unit G4 #65 Gasan Street" />
+                <Input id="streetAddress" name="streetAddress" required defaultValue={defaultAddress?.street_address || ""} placeholder="House/block/lot number and street name" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="buildingUnit">Building/Unit</Label>
-                  <Input id="buildingUnit" name="buildingUnit" defaultValue={defaultAddress?.building_unit || ""} />
+                  <Input id="buildingUnit" name="buildingUnit" defaultValue={defaultAddress?.building_unit || ""} placeholder="Optional" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="postalCode">Postal Code</Label>
-                  <Input id="postalCode" name="postalCode" defaultValue={defaultAddress?.postal_code || ""} placeholder="1115" />
+                  <Input id="postalCode" name="postalCode" defaultValue={defaultAddress?.postal_code || ""} placeholder="e.g. 1115" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="deliveryNotes">Delivery Notes</Label>
-                <Input id="deliveryNotes" name="deliveryNotes" defaultValue={defaultAddress?.delivery_notes || ""} placeholder="Gate code, landmarks, etc." />
+                <Input id="deliveryNotes" name="deliveryNotes" defaultValue={defaultAddress?.delivery_notes || ""} placeholder="Landmarks, gate codes, delivery instructions" />
               </div>
             </CardContent>
           </Card>
@@ -317,7 +317,7 @@ export default async function CheckoutPage({
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="text-muted-foreground">Calculated after order</span>
+                  <span className="text-muted-foreground">Enter amount below</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Discount</span>
@@ -327,6 +327,26 @@ export default async function CheckoutPage({
                   <span>Total</span>
                   <span>PHP {subtotal.toFixed(2)}</span>
                 </div>
+              </div>
+
+              {/* Shipping fee input — customer enters the rate from their chosen courier */}
+              <div className="rounded-lg border border-border bg-surface p-3 space-y-2">
+                <Label htmlFor="shippingFee" className="text-xs font-semibold">
+                  Shipping Fee (PHP)
+                </Label>
+                <p className="text-[11px] text-muted-foreground">
+                  Enter the delivery fee quoted by your courier (Lalamove, Grab, J&T, LBC, etc.). This will be added to your total.
+                </p>
+                <Input
+                  id="shippingFee"
+                  name="shippingFee"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  defaultValue="0"
+                  placeholder="0.00"
+                  className="h-10"
+                />
               </div>
 
               {/* Place order */}

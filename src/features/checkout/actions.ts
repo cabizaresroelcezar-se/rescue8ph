@@ -113,13 +113,7 @@ export async function placeOrder(formData: FormData) {
     });
   }
 
-  // --- Steps 6-9: Calculate totals ---
-  const discountTotal = 0; // No coupon support yet
-  const shippingTotal = 0; // Manual shipping — calculated later
-  const taxTotal = 0; // No tax calculation yet
-  const grandTotal = subtotal - discountTotal + shippingTotal + taxTotal;
-
-  // --- Step 11: Snapshot delivery address ---
+  // --- Step 11: Snapshot delivery address + read form fields ---
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
   const email = formData.get("email") as string;
@@ -135,6 +129,13 @@ export async function placeOrder(formData: FormData) {
 
   const paymentProvider = (formData.get("paymentProvider") as string) || "MANUAL";
   const customerNotes = (formData.get("customerNotes") as string) || null;
+  const shippingFee = parseFloat(formData.get("shippingFee") as string) || 0;
+
+  // --- Steps 6-9: Calculate totals ---
+  const discountTotal = 0; // No coupon support yet
+  const shippingTotal = shippingFee; // Customer-entered shipping fee
+  const taxTotal = 0; // No tax calculation yet
+  const grandTotal = subtotal - discountTotal + shippingTotal + taxTotal;
 
   // --- Generate order number ---
   const { data: orderNumberData } = await supabase.rpc("generate_order_number");
