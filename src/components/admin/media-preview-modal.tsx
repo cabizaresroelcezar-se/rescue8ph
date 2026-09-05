@@ -140,7 +140,7 @@ export function MediaPreviewModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-4xl overflow-hidden rounded-2xl bg-background shadow-elev-4">
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-background shadow-elev-4">
         {/* Header */}
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <h2 className="truncate font-semibold text-foreground">
@@ -186,14 +186,14 @@ export function MediaPreviewModal({
         </div>
 
         {/* Preview area */}
-        <div className="flex max-h-[70vh] flex-col sm:flex-row">
+        <div className="flex max-h-[60vh] flex-col sm:flex-row">
           <div className="relative flex-1 overflow-auto bg-secondary/40 p-6">
             {isImage ? (
               /* eslint-disable-next-line @next/next/no-img-element -- Supabase storage URLs have unknown dimensions; plain img avoids next/image sizing issues */
               <img
                 src={item.publicUrl}
                 alt={item.fileName}
-                className="mx-auto max-h-[60vh] w-auto rounded-lg object-contain"
+                className="mx-auto max-h-[50vh] w-auto rounded-lg object-contain"
               />
             ) : (
               <div className="flex h-[60vh] flex-col items-center justify-center gap-3 text-muted-foreground">

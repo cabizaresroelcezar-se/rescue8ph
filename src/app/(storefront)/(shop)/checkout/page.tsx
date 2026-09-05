@@ -317,7 +317,7 @@ export default async function CheckoutPage({
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="text-muted-foreground">Enter amount below</span>
+                  <span className="text-muted-foreground">Determined after order confirmation</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Discount</span>
@@ -329,24 +329,10 @@ export default async function CheckoutPage({
                 </div>
               </div>
 
-              {/* Shipping fee input — customer enters the rate from their chosen courier */}
-              <div className="rounded-lg border border-border bg-surface p-3 space-y-2">
-                <Label htmlFor="shippingFee" className="text-xs font-semibold">
-                  Shipping Fee (PHP)
-                </Label>
+              <div className="rounded-lg border border-border bg-surface p-3">
                 <p className="text-[11px] text-muted-foreground">
-                  Enter the delivery fee quoted by your courier (Lalamove, Grab, J&T, LBC, etc.). This will be added to your total.
+                  Shipping fee is determined after order confirmation. Our team will calculate the delivery cost based on your location and preferred courier (Lalamove, Grab, J&T, LBC, etc.). You&apos;ll receive the final total via email. Pay only when you receive your order.
                 </p>
-                <Input
-                  id="shippingFee"
-                  name="shippingFee"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  defaultValue="0"
-                  placeholder="0.00"
-                  className="h-10"
-                />
               </div>
 
               {/* Place order */}

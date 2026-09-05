@@ -235,6 +235,64 @@ export async function createShipment(formData: FormData) {
 }
 
 // ============================================================================
+// Set Shipping Fee (admin action — updates order shipping_total + grand_total)
+// ============================================================================
+
+export async function setShippingFee(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/auth/login");
+
+  const orderId = formData.get("orderId") as string;
+  const shippingFee = parseFloat(formData.get("shippingFee") as string) || 0;
+
+  // Get current order to recalculate grand_total
+  const { data: order } = await supabase
+    .from("orders")
+    .select("subtotal, discount_total, tax_total, shipping_total")
+    .eq("id", orderId)
+    .single();
+
+  if (!order) redirect("/admin/orders");
+
+  const newGrandTotal =
+    Number(order.subtotal) - Number(order.discount_total) + shippingFee + Number(order.tax_total);
+
+  const { error } = await supabase
+    .from("orders")
+    .update({
+      shipping_total: shippingFee,
+      grand_total: newGrandTotal,
+    })
+    .eq("id", orderId);
+
+  if (error) {
+    redirect(`/admin/orders/${orderId}?error=${encodeURIComponent(error.message)}`);
+  }
+
+  await supabase.from("order_status_history").insert({
+    order_id: orderId,
+    from_status: null,
+    to_status: null,
+    note: `Shipping fee set to PHP ${shippingFee.toFixed(2)} — new total: PHP ${newGrandTotal.toFixed(2)}`,
+    changed_by: user.id,
+  });
+
+  await logAudit({
+    action: AuditAction.UPDATE,
+    resourceType: "orders",
+    resourceId: orderId,
+    oldValues: { shipping_total: order.shipping_total },
+    newValues: { shipping_total: shippingFee, grand_total: newGrandTotal },
+  });
+
+  revalidatePath(`/admin/orders/${orderId}`);
+  redirect(`/admin/orders/${orderId}?message=${encodeURIComponent(`Shipping fee set to PHP ${shippingFee.toFixed(2)}. New total: PHP ${newGrandTotal.toFixed(2)}`)}`);
+}
+
+// ============================================================================
 // Update Shipment Status (admin action)
 // ============================================================================
 
