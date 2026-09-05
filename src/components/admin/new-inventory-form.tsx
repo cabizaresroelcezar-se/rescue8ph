@@ -160,7 +160,7 @@ export function NewInventoryForm({ initialProducts }: NewInventoryFormProps) {
         >
           <form
             onSubmit={handleSubmit}
-            className="w-full max-w-lg space-y-4 overflow-hidden rounded-2xl bg-background shadow-elev-4"
+            className="w-full max-w-lg overflow-hidden rounded-2xl bg-background shadow-elev-4"
           >
             <div className="flex items-center gap-3 border-b border-border bg-card px-5 py-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -184,7 +184,7 @@ export function NewInventoryForm({ initialProducts }: NewInventoryFormProps) {
               </button>
             </div>
 
-            <div className="space-y-4 px-5">
+            <div className="max-h-[70vh] space-y-5 overflow-y-auto p-5 sm:p-6">
               {/* Product picker */}
               <div>
                 <label className="block text-xs font-medium text-foreground">
@@ -355,7 +355,7 @@ export function NewInventoryForm({ initialProducts }: NewInventoryFormProps) {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-border bg-card px-5 py-3">
+            <div className="flex items-center justify-end gap-2 border-t border-border bg-card px-5 py-4">
               <button
                 type="button"
                 onClick={close}

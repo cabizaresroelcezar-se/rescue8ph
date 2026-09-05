@@ -129,11 +129,10 @@ export async function placeOrder(formData: FormData) {
 
   const paymentProvider = (formData.get("paymentProvider") as string) || "MANUAL";
   const customerNotes = (formData.get("customerNotes") as string) || null;
-  const shippingFee = parseFloat(formData.get("shippingFee") as string) || 0;
 
   // --- Steps 6-9: Calculate totals ---
   const discountTotal = 0; // No coupon support yet
-  const shippingTotal = shippingFee; // Customer-entered shipping fee
+  const shippingTotal = 0; // Set by admin after order confirmation
   const taxTotal = 0; // No tax calculation yet
   const grandTotal = subtotal - discountTotal + shippingTotal + taxTotal;
 

@@ -28,7 +28,7 @@ export default async function AdminAnalyticsPage() {
     topProductsRes,
     ordersByStatusRes,
   ] = await Promise.all([
-    supabase.from("orders").select("grand_total, created_at").order("created_at", { ascending: false }),
+    supabase.from("orders").select("grand_total, created_at, status").order("created_at", { ascending: false }),
     supabase
       .from("orders")
       .select("grand_total")
@@ -51,12 +51,15 @@ export default async function AdminAnalyticsPage() {
     supabase.from("orders").select("status"),
   ]);
 
-  // Calculate revenue
+  // Calculate revenue — exclude CANCELLED and FAILED orders
   const totalRevenue = (paidOrdersRes.data || []).reduce(
     (sum, o) => sum + Number(o.grand_total),
     0,
   );
-  const allOrdersValue = (ordersRes.data || []).reduce(
+  const activeOrders = (ordersRes.data || []).filter(
+    (o) => o.status !== "CANCELLED" && o.status !== "FAILED",
+  );
+  const allOrdersValue = activeOrders.reduce(
     (sum, o) => sum + Number(o.grand_total),
     0,
   );
@@ -90,7 +93,7 @@ export default async function AdminAnalyticsPage() {
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const recentOrders = (ordersRes.data || []).filter(
-    (o) => new Date(o.created_at) >= sevenDaysAgo,
+    (o) => new Date(o.created_at) >= sevenDaysAgo && o.status !== "CANCELLED" && o.status !== "FAILED",
   );
   const recentRevenue = recentOrders.reduce(
     (sum, o) => sum + Number(o.grand_total),
@@ -109,7 +112,7 @@ export default async function AdminAnalyticsPage() {
       title: "Gross Order Value",
       value: formatCurrency(allOrdersValue),
       icon: BarChart3,
-      description: "All orders including pending",
+      description: "All active orders (excl. cancelled)",
       tone: "text-primary",
     },
     {

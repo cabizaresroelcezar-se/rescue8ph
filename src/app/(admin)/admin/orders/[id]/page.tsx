@@ -20,6 +20,7 @@ import {
   cancelOrder,
   createShipment,
   updateShipmentStatus,
+  setShippingFee,
 } from "@/features/orders/actions";
 import { listOrderNotes } from "@/features/order-notes/actions";
 import { OrderNotesTimeline } from "@/components/admin/order-notes-timeline";
@@ -404,6 +405,38 @@ export default async function AdminOrderDetailPage({
                 <Ban className="h-3.5 w-3.5" />
                 Cancel Order
               </Button>
+            </form>
+          </FadeIn>
+
+          <FadeIn className="rounded-2xl border border-border bg-card p-6 shadow-elev-1">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Truck className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Shipping Fee</h2>
+                <p className="text-xs text-muted-foreground">Set the delivery fee and update the total</p>
+              </div>
+            </div>
+            <form action={setShippingFee} className="mt-4 space-y-2">
+              <input type="hidden" name="orderId" value={order.id} />
+              <div className="flex gap-2">
+                <input
+                  name="shippingFee"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  defaultValue={order.shipping_total?.toString() || "0"}
+                  placeholder="0.00"
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                />
+                <Button type="submit" size="sm" className="shrink-0">
+                  Set Fee
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Current shipping: PHP {Number(order.shipping_total || 0).toFixed(2)} · Grand total: PHP {Number(order.grand_total).toFixed(2)}
+              </p>
             </form>
           </FadeIn>
 
