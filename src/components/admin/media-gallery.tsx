@@ -174,10 +174,10 @@ export function MediaGallery({ files, bucketName }: MediaGalleryProps) {
           </div>
 
           {/* File info */}
-          <div className="space-y-2 text-xs">
+            <div className="space-y-2 text-xs">
             <div>
-              <p className="font-semibold text-foreground break-all">{active.fileName}</p>
-              <p className="mt-0.5 text-muted-foreground">{active.fullPath}</p>
+              <p className="break-all text-xs font-medium text-foreground">{active.fileName}</p>
+              <p className="mt-0.5 break-all text-[10px] text-muted-foreground">{active.fullPath}</p>
             </div>
             {active.contentType && (
               <p className="text-muted-foreground">
