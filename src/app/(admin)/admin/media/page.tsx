@@ -41,27 +41,56 @@ export default async function AdminMediaPage({
   const activeBucket =
     buckets.find((b) => b.name === (params.bucket ?? "products")) ?? buckets[0];
 
-  // List files in the active bucket
-  const { data: rawFiles } = await supabase.storage
+  // List files in the active bucket — recursively descend into
+  // subfolders (files are stored as <uuid>/<filename> to namespace
+  // uploads by user/product).
+  const { data: topEntries } = await supabase.storage
     .from(activeBucket.name)
     .list("", { limit: 200, sortBy: { column: "created_at", order: "desc" } });
 
-  // Files come back with id always set for actual files. Folder
-  // placeholders have no id. We render ALL entries (both real files
-  // and empty folders if present) — the gallery component handles
-  // each case in its tile.
-  const fileEntries = (rawFiles ?? []).map((f) => ({
-    fullPath: f.name,
-    fileName: f.name,
-    publicUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${activeBucket.name}/${f.name}`,
-    contentType:
-      ((f as { metadata?: { mimetype?: string } }).metadata?.mimetype ??
-        null) as string | null,
-    size:
-      ((f as { metadata?: { size?: number } }).metadata?.size ??
-        null) as number | null,
-    createdAt: (f.created_at ?? null) as string | null,
-  }));
+  // For each folder entry (no id = folder), list its contents.
+  // For direct file entries (has id), include as-is.
+  const fileEntries: Array<{
+    fullPath: string;
+    fileName: string;
+    publicUrl: string;
+    contentType: string | null;
+    size: number | null;
+    createdAt: string | null;
+  }> = [];
+
+  for (const entry of topEntries ?? []) {
+    if (entry.id) {
+      // Direct file at root level
+      const meta = (entry as { metadata?: { mimetype?: string; size?: number } }).metadata;
+      fileEntries.push({
+        fullPath: entry.name,
+        fileName: entry.name,
+        publicUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${activeBucket.name}/${entry.name}`,
+        contentType: meta?.mimetype ?? null,
+        size: meta?.size ?? null,
+        createdAt: entry.created_at ?? null,
+      });
+    } else {
+      // Folder — list its contents
+      const { data: subFiles } = await supabase.storage
+        .from(activeBucket.name)
+        .list(entry.name, { limit: 100, sortBy: { column: "created_at", order: "desc" } });
+      for (const sf of subFiles ?? []) {
+        if (!sf.id) continue; // skip nested folders
+        const meta = (sf as { metadata?: { mimetype?: string; size?: number } }).metadata;
+        const fullPath = `${entry.name}/${sf.name}`;
+        fileEntries.push({
+          fullPath,
+          fileName: sf.name,
+          publicUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${activeBucket.name}/${fullPath}`,
+          contentType: meta?.mimetype ?? null,
+          size: meta?.size ?? null,
+          createdAt: sf.created_at ?? null,
+        });
+      }
+    }
+  }
 
   return (
     <div className="space-y-8">
