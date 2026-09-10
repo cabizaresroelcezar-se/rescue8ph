@@ -29,6 +29,7 @@ const linkGroups = [
     links: [
       { href: "/privacy",  label: "Privacy Policy" },
       { href: "/terms",    label: "Terms of Service" },
+      { href: "/cookies",  label: "Cookie Policy" },
       { href: "/shipping", label: "Shipping Policy" },
       { href: "/returns",  label: "Returns & Refunds" },
     ],

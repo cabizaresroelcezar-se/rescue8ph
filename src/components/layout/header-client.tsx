@@ -145,6 +145,43 @@ export function HeaderClient({
                           <WishlistBadge initialCount={initialWishlistCount} />
                           <ThemeToggle />
                           <CartButton />
+                          {/* Auth links — right side of navbar */}
+                          <div className="hidden items-center gap-2 border-l border-border pl-2.5 md:flex">
+                            {user ? (
+                              <>
+                                {isAdmin && (
+                                  <Link
+                                    href="/admin"
+                                    className="rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                  >
+                                    Admin
+                                  </Link>
+                                )}
+                                <Link
+                                  href="/account"
+                                  className="rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                >
+                                  My Account
+                                </Link>
+                                <SignOutButton />
+                              </>
+                            ) : (
+                              <>
+                                <Link
+                                  href="/auth/login"
+                                  className="rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                >
+                                  Sign In
+                                </Link>
+                                <Link
+                                  href="/auth/register"
+                                  className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                                >
+                                  Sign Up
+                                </Link>
+                              </>
+                            )}
+                          </div>
                         </div>
               </div>
     </header>
