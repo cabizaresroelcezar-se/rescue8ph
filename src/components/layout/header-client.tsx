@@ -221,7 +221,7 @@ function MegaPanel({ open }: { open: boolean }) {
   return (
     <div
       className={cn(
-        "absolute left-1/2 top-full -translate-x-1/2 pt-3",
+        "absolute left-0 top-full pt-3",
         "transition-all duration-[var(--duration-base)] ease-[var(--ease-out-quart)]",
         open
           ? "pointer-events-auto translate-y-0 opacity-100"

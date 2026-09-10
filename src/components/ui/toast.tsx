@@ -18,11 +18,13 @@ export interface ToastItem {
   description?: string;
   variant: ToastVariant;
   duration?: number;
+  removing?: boolean;
 }
 
 interface ToastContextValue {
-  toast: (opts: Omit<ToastItem, "id">) => void;
+  toast: (opts: Omit<ToastItem, "id">) => string;
   dismiss: (id: string) => void;
+  update: (id: string, opts: Partial<Omit<ToastItem, "id">>) => void;
 }
 
 const ToastContext = React.createContext<ToastContextValue | null>(null);
@@ -30,10 +32,10 @@ const ToastContext = React.createContext<ToastContextValue | null>(null);
 export function useToast() {
   const ctx = React.useContext(ToastContext);
   if (!ctx) {
-    // Return a no-op if used outside provider — prevents crashes
     return {
-      toast: () => {},
+      toast: () => "",
       dismiss: () => {},
+      update: () => {},
     };
   }
   return ctx;
@@ -43,8 +45,22 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<ToastItem[]>([]);
 
   const dismiss = React.useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+    // Mark as removing for exit animation
+    setToasts((prev) => prev.map((t) => t.id === id ? { ...t, removing: true } : t));
+    // Remove after animation
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 300);
   }, []);
+
+  const update = React.useCallback((id: string, opts: Partial<Omit<ToastItem, "id">>) => {
+    setToasts((prev) => prev.map((t) => t.id === id ? { ...t, ...opts } : t));
+    // If updating to a non-loading variant with no duration, set auto-dismiss
+    if (opts.variant && opts.variant !== "loading") {
+      const duration = opts.duration ?? 3500;
+      setTimeout(() => dismiss(id), duration);
+    }
+  }, [dismiss]);
 
   const toast = React.useCallback(
     (opts: Omit<ToastItem, "id">) => {
@@ -54,12 +70,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       if (duration > 0) {
         setTimeout(() => dismiss(id), duration);
       }
+      return id;
     },
     [dismiss],
   );
 
   return (
-    <ToastContext.Provider value={{ toast, dismiss }}>
+    <ToastContext.Provider value={{ toast, dismiss, update }}>
       {children}
       <ToastViewport toasts={toasts} onDismiss={dismiss} />
     </ToastContext.Provider>
@@ -114,10 +131,16 @@ function ToastCard({
   return (
     <div
       role="alert"
-      className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-elev-4 animate-fade-up min-w-[280px] max-w-[400px] ${styles[toast.variant]}`}
+      className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-elev-4 min-w-[280px] max-w-[400px] transition-all duration-300 ${
+        styles[toast.variant]
+      } ${toast.removing ? "translate-y-2 opacity-0" : "animate-fade-up"}`}
     >
       <span className="mt-0.5 text-sm font-bold shrink-0">
-        {icons[toast.variant]}
+        {toast.variant === "loading" ? (
+          <span className="inline-block animate-spin">↻</span>
+        ) : (
+          icons[toast.variant]
+        )}
       </span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold">{toast.title}</p>
@@ -125,19 +148,14 @@ function ToastCard({
           <p className="mt-0.5 text-xs opacity-80">{toast.description}</p>
         )}
       </div>
-      {toast.variant !== "loading" && (
-        <button
-          type="button"
-          onClick={() => onDismiss(toast.id)}
-          className="shrink-0 text-xs opacity-50 hover:opacity-100"
-          aria-label="Dismiss"
-        >
-          ✕
-        </button>
-      )}
-      {toast.variant === "loading" && (
-        <span className="mt-0.5 shrink-0 animate-spin text-sm">↻</span>
-      )}
+      <button
+        type="button"
+        onClick={() => onDismiss(toast.id)}
+        className="shrink-0 text-xs opacity-50 hover:opacity-100"
+        aria-label="Dismiss"
+      >
+        ✕
+      </button>
     </div>
   );
 }

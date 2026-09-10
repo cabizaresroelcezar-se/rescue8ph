@@ -111,6 +111,30 @@ export default async function RegisterPage({
                 minLength={8}
               />
             </div>
+            <div className="flex items-start gap-2">
+              <input
+                id="agreeTerms"
+                name="agreeTerms"
+                type="checkbox"
+                required
+                className="mt-1 h-4 w-4 rounded border-border"
+              />
+              <label htmlFor="agreeTerms" className="text-xs text-muted-foreground">
+                I agree to the{" "}
+                <Link href="/terms" className="font-medium text-primary hover:underline" target="_blank">
+                  Terms of Service
+                </Link>
+                ,{" "}
+                <Link href="/privacy" className="font-medium text-primary hover:underline" target="_blank">
+                  Privacy Policy
+                </Link>
+                , and{" "}
+                <Link href="/cookies" className="font-medium text-primary hover:underline" target="_blank">
+                  Cookie Policy
+                </Link>
+                .
+              </label>
+            </div>
             <Button type="submit" className="w-full" disabled={isPlaceholder}>
               Create Account
             </Button>
