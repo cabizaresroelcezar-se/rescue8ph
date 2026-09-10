@@ -4,12 +4,29 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAudit, AuditAction } from "@/lib/audit";
+import {
+  markPaymentPaidSchema,
+  updateOrderSchema,
+  createShipmentSchema,
+  setShippingFeeSchema,
+  updateShipmentStatusSchema,
+} from "@/lib/validation/schemas";
 
 // ============================================================================
 // Mark Payment as Paid (admin action for manual payments)
 // ============================================================================
 
 export async function markPaymentPaid(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    paymentId: formData.get("paymentId") as string,
+    orderId: formData.get("orderId") as string,
+  };
+  const result = markPaymentPaidSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/admin/orders/${formData.get("orderId")}?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -77,6 +94,17 @@ export async function markPaymentPaid(formData: FormData) {
 // ============================================================================
 
 export async function updateOrderStatus(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    id: formData.get("orderId") as string,
+    status: formData.get("status") as string,
+    internalNotes: (formData.get("note") as string) || undefined,
+  };
+  const result = updateOrderSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/admin/orders/${formData.get("orderId")}?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -132,6 +160,15 @@ export async function updateOrderStatus(formData: FormData) {
 // ============================================================================
 
 export async function cancelOrder(formData: FormData) {
+  // --- Validate form input ---
+  const result = updateOrderSchema.safeParse({
+    id: formData.get("orderId") as string,
+    status: "CANCELLED",
+  });
+  if (!result.success) {
+    redirect(`/admin/orders/${formData.get("orderId")}?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -184,6 +221,20 @@ export async function cancelOrder(formData: FormData) {
 // ============================================================================
 
 export async function createShipment(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    orderId: formData.get("orderId") as string,
+    provider: formData.get("provider") as string,
+    serviceName: formData.get("serviceName") as string,
+    trackingNumber: (formData.get("trackingNumber") as string) || undefined,
+    shippingCost: parseFloat(formData.get("shippingCost") as string) || 0,
+    estimatedDelivery: (formData.get("estimatedDelivery") as string) || undefined,
+  };
+  const result = createShipmentSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/admin/orders/${formData.get("orderId")}?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -239,6 +290,16 @@ export async function createShipment(formData: FormData) {
 // ============================================================================
 
 export async function setShippingFee(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    orderId: formData.get("orderId") as string,
+    shippingFee: parseFloat(formData.get("shippingFee") as string) || 0,
+  };
+  const result = setShippingFeeSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/admin/orders/${formData.get("orderId")}?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -297,6 +358,18 @@ export async function setShippingFee(formData: FormData) {
 // ============================================================================
 
 export async function updateShipmentStatus(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    shipmentId: formData.get("shipmentId") as string,
+    orderId: formData.get("orderId") as string,
+    status: formData.get("status") as string,
+    description: (formData.get("description") as string) || undefined,
+  };
+  const result = updateShipmentStatusSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/admin/orders/${formData.get("orderId")}?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

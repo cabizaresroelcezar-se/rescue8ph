@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { logAudit, AuditAction } from "@/lib/audit";
+import { createCouponSchema } from "@/lib/validation/schemas";
 
 /**
  * Coupon server actions. Admin-side CRUD + customer-side apply/remove.
@@ -66,6 +67,23 @@ async function requireAdmin() {
 // =============================================================================
 
 export async function createCoupon(input: CouponInput) {
+  // --- Validate input ---
+  const result = createCouponSchema.safeParse({
+    code: input.code,
+    description: input.description ?? undefined,
+    discountType: input.discount_type,
+    discountValue: input.discount_value,
+    minimumOrderAmount: input.minimum_order_amount ?? undefined,
+    maximumDiscountAmount: input.maximum_discount_amount ?? undefined,
+    usageLimit: input.usage_limit ?? undefined,
+    startsAt: input.starts_at ?? undefined,
+    expiresAt: input.expires_at ?? undefined,
+    isActive: input.is_active ?? true,
+  });
+  if (!result.success) {
+    return { error: result.error.issues[0].message };
+  }
+
   const { supabase, user } = await requireAdmin();
 
   const code = slugifyCode(input.code);
@@ -106,6 +124,23 @@ export async function createCoupon(input: CouponInput) {
 }
 
 export async function updateCoupon(id: string, input: Partial<CouponInput>) {
+  // --- Validate input ---
+  const result = createCouponSchema.partial().safeParse({
+    code: input.code,
+    description: input.description ?? undefined,
+    discountType: input.discount_type,
+    discountValue: input.discount_value,
+    minimumOrderAmount: input.minimum_order_amount ?? undefined,
+    maximumDiscountAmount: input.maximum_discount_amount ?? undefined,
+    usageLimit: input.usage_limit ?? undefined,
+    startsAt: input.starts_at ?? undefined,
+    expiresAt: input.expires_at ?? undefined,
+    isActive: input.is_active,
+  });
+  if (!result.success) {
+    return { error: result.error.issues[0].message };
+  }
+
   const { supabase, user } = await requireAdmin();
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };

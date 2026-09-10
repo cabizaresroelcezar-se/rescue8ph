@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAudit, AuditAction } from "@/lib/audit";
 import { requireVerifiedEmail } from "@/lib/auth/require-verified-email";
+import { checkoutSchema } from "@/lib/validation/schemas";
 
 // ============================================================================
 // Place Order — Transactional checkout
@@ -30,6 +31,30 @@ import { requireVerifiedEmail } from "@/lib/auth/require-verified-email";
 // 18. Return safe order information
 
 export async function placeOrder(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    firstName: formData.get("firstName") as string,
+    lastName: formData.get("lastName") as string,
+    email: formData.get("email") as string,
+    phone: formData.get("phone") as string,
+    region: formData.get("region") as string,
+    province: formData.get("province") as string,
+    cityMunicipality: formData.get("cityMunicipality") as string,
+    barangay: formData.get("barangay") as string,
+    streetAddress: formData.get("streetAddress") as string,
+    buildingUnit: (formData.get("buildingUnit") as string) || undefined,
+    postalCode: (formData.get("postalCode") as string) || undefined,
+    deliveryNotes: (formData.get("deliveryNotes") as string) || undefined,
+    shippingProvider: (formData.get("shippingProvider") as string) || "MANUAL",
+    paymentProvider: (formData.get("paymentProvider") as string) || "MANUAL",
+    couponCode: (formData.get("couponCode") as string) || undefined,
+    customerNotes: (formData.get("customerNotes") as string) || undefined,
+  };
+  const result = checkoutSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/checkout?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
 
   // Phase 16a: gate placeOrder on a verified email. Unverified users are

@@ -4,6 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAudit, AuditAction } from "@/lib/audit";
+import {
+  createBlogPostSchema,
+  createPageSchema,
+  createFaqSchema,
+  updateFaqSchema,
+  createBlogCategorySchema,
+} from "@/lib/validation/schemas";
 
 // =============================================================================
 // Helpers
@@ -48,6 +55,12 @@ export type BlogCategoryInput = {
 };
 
 export async function createBlogCategory(input: BlogCategoryInput) {
+  // --- Validate input ---
+  const result = createBlogCategorySchema.safeParse(input);
+  if (!result.success) {
+    return { error: result.error.issues[0].message };
+  }
+
   const { supabase } = await requireAdmin();
   const slug = input.slug || slugify(input.name);
   const { error } = await supabase
@@ -94,6 +107,22 @@ export type BlogPostInput = {
 };
 
 export async function createBlogPost(input: BlogPostInput) {
+  // --- Validate input ---
+  const result = createBlogPostSchema.safeParse({
+    title: input.title,
+    slug: input.slug,
+    excerpt: input.excerpt,
+    content: input.content,
+    featuredImageUrl: input.featured_image_url,
+    categoryId: input.category_id ?? undefined,
+    status: input.status,
+    seoTitle: input.seo_title,
+    seoDescription: input.seo_description,
+  });
+  if (!result.success) {
+    return { error: result.error.issues[0].message };
+  }
+
   const { supabase, user } = await requireAdmin();
   const slug = input.slug || slugify(input.title);
   const status = input.status || "DRAFT";
@@ -129,6 +158,22 @@ export async function createBlogPost(input: BlogPostInput) {
 
 export async function updateBlogPost(input: BlogPostInput) {
   if (!input.id) return { error: "Missing post id" };
+  // --- Validate input ---
+  const result = createBlogPostSchema.safeParse({
+    title: input.title,
+    slug: input.slug,
+    excerpt: input.excerpt,
+    content: input.content,
+    featuredImageUrl: input.featured_image_url,
+    categoryId: input.category_id ?? undefined,
+    status: input.status,
+    seoTitle: input.seo_title,
+    seoDescription: input.seo_description,
+  });
+  if (!result.success) {
+    return { error: result.error.issues[0].message };
+  }
+
   const { supabase } = await requireAdmin();
   const status = input.status || "DRAFT";
 
@@ -224,6 +269,12 @@ export async function deleteBlogPostAndRedirect(id: string) {
 // =============================================================================
 
 export async function createFaq(input: { question: string; answer: string; sort_order?: number }) {
+  // --- Validate input ---
+  const result = createFaqSchema.safeParse(input);
+  if (!result.success) {
+    return { error: result.error.issues[0].message };
+  }
+
   const { supabase } = await requireAdmin();
   const { data, error } = await supabase
     .from("faqs")
@@ -252,6 +303,12 @@ export async function updateFaq(input: {
   sort_order?: number;
   is_enabled?: boolean;
 }) {
+  // --- Validate input ---
+  const result = updateFaqSchema.safeParse(input);
+  if (!result.success) {
+    return { error: result.error.issues[0].message };
+  }
+
   const { supabase } = await requireAdmin();
   const { error } = await supabase
     .from("faqs")
@@ -421,6 +478,21 @@ export async function deletePageSection(id: string) {
 // =============================================================================
 
 export async function createPage(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    title: String(formData.get("title") ?? "").trim(),
+    slug: String(formData.get("slug") ?? "").trim() || undefined,
+    excerpt: String(formData.get("excerpt") ?? "").trim() || undefined,
+    status: (String(formData.get("status") ?? "DRAFT") as "DRAFT" | "PUBLISHED" | "ARCHIVED"),
+    seoTitle: String(formData.get("seo_title") ?? "").trim() || undefined,
+    seoDescription: String(formData.get("seo_description") ?? "").trim() || undefined,
+    ogImageUrl: String(formData.get("ogImageUrl") ?? "").trim() || undefined,
+  };
+  const result = createPageSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/admin/pages/new?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const { supabase, user } = await requireAdmin();
 
   const title = String(formData.get("title") ?? "").trim();
@@ -471,6 +543,21 @@ export async function createPage(formData: FormData) {
 }
 
 export async function updatePage(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    title: String(formData.get("title") ?? "").trim(),
+    slug: String(formData.get("slug") ?? "").trim() || undefined,
+    excerpt: String(formData.get("excerpt") ?? "").trim() || undefined,
+    status: (String(formData.get("status") ?? "DRAFT") as "DRAFT" | "PUBLISHED" | "ARCHIVED"),
+    seoTitle: String(formData.get("seo_title") ?? "").trim() || undefined,
+    seoDescription: String(formData.get("seo_description") ?? "").trim() || undefined,
+    ogImageUrl: String(formData.get("ogImageUrl") ?? "").trim() || undefined,
+  };
+  const result = createPageSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/admin/pages/${formData.get("id")}?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const { supabase, user } = await requireAdmin();
 
   const id = String(formData.get("id") ?? "").trim();

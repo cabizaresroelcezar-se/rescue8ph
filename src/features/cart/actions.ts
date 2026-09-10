@@ -4,6 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAudit, AuditAction } from "@/lib/audit";
+import {
+  customerAddressSchema,
+  cartQuantitySchema,
+  removeFromCartSchema,
+} from "@/lib/validation/schemas";
 
 // ============================================================================
 // Get or create cart for current user
@@ -158,6 +163,16 @@ export async function fetchCartCount(): Promise<number> {
 // ============================================================================
 
 export async function updateCartQuantity(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    itemId: formData.get("itemId") as string,
+    quantity: parseInt(formData.get("quantity") as string, 10),
+  };
+  const result = cartQuantitySchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/cart?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const itemId = formData.get("itemId") as string;
   const quantity = parseInt(formData.get("quantity") as string);
@@ -188,6 +203,15 @@ export async function updateCartQuantity(formData: FormData) {
 // ============================================================================
 
 export async function removeFromCart(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    itemId: formData.get("itemId") as string,
+  };
+  const result = removeFromCartSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/cart?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const itemId = formData.get("itemId") as string;
 
@@ -206,6 +230,27 @@ export async function removeFromCart(formData: FormData) {
 // ============================================================================
 
 export async function addAddress(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    label: (formData.get("label") as string) || undefined,
+    firstName: formData.get("firstName") as string,
+    lastName: formData.get("lastName") as string,
+    phone: formData.get("phone") as string,
+    region: formData.get("region") as string,
+    province: formData.get("province") as string,
+    cityMunicipality: formData.get("cityMunicipality") as string,
+    barangay: formData.get("barangay") as string,
+    streetAddress: formData.get("streetAddress") as string,
+    buildingUnit: (formData.get("buildingUnit") as string) || undefined,
+    postalCode: (formData.get("postalCode") as string) || undefined,
+    deliveryNotes: (formData.get("deliveryNotes") as string) || undefined,
+    isDefault: formData.get("isDefault") === "true",
+  };
+  const result = customerAddressSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/account/addresses?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -267,6 +312,27 @@ export async function addAddress(formData: FormData) {
 // ============================================================================
 
 export async function updateAddress(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    label: (formData.get("label") as string) || undefined,
+    firstName: formData.get("firstName") as string,
+    lastName: formData.get("lastName") as string,
+    phone: formData.get("phone") as string,
+    region: formData.get("region") as string,
+    province: formData.get("province") as string,
+    cityMunicipality: formData.get("cityMunicipality") as string,
+    barangay: formData.get("barangay") as string,
+    streetAddress: formData.get("streetAddress") as string,
+    buildingUnit: (formData.get("buildingUnit") as string) || undefined,
+    postalCode: (formData.get("postalCode") as string) || undefined,
+    deliveryNotes: (formData.get("deliveryNotes") as string) || undefined,
+    isDefault: formData.get("isDefault") === "true",
+  };
+  const result = customerAddressSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/account/addresses?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const addressId = formData.get("id") as string;
   const isDefault = formData.get("isDefault") === "true";

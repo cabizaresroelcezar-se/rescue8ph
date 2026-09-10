@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { logAudit, AuditAction } from "@/lib/audit";
+import { requestEmailChangeSchema } from "@/lib/validation/schemas";
 
 // ============================================================================
 // Constants
@@ -213,6 +214,15 @@ export async function deleteAvatar() {
 // ============================================================================
 
 export async function requestEmailChange(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    newEmail: (formData.get("newEmail") as string)?.trim().toLowerCase() || "",
+  };
+  const result = requestEmailChangeSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/account/profile?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
 
   const {

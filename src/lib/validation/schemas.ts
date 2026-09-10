@@ -35,11 +35,13 @@ export const updateProductSchema = createProductSchema.partial().extend({
 // Customer Address Schema
 // =============================================================================
 
+const phoneRegex = /^[\d\s+\-()]{7,}$/;
+
 export const customerAddressSchema = z.object({
   label: z.string().max(100).optional(),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  phone: z.string().min(1, "Phone is required"),
+  phone: z.string().min(1, "Phone is required").regex(phoneRegex, "Invalid phone format"),
   region: z.string().min(1, "Region is required"),
   province: z.string().min(1, "Province is required"),
   cityMunicipality: z.string().min(1, "City/Municipality is required"),
@@ -59,7 +61,7 @@ export const checkoutSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().min(1, "Phone is required"),
+  phone: z.string().min(1, "Phone is required").regex(phoneRegex, "Invalid phone format"),
   region: z.string().min(1, "Region is required"),
   province: z.string().min(1, "Province is required"),
   cityMunicipality: z.string().min(1, "City/Municipality is required"),
@@ -157,6 +159,142 @@ export const createBlogPostSchema = z.object({
 });
 
 // =============================================================================
+// Cart Schemas
+// =============================================================================
+
+export const cartQuantitySchema = z.object({
+  itemId: z.string().min(1, "Item ID is required"),
+  quantity: z
+    .number()
+    .int("Quantity must be a whole number")
+    .min(0, "Quantity must be at least 0")
+    .max(999, "Quantity must be at most 999"),
+});
+
+export const removeFromCartSchema = z.object({
+  itemId: z.string().min(1, "Item ID is required"),
+});
+
+// =============================================================================
+// Shipment Schemas
+// =============================================================================
+
+export const shipmentProviderEnum = z.enum(["MANUAL", "LALAMOVE", "JNT", "LBC"]);
+
+export const createShipmentSchema = z.object({
+  orderId: z.string().min(1, "Order ID is required"),
+  provider: shipmentProviderEnum,
+  serviceName: z.string().min(1, "Service name is required"),
+  trackingNumber: z.string().optional(),
+  shippingCost: z.number().min(0, "Shipping cost must be >= 0"),
+  estimatedDelivery: z.string().optional(),
+});
+
+export const shipmentStatusEnum = z.enum([
+  "PENDING",
+  "QUOTED",
+  "BOOKED",
+  "PICKED_UP",
+  "IN_TRANSIT",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+  "FAILED",
+  "CANCELLED",
+]);
+
+export const updateShipmentStatusSchema = z.object({
+  shipmentId: z.string().min(1, "Shipment ID is required"),
+  orderId: z.string().min(1, "Order ID is required"),
+  status: shipmentStatusEnum,
+  description: z.string().optional(),
+});
+
+// =============================================================================
+// Shipping Fee Schema
+// =============================================================================
+
+export const setShippingFeeSchema = z.object({
+  orderId: z.string().min(1, "Order ID is required"),
+  shippingFee: z.number().min(0, "Shipping fee must be >= 0"),
+});
+
+// =============================================================================
+// Payment Schema
+// =============================================================================
+
+export const markPaymentPaidSchema = z.object({
+  paymentId: z.string().min(1, "Payment ID is required"),
+  orderId: z.string().min(1, "Order ID is required"),
+});
+
+// =============================================================================
+// Auth Schemas
+// =============================================================================
+
+export const signUpSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+});
+
+export const signInSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+  redirectTo: z.string().optional(),
+});
+
+export const updateProfileSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phone: z.string().min(1, "Phone is required").regex(phoneRegex, "Invalid phone format"),
+});
+
+export const updatePasswordSchema = z.object({
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export const requestPasswordResetSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
+export const requestEmailChangeSchema = z.object({
+  newEmail: z.string().email("Invalid email address"),
+});
+
+// =============================================================================
+// CMS — FAQ Schemas
+// =============================================================================
+
+export const createFaqSchema = z.object({
+  question: z.string().min(1, "Question is required"),
+  answer: z.string().min(1, "Answer is required"),
+  sort_order: z.number().int().min(0).optional(),
+});
+
+export const updateFaqSchema = z.object({
+  id: z.string().min(1, "ID is required"),
+  question: z.string().min(1, "Question is required"),
+  answer: z.string().min(1, "Answer is required"),
+  sort_order: z.number().int().min(0).optional(),
+  is_enabled: z.boolean().optional(),
+});
+
+// =============================================================================
+// CMS — Blog Category Schema
+// =============================================================================
+
+export const createBlogCategorySchema = z.object({
+  name: z.string().min(1, "Name is required").max(255),
+  slug: z
+    .string()
+    .max(255)
+    .regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens")
+    .optional(),
+  description: z.string().optional(),
+});
+
+// =============================================================================
 // Type Exports (inferred from schemas)
 // =============================================================================
 
@@ -168,3 +306,17 @@ export type CreateCouponInput = z.infer<typeof createCouponSchema>;
 export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
 export type CreatePageInput = z.infer<typeof createPageSchema>;
 export type CreateBlogPostInput = z.infer<typeof createBlogPostSchema>;
+export type CartQuantityInput = z.infer<typeof cartQuantitySchema>;
+export type CreateShipmentInput = z.infer<typeof createShipmentSchema>;
+export type UpdateShipmentStatusInput = z.infer<typeof updateShipmentStatusSchema>;
+export type SetShippingFeeInput = z.infer<typeof setShippingFeeSchema>;
+export type MarkPaymentPaidInput = z.infer<typeof markPaymentPaidSchema>;
+export type SignUpInput = z.infer<typeof signUpSchema>;
+export type SignInInput = z.infer<typeof signInSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
+export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetSchema>;
+export type RequestEmailChangeInput = z.infer<typeof requestEmailChangeSchema>;
+export type CreateFaqInput = z.infer<typeof createFaqSchema>;
+export type UpdateFaqInput = z.infer<typeof updateFaqSchema>;
+export type CreateBlogCategoryInput = z.infer<typeof createBlogCategorySchema>;

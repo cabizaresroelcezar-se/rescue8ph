@@ -119,43 +119,21 @@ export default async function CheckoutPage({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First name *</Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    required
-                    defaultValue={profile?.first_name || defaultAddress?.first_name || ""}
-                  />
+                  <Input id="firstName" name="firstName" required maxLength={100} defaultValue={profile?.first_name || defaultAddress?.first_name || ""} placeholder="e.g. Juan" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last name *</Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    required
-                    defaultValue={profile?.last_name || defaultAddress?.last_name || ""}
-                  />
+                  <Input id="lastName" name="lastName" required maxLength={100} defaultValue={profile?.last_name || defaultAddress?.last_name || ""} placeholder="e.g. Dela Cruz" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    defaultValue={user.email || ""}
-                  />
+                  <Input id="email" name="email" type="email" required maxLength={255} defaultValue={user.email || ""} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone *</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    required
-                    defaultValue={profile?.phone || defaultAddress?.phone || ""}
-                    placeholder="+63 9XX XXX XXXX"
-                  />
+                  <Input id="phone" name="phone" type="tel" required pattern="[\d\s+\-()]{7,}" maxLength={20} defaultValue={profile?.phone || defaultAddress?.phone || ""} placeholder="e.g. +63 9XX XXX XXXX" />
                 </div>
               </div>
             </CardContent>
@@ -174,40 +152,40 @@ export default async function CheckoutPage({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="region">Region *</Label>
-                  <Input id="region" name="region" required defaultValue={defaultAddress?.region || ""} placeholder="e.g. NCR, Region IV-A" />
+                  <Input id="region" name="region" required maxLength={100} defaultValue={defaultAddress?.region || ""} placeholder="e.g. NCR, Region IV-A" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="province">Province *</Label>
-                  <Input id="province" name="province" required defaultValue={defaultAddress?.province || ""} placeholder="e.g. Metro Manila, Rizal" />
+                  <Input id="province" name="province" required maxLength={100} defaultValue={defaultAddress?.province || ""} placeholder="e.g. Metro Manila, Rizal" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="cityMunicipality">City/Municipality *</Label>
-                  <Input id="cityMunicipality" name="cityMunicipality" required defaultValue={defaultAddress?.city_municipality || ""} placeholder="e.g. Quezon City, Antipolo" />
+                  <Input id="cityMunicipality" name="cityMunicipality" required maxLength={100} defaultValue={defaultAddress?.city_municipality || ""} placeholder="e.g. Quezon City, Antipolo" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="barangay">Barangay *</Label>
-                  <Input id="barangay" name="barangay" required defaultValue={defaultAddress?.barangay || ""} placeholder="e.g. Masambong, San Roque" />
+                  <Input id="barangay" name="barangay" required maxLength={100} defaultValue={defaultAddress?.barangay || ""} placeholder="e.g. Masambong, San Roque" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="streetAddress">Street Address *</Label>
-                <Input id="streetAddress" name="streetAddress" required defaultValue={defaultAddress?.street_address || ""} placeholder="House/block/lot number and street name" />
+                <Input id="streetAddress" name="streetAddress" required maxLength={255} defaultValue={defaultAddress?.street_address || ""} placeholder="House/block/lot number and street name" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="buildingUnit">Building/Unit</Label>
-                  <Input id="buildingUnit" name="buildingUnit" defaultValue={defaultAddress?.building_unit || ""} placeholder="Optional" />
+                  <Input id="buildingUnit" name="buildingUnit" maxLength={100} defaultValue={defaultAddress?.building_unit || ""} placeholder="Optional" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="postalCode">Postal Code</Label>
-                  <Input id="postalCode" name="postalCode" defaultValue={defaultAddress?.postal_code || ""} placeholder="e.g. 1115" />
+                  <Input id="postalCode" name="postalCode" maxLength={10} pattern="[\d]{3,}" defaultValue={defaultAddress?.postal_code || ""} placeholder="e.g. 1115" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="deliveryNotes">Delivery Notes</Label>
-                <Input id="deliveryNotes" name="deliveryNotes" defaultValue={defaultAddress?.delivery_notes || ""} placeholder="Landmarks, gate codes, delivery instructions" />
+                <Input id="deliveryNotes" name="deliveryNotes" maxLength={500} defaultValue={defaultAddress?.delivery_notes || ""} placeholder="Landmarks, gate codes, delivery instructions" />
               </div>
             </CardContent>
           </Card>
@@ -275,6 +253,7 @@ export default async function CheckoutPage({
               <textarea
                 name="customerNotes"
                 rows={3}
+                maxLength={1000}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 placeholder="Any special instructions for your order?"
               />
