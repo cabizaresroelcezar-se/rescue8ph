@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { ToastProvider } from "@/components/ui/toast";
+import { CookieConsent } from "@/components/layout/cookie-consent";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -120,6 +121,7 @@ export default function RootLayout({
             Skip to content
           </a>
           {children}
+          <CookieConsent />
         </ToastProvider>
       </body>
     </html>
