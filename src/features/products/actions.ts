@@ -4,8 +4,33 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAudit, AuditAction } from "@/lib/audit";
+import { createProductSchema, updateProductSchema } from "@/lib/validation/schemas";
 
 export async function createProduct(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    title: formData.get("title") as string,
+    slug: (formData.get("slug") as string) || undefined,
+    shortDescription: (formData.get("shortDescription") as string) || undefined,
+    description: (formData.get("description") as string) || undefined,
+    price: parseFloat(formData.get("price") as string) || 0,
+    compareAtPrice: formData.get("compareAtPrice")
+      ? parseFloat(formData.get("compareAtPrice") as string)
+      : undefined,
+    sku: (formData.get("sku") as string) || undefined,
+    status: (formData.get("status") as string) || "DRAFT",
+    featured: formData.get("featured") === "true",
+    weightGrams: formData.get("weightGrams")
+      ? parseInt(formData.get("weightGrams") as string, 10)
+      : undefined,
+    seoTitle: (formData.get("seoTitle") as string) || undefined,
+    seoDescription: (formData.get("seoDescription") as string) || undefined,
+  };
+  const result = createProductSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/admin/products/new?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -49,6 +74,31 @@ export async function createProduct(formData: FormData) {
 }
 
 export async function updateProduct(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    id: formData.get("id") as string,
+    title: formData.get("title") as string,
+    slug: (formData.get("slug") as string) || undefined,
+    shortDescription: (formData.get("shortDescription") as string) || undefined,
+    description: (formData.get("description") as string) || undefined,
+    price: parseFloat(formData.get("price") as string) || 0,
+    compareAtPrice: formData.get("compareAtPrice")
+      ? parseFloat(formData.get("compareAtPrice") as string)
+      : undefined,
+    sku: (formData.get("sku") as string) || undefined,
+    status: (formData.get("status") as string) || "DRAFT",
+    featured: formData.get("featured") === "true",
+    weightGrams: formData.get("weightGrams")
+      ? parseInt(formData.get("weightGrams") as string, 10)
+      : undefined,
+    seoTitle: (formData.get("seoTitle") as string) || undefined,
+    seoDescription: (formData.get("seoDescription") as string) || undefined,
+  };
+  const result = updateProductSchema.safeParse(raw);
+  if (!result.success) {
+    redirect(`/admin/products/${formData.get("id")}?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

@@ -4,6 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { logAudit, AuditAction } from "@/lib/audit";
+import {
+  signUpSchema,
+  signInSchema,
+  updateProfileSchema,
+  updatePasswordSchema,
+  requestPasswordResetSchema,
+} from "@/lib/validation/schemas";
 
 // ============================================================================
 // Sign Up
@@ -23,6 +30,18 @@ import { logAudit, AuditAction } from "@/lib/audit";
 // ============================================================================
 
 export async function signUp(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+    firstName: formData.get("firstName") as string,
+    lastName: formData.get("lastName") as string,
+  };
+  const result = signUpSchema.safeParse(raw);
+  if (!result.success) {
+    return redirect(`/auth/login?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -141,6 +160,17 @@ export async function resendVerificationEmail(formData: FormData) {
 // ============================================================================
 
 export async function signIn(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+    redirectTo: (formData.get("redirectTo") as string) || undefined,
+  };
+  const result = signInSchema.safeParse(raw);
+  if (!result.success) {
+    return redirect(`/auth/login?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -214,6 +244,15 @@ export async function signOut() {
 // ============================================================================
 
 export async function requestPasswordReset(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    email: formData.get("email") as string,
+  };
+  const result = requestPasswordResetSchema.safeParse(raw);
+  if (!result.success) {
+    return redirect(`/auth/forgot-password?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const email = formData.get("email") as string;
   const origin = (await headers()).get("origin");
@@ -248,6 +287,15 @@ export async function requestPasswordReset(formData: FormData) {
 // ============================================================================
 
 export async function updatePassword(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    password: formData.get("password") as string,
+  };
+  const result = updatePasswordSchema.safeParse(raw);
+  if (!result.success) {
+    return redirect(`/auth/reset-password?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const password = formData.get("password") as string;
 
@@ -277,6 +325,17 @@ export async function updatePassword(formData: FormData) {
 // ============================================================================
 
 export async function updateProfile(formData: FormData) {
+  // --- Validate form input ---
+  const raw = {
+    firstName: formData.get("firstName") as string,
+    lastName: formData.get("lastName") as string,
+    phone: formData.get("phone") as string,
+  };
+  const result = updateProfileSchema.safeParse(raw);
+  if (!result.success) {
+    return redirect(`/account/profile?error=${encodeURIComponent(result.error.issues[0].message)}`);
+  }
+
   const supabase = await createClient();
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
