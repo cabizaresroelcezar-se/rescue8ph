@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { placeOrder } from "@/features/checkout/actions";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,6 +12,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { ShieldCheck, Truck, CreditCard, ClipboardCheck, Mail } from "lucide-react";
+import { CheckoutConfirmButton } from "@/components/shop/checkout-confirm-button";
 
 export default async function CheckoutPage({
   searchParams,
@@ -336,9 +336,7 @@ export default async function CheckoutPage({
                   </div>
                 </div>
               )}
-              <Button type="submit" className="w-full" disabled={!emailVerified}>
-                {emailVerified ? "Place Order" : "Verify email to continue"}
-              </Button>
+              <CheckoutConfirmButton disabled={typedItems.length === 0} emailVerified={emailVerified} totalLabel={`PHP ${subtotal.toFixed(2)}`} />
               <p className="text-center text-xs text-muted-foreground">
                 By placing your order, you agree to our terms of service.
               </p>
