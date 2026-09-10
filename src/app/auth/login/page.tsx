@@ -132,6 +132,17 @@ export default async function LoginPage({
                 required
               />
             </div>
+            <div className="flex items-center gap-2">
+              <input
+                id="rememberMe"
+                name="rememberMe"
+                type="checkbox"
+                className="h-4 w-4 rounded border-border"
+              />
+              <label htmlFor="rememberMe" className="text-xs text-muted-foreground">
+                Remember me on this device
+              </label>
+            </div>
             <Button type="submit" className="h-11 w-full text-sm" disabled={isPlaceholder}>
               Sign In
             </Button>

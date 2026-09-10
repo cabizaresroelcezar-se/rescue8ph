@@ -9,16 +9,18 @@ import { useToast } from "@/components/ui/toast";
 export function SignOutButton() {
   const [confirming, setConfirming] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
-  const { toast } = useToast();
+  const { toast, update, dismiss } = useToast();
 
   async function handleSignOut() {
     setBusy(true);
-    toast({ title: "Signing out...", variant: "loading" });
+    const toastId = toast({ title: "Signing out...", variant: "loading" });
     try {
       await signOut();
     } catch {
-      // redirect throws — expected
+      // signOut redirects — the redirect throws internally
     } finally {
+      // Dismiss the loading toast before the page navigates away
+      dismiss(toastId);
       setBusy(false);
       setConfirming(false);
     }

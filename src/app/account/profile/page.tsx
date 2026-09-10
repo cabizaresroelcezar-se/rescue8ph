@@ -1,3 +1,4 @@
+import { getMediaUrl } from "@/lib/media";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Image from "next/image";
@@ -45,7 +46,7 @@ export default async function ProfilePage({
     .eq("id", user.id)
     .single();
 
-  const avatarUrl = profile?.avatar_url ?? null;
+  const avatarUrl = getMediaUrl(profile?.avatar_url ?? null, "avatars");
   // Derive display name + initials for the avatar fallback
   const displayName =
     profile?.first_name || profile?.last_name
