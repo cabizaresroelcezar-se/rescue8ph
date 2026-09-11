@@ -22,6 +22,7 @@ import {
   UserCog,
   ArrowLeft,
   MessageSquare,
+  Activity,
 } from "lucide-react";
 
 type NavItem = {
@@ -70,6 +71,7 @@ const groups: { title: string; items: NavItem[] }[] = [
       { href: "/admin/audit-logs", label: "Audit Logs", icon: ShieldAlert },
       { href: "/admin/users",      label: "Users",      icon: UserCog, superOnly: true },
       { href: "/admin/settings",   label: "Settings",   icon: Settings, superOnly: true },
+      { href: "/admin/system",     label: "System",     icon: Activity, superOnly: true },
     ],
   },
 ];
