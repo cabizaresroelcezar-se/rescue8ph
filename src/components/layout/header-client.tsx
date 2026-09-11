@@ -330,7 +330,10 @@ function SearchTrigger({
             action="/products"
             method="get"
             className="container-wide flex h-14 items-center gap-2"
-            onSubmit={() => setOpen(false)}
+            onSubmit={(e) => {
+              // Don't prevent default — let the form submit
+              setOpen(false);
+            }}
           >
             <Search className="h-4 w-4 text-muted-foreground" />
             <input
@@ -339,10 +342,14 @@ function SearchTrigger({
               autoFocus
               placeholder="Search products, categories, SKUs…"
               className="h-10 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              aria-label="Search products"
             />
-            <kbd className="hidden rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground sm:inline-flex">
-              Enter
-            </kbd>
+            <button
+              type="submit"
+              className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Search
+            </button>
             <button
               type="button"
               onClick={() => setOpen(false)}

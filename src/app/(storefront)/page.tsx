@@ -161,6 +161,17 @@ export default async function HomePage() {
       {/* HERO CAROUSEL */}
       <HeroCarousel slides={slides} />
 
+      {/* POST-HERO CTAs */}
+      <div className="container-page flex flex-wrap items-center justify-center gap-3 py-6">
+        <ButtonLink href="/products" size="lg" className="rounded-md">
+          Browse All Products
+          <ArrowRight className="h-4 w-4" />
+        </ButtonLink>
+        <ButtonLink href="/contact" size="lg" variant="outline" className="rounded-md">
+          Request a Quote
+        </ButtonLink>
+      </div>
+
       {/* TRUST BAR — modern marquee with live ticker */}
             <section className="border-b border-border bg-gradient-to-b from-surface to-background">
               <div className="container-page py-8 sm:py-10">
@@ -229,9 +240,56 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      {categories && categories.length > 0 && (
+      {/* FEATURED PRODUCTS — Top Picks for Emergency Preparedness */}
+      {products && products.length > 0 && (
         <section className="bg-background">
+          <div className="container-page py-16 sm:py-20">
+            <FadeIn className="mb-10 flex items-end justify-between gap-6">
+              <div>
+                <p className="text-eyebrow">Featured</p>
+                <h2 className="mt-2 text-display-lg text-foreground">Top Picks for Emergency Preparedness</h2>
+              </div>
+              <Link
+                href="/products"
+                className="hidden text-sm font-medium text-primary underline-offset-4 hover:underline sm:inline-flex sm:items-center sm:gap-1"
+              >
+                View all products
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </FadeIn>
+            <Stagger className="grid gap-5 sm:grid-cols-2 md:grid-cols-4">
+              {products.map((product) => (
+                <FadeIn key={product.id}>
+                  <ProductCard
+                    id={product.id}
+                    slug={product.slug}
+                    title={product.title}
+                    short_description={product.short_description}
+                    price={product.price}
+                    compare_at_price={product.compare_at_price}
+                    featured={product.featured}
+                    image={imageByProduct[product.id] ?? null}
+                    initialSaved={savedSet.has(product.id)}
+                  />
+                </FadeIn>
+              ))}
+            </Stagger>
+            <FadeIn className="mt-10 flex justify-center">
+              <Link
+                href="/products"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                View All Products
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </FadeIn>
+          </div>
+        </section>
+      )}
+
+      {/* CATEGORIES — Shop by Category */}
+      {categories && categories.length > 0 && (
+        <section className="bg-surface">
           <div className="container-page py-16 sm:py-20">
             <FadeIn className="mb-10 max-w-2xl">
               <p className="text-eyebrow">Catalog</p>
@@ -258,44 +316,12 @@ export default async function HomePage() {
                 </FadeIn>
               ))}
             </Stagger>
-          </div>
-        </section>
-      )}
-
-      {/* FEATURED PRODUCTS */}
-      {products && products.length > 0 && (
-        <section className="bg-surface">
-          <div className="container-page py-16 sm:py-20">
-            <FadeIn className="mb-10 flex items-end justify-between gap-6">
-              <div>
-                <p className="text-eyebrow">Featured</p>
-                <h2 className="mt-2 text-display-lg text-foreground">Top Picks for Emergency Preparedness</h2>
-              </div>
-              <Link
-                href="/products"
-                className="hidden text-sm font-medium text-primary underline-offset-4 hover:underline sm:inline-flex sm:items-center sm:gap-1"
-              >
-                View all products
+            <FadeIn className="mt-10 flex justify-center">
+              <ButtonLink href="/products" size="lg" className="rounded-md">
+                Explore All Categories
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </ButtonLink>
             </FadeIn>
-            <Stagger className="grid gap-5 sm:grid-cols-2 md:grid-cols-4">
-                                      {products.map((product) => (
-                                        <FadeIn key={product.id}>
-                                          <ProductCard
-                                            id={product.id}
-                                            slug={product.slug}
-                                            title={product.title}
-                                            short_description={product.short_description}
-                                            price={product.price}
-                                            compare_at_price={product.compare_at_price}
-                                            featured={product.featured}
-                                            image={imageByProduct[product.id] ?? null}
-                                            initialSaved={savedSet.has(product.id)}
-                                          />
-                                        </FadeIn>
-                                      ))}
-                                    </Stagger>
           </div>
         </section>
       )}
@@ -393,6 +419,12 @@ export default async function HomePage() {
                 </FadeIn>
               ))}
             </Stagger>
+            <FadeIn className="mt-10 flex justify-center">
+              <ButtonLink href="/contact" size="lg" className="rounded-md">
+                Get a Free Consultation
+                <ArrowRight className="h-4 w-4" />
+              </ButtonLink>
+            </FadeIn>
           </div>
         </section>
       )}
@@ -497,15 +529,16 @@ export default async function HomePage() {
                   <p className="mt-3 max-w-xl text-muted-foreground">
                     Browse our catalog or contact us for custom orders, bulk pricing, and on-site training in Quezon City.
                   </p>
-                  <div className="mt-8 flex flex-wrap gap-3">
-                    <ButtonLink href="/products" size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                  <div className="mt-8 flex flex-wrap gap-4">
+                    <ButtonLink href="/products" size="lg" className="rounded-md bg-primary px-8 text-base text-primary-foreground shadow-elev-2 hover:bg-primary/90">
                       Shop Now
+                      <ArrowRight className="h-5 w-5" />
                     </ButtonLink>
                     <ButtonLink
                       href="/contact"
                       size="lg"
                       variant="outline"
-                      className="border-border bg-background hover:bg-secondary"
+                      className="rounded-md border-2 border-primary/30 px-8 text-base hover:bg-primary/5"
                     >
                       Contact Us
                     </ButtonLink>
