@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Heart, ArrowRight } from "lucide-react";
+import { Heart, ArrowRight, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ButtonLink } from "@/components/ui/button-link";
 import { FadeIn } from "@/lib/motion";
@@ -84,7 +84,13 @@ export default async function WishlistPage() {
         <div className="container-page py-10 sm:py-12">
           <FadeIn className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-eyebrow">My Account</p>
+              <Link
+                href="/account"
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Back to Account
+              </Link>
               <h1 className="mt-1 text-display-md text-foreground">
                 My Wishlist
               </h1>
