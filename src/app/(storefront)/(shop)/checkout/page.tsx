@@ -133,7 +133,7 @@ export default async function CheckoutPage({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone *</Label>
-                  <Input id="phone" name="phone" type="tel" required pattern="[\d\s+\-()]{7,}" maxLength={20} defaultValue={profile?.phone || defaultAddress?.phone || ""} placeholder="e.g. +63 9XX XXX XXXX" />
+                  <Input id="phone" name="phone" type="tel" required pattern="[0-9+\-\s()]{7,}" inputMode="numeric" maxLength={20} defaultValue={profile?.phone || defaultAddress?.phone || ""} placeholder="e.g. 0917 577 6055" />
                 </div>
               </div>
             </CardContent>

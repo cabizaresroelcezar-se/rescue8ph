@@ -137,7 +137,7 @@ export default async function LoginPage({
                 id="rememberMe"
                 name="rememberMe"
                 type="checkbox"
-                className="h-4 w-4 rounded border-border"
+                className="h-4 w-4 rounded border-border accent-primary"
               />
               <label htmlFor="rememberMe" className="text-xs text-muted-foreground">
                 Remember me on this device

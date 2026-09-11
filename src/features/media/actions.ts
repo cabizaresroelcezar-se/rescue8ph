@@ -35,11 +35,18 @@ export async function deleteMediaFile(
   // Staff-only check — media library is admin
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role_id, roles(name)")
+    .select("role_id")
     .eq("id", user.id)
     .single();
-  const roleData = (profile as { roles?: { name?: string } | { name?: string }[] | null } | null)?.roles;
-  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+  if (!profile) return { ok: false, error: "Profile not found" };
+
+  // Check role via role_permissions or roles table
+  const { data: roleData } = await supabase
+    .from("roles")
+    .select("name")
+    .eq("id", profile.role_id)
+    .single();
+  const roleName = roleData?.name;
   if (roleName !== "admin" && roleName !== "super_admin") {
     return { ok: false, error: "Only admins can delete media files." };
   }
