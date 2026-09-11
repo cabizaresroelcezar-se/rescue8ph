@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Plus, Loader2, X, PackagePlus } from "lucide-react";
 import {
@@ -45,6 +46,11 @@ export function NewInventoryForm({ initialProducts }: NewInventoryFormProps) {
   const [error, setError] = React.useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   async function handleOpen() {
     setOpen(true);
@@ -148,7 +154,7 @@ export function NewInventoryForm({ initialProducts }: NewInventoryFormProps) {
         Add inventory
       </button>
 
-      {open && (
+      {open && mounted && createPortal(
         <div
           role="dialog"
           aria-modal="true"
@@ -378,7 +384,8 @@ export function NewInventoryForm({ initialProducts }: NewInventoryFormProps) {
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
