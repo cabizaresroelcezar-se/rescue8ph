@@ -99,12 +99,17 @@ export default async function AdminOrderDetailPage({
     if (user) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role_id, roles(name)")
+        .select("role_id")
         .eq("id", user.id)
         .single();
-      const roleData = (profile as { roles?: { name?: string } | { name?: string }[] | null } | null)?.roles;
-      const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-      canDeleteAny = roleName === "super_admin";
+      if (profile) {
+        const { data: roleData } = await supabase
+          .from("roles")
+          .select("name")
+          .eq("id", profile.role_id)
+          .single();
+        canDeleteAny = roleData?.name === "super_admin";
+      }
     }
 
     const orderTone = ORDER_TONE[order.status] ?? "bg-zinc-100 text-zinc-700";
