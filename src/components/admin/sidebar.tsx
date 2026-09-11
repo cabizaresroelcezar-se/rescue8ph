@@ -117,7 +117,7 @@ export function AdminSidebar({ isSuperAdmin }: { isSuperAdmin: boolean }) {
       {/* Drawer (mobile) / static sidebar (desktop) */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card transition-transform duration-[var(--duration-base)] ease-[var(--ease-in-out-quart)] md:static md:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-surface transition-transform duration-[var(--duration-base)] ease-[var(--ease-in-out-quart)] md:static md:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >

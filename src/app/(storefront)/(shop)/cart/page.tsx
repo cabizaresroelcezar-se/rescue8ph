@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/card";
 import { updateCartQuantity, removeFromCart } from "@/features/cart/actions";
 import { ButtonLink } from "@/components/ui/button-link";
-import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
+import { CartItemControls } from "@/components/shop/cart-item-controls";
 import { CouponInput } from "@/components/shop/coupon-input";
 import { getMediaUrl } from "@/lib/media";
 import Image from "next/image";
@@ -169,44 +170,10 @@ export default async function CartPage({
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      {/* Quantity controls */}
-                      <div className="flex items-center gap-2">
-                        <form action={updateCartQuantity}>
-                          <input type="hidden" name="itemId" value={item.id} />
-                          <input type="hidden" name="quantity" value={item.quantity - 1} />
-                          <button
-                            type="submit"
-                            className="flex h-7 w-7 items-center justify-center rounded-md border border-border hover:bg-surface"
-                            aria-label="Decrease quantity"
-                          >
-                            <Minus className="h-3 w-3" />
-                          </button>
-                        </form>
-                        <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                        <form action={updateCartQuantity}>
-                          <input type="hidden" name="itemId" value={item.id} />
-                          <input type="hidden" name="quantity" value={item.quantity + 1} />
-                          <button
-                            type="submit"
-                            className="flex h-7 w-7 items-center justify-center rounded-md border border-border hover:bg-surface"
-                            aria-label="Increase quantity"
-                          >
-                            <Plus className="h-3 w-3" />
-                          </button>
-                        </form>
-                      </div>
+                      <CartItemControls itemId={item.id} quantity={item.quantity} />
                       <p className="text-sm font-bold">
                         PHP {(p.price * item.quantity).toFixed(2)}
                       </p>
-                      <form action={removeFromCart}>
-                        <input type="hidden" name="itemId" value={item.id} />
-                        <button
-                          type="submit"
-                          className="text-xs text-destructive hover:underline"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </form>
                     </div>
                   </CardContent>
                 </Card>
