@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   MapPin,
   Plus,
   Trash2,
   Star,
   AlertCircle,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,7 +45,13 @@ export default async function AddressesPage({
         <div className="container-page py-10 sm:py-12">
           <FadeIn className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
             <div>
-              <p className="text-eyebrow">My Account</p>
+              <Link
+                href="/account"
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Back to Account
+              </Link>
               <h1 className="mt-2 text-display-lg text-foreground">
                 Delivery Addresses
               </h1>

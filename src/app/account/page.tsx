@@ -10,7 +10,6 @@ import {
   Star,
   Heart,
   Clock,
-  LogOut,
 } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -95,10 +94,13 @@ export default async function AccountPage({
             </p>
           </div>
         </div>
-        <ButtonLink href="/products" size="sm" variant="outline">
-          Continue shopping
-          <ArrowRight className="h-4 w-4" />
-        </ButtonLink>
+        <div className="flex items-center gap-2">
+          <SignOutButton />
+          <ButtonLink href="/products" size="sm" variant="outline">
+            Continue shopping
+            <ArrowRight className="h-4 w-4" />
+          </ButtonLink>
+        </div>
       </FadeIn>
 
       {/* Flash message */}
@@ -166,18 +168,6 @@ export default async function AccountPage({
             accent
           />
         )}
-        <FadeIn className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card p-5 shadow-elev-1 transition-all hover:-translate-y-0.5 hover:border-destructive/40 hover:shadow-elev-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-            <LogOut className="h-4 w-4" />
-          </div>
-          <p className="mt-3 text-sm font-semibold text-foreground">Sign out</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            End your session on this device
-          </p>
-          <div className="mt-auto pt-3">
-            <SignOutButton />
-          </div>
-        </FadeIn>
       </Stagger>
 
       {/* Recently viewed */}
