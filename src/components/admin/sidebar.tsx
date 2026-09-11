@@ -23,6 +23,7 @@ import {
   ArrowLeft,
   MessageSquare,
   Activity,
+  Home,
 } from "lucide-react";
 
 type NavItem = {
@@ -60,9 +61,10 @@ const groups: { title: string; items: NavItem[] }[] = [
   {
     title: "Content",
     items: [
-      { href: "/admin/content", label: "Site Content", icon: FileText },
-      { href: "/admin/pages",   label: "Pages",        icon: FolderOpen },
-      { href: "/admin/blog",    label: "Blog",         icon: FileText },
+      { href: "/admin/homepage", label: "Homepage",     icon: Home },
+      { href: "/admin/content",  label: "Site Content", icon: FileText },
+      { href: "/admin/pages",    label: "Pages",        icon: FolderOpen },
+      { href: "/admin/blog",     label: "Blog",         icon: FileText },
     ],
   },
   {
