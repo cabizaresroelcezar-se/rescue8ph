@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { ToastProvider } from "@/components/ui/toast";
 import { CookieConsent } from "@/components/layout/cookie-consent";
+import { SessionTimeout } from "@/components/auth/session-timeout";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -122,6 +123,7 @@ export default function RootLayout({
           </a>
           {children}
           <CookieConsent />
+          <SessionTimeout />
         </ToastProvider>
       </body>
     </html>
