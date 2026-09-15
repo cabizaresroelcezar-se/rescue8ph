@@ -21,7 +21,7 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = requestUrl.searchParams.get("next") || "/account";
+  const next = requestUrl.searchParams.get("next") || requestUrl.searchParams.get("redirectTo") || "/account";
 
   if (code) {
     const supabase = await createClient();
@@ -33,15 +33,14 @@ export async function GET(request: Request) {
       );
     }
 
-    // Successful exchange. The verify-email page will detect the now-confirmed
-    // session and show the success state.
+    // Successful exchange — redirect to the intended page
     return NextResponse.redirect(
-      `${requestUrl.origin}/auth/verify-email?verified=true&next=${encodeURIComponent(next)}`,
+      `${requestUrl.origin}${next}`,
     );
   }
 
-  // No code — direct hit. Forward to verify-email which will handle it.
+  // No code — direct hit. Forward to login.
   return NextResponse.redirect(
-    `${requestUrl.origin}/auth/verify-email?next=${encodeURIComponent(next)}`,
+    `${requestUrl.origin}/auth/login`,
   );
 }
