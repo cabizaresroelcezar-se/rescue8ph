@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/auth/password-input";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import {
   Card,
   CardContent,
@@ -36,8 +37,7 @@ export default async function RegisterPage({
           <div>
             <p className="font-semibold">Supabase is not configured yet.</p>
             <p className="mt-0.5 text-amber-800 dark:text-amber-300/80">
-              Add real Supabase keys to <code className="font-mono">.env.local</code>{" "}
-              to enable registration.
+              Add real Supabase keys to <code className="font-mono">.env.local</code> to enable registration.
             </p>
           </div>
         </div>
@@ -55,21 +55,37 @@ export default async function RegisterPage({
           <CardTitle className="mt-4 text-2xl">Create your account</CardTitle>
           <CardDescription>Join Rescue 8 Philippines today</CardDescription>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="space-y-4">
+          {/* Error / message banners */}
           {params.error && (
             <div
               role="alert"
-              className="mb-4 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+              className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
             >
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{params.error}</span>
             </div>
           )}
           {params.message && (
-            <div className="mb-4 rounded-md bg-primary/10 p-3 text-sm text-primary">
+            <div className="rounded-md bg-primary/10 p-3 text-sm text-primary">
               {params.message}
             </div>
           )}
+
+          {/* Google OAuth */}
+          <GoogleSignInButton redirectTo="/account" label="Sign up with Google" />
+
+          {/* Divider */}
+          <div className="relative flex items-center py-1">
+            <div className="flex-grow border-t border-border" />
+            <span className="mx-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              or
+            </span>
+            <div className="flex-grow border-t border-border" />
+          </div>
+
+          {/* Email/password form */}
           <form action={signUp} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -110,6 +126,9 @@ export default async function RegisterPage({
                 required
                 minLength={8}
               />
+              <p className="text-[11px] text-muted-foreground">
+                Use 8+ characters with a mix of letters, numbers, and symbols
+              </p>
             </div>
             <div className="flex items-start gap-2">
               <input
@@ -140,6 +159,7 @@ export default async function RegisterPage({
             </Button>
           </form>
         </CardContent>
+
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
             Already have an account?{" "}

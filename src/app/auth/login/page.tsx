@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/auth/password-input";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import {
   Card,
   CardContent,
@@ -20,6 +21,7 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string; message?: string; email?: string; redirectTo?: string; verify?: string }>;
 }) {
   const params = await searchParams;
+  const redirectTo = params.redirectTo || "/account";
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const isPlaceholder =
@@ -27,11 +29,6 @@ export default async function LoginPage({
     supabaseUrl.includes("placeholder.supabase.co") ||
     supabaseUrl.includes("your-project");
 
-  // Phase 16a: ?verify=true shows a "please verify your email" banner. Set
-  // by signIn when it detects the user just signed in but email_confirmed_at
-  // is null (Supabase Auth's auto-refresh kept them signed in but the gate
-  // still blocked them). Avoid leaking account existence by only showing
-  // the banner when explicitly flagged.
   const showVerifyBanner = params.verify === "true";
 
   return (
@@ -42,18 +39,12 @@ export default async function LoginPage({
           <div>
             <p className="font-semibold">Supabase is not configured yet.</p>
             <p className="mt-0.5 text-amber-800 dark:text-amber-300/80">
-              Add real <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code>{" "}
-              and <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>{" "}
-              to <code className="font-mono">.env.local</code> to enable login.
-              The form below will not work until then.
+              Add real keys to <code className="font-mono">.env.local</code> to enable login.
             </p>
           </div>
         </div>
       )}
 
-      {/* Compact card: size="sm" tightens internal spacing; smaller logo
-          + smaller title + smaller inputs all combine to make the form
-          feel less heavy on small screens. */}
       <Card size="sm" className="shadow-elev-3 ring-foreground/10 backdrop-blur-sm">
         <CardHeader className="items-center gap-1 text-center pb-2">
           <Image
@@ -68,7 +59,9 @@ export default async function LoginPage({
             Sign in to your Rescue 8 account
           </CardDescription>
         </CardHeader>
+
         <CardContent className="space-y-3">
+          {/* Error / message banners */}
           {params.error && (
             <div
               role="alert"
@@ -101,8 +94,22 @@ export default async function LoginPage({
               </div>
             </div>
           )}
+
+          {/* Google OAuth */}
+          <GoogleSignInButton redirectTo={redirectTo} />
+
+          {/* Divider */}
+          <div className="relative flex items-center py-1">
+            <div className="flex-grow border-t border-border" />
+            <span className="mx-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              or
+            </span>
+            <div className="flex-grow border-t border-border" />
+          </div>
+
+          {/* Email/password form */}
           <form action={signIn} className="space-y-4">
-            <input type="hidden" name="redirectTo" value={params.redirectTo || "/account"} />
+            <input type="hidden" name="redirectTo" value={redirectTo} />
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -148,6 +155,7 @@ export default async function LoginPage({
             </Button>
           </form>
         </CardContent>
+
         <CardContent className="pt-0 text-center">
           <p className="text-xs text-muted-foreground">
             Don&apos;t have an account?{" "}
