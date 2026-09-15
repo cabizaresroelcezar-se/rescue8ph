@@ -19,7 +19,7 @@ export default function AuthLayout({
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/5 to-transparent dark:via-primary/10" />
       </div>
 
-      <div className="relative w-full max-w-[440px]">{children}</div>
+      <div className="relative w-full max-w-[460px]">{children}</div>
     </div>
   );
 }
