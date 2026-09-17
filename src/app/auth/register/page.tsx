@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/auth/password-input";
-import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import {
   Card,
   CardContent,
@@ -72,18 +71,6 @@ export default async function RegisterPage({
               {params.message}
             </div>
           )}
-
-          {/* Google OAuth */}
-          <GoogleSignInButton redirectTo="/account" label="Sign up with Google" />
-
-          {/* Divider */}
-          <div className="relative flex items-center py-1">
-            <div className="flex-grow border-t border-border" />
-            <span className="mx-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-              or
-            </span>
-            <div className="flex-grow border-t border-border" />
-          </div>
 
           {/* Email/password form */}
           <form action={signUp} className="space-y-4">
