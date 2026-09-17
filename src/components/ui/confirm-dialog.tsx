@@ -39,7 +39,6 @@ export function ConfirmDialog({
   cancelLabel = "Cancel",
   onConfirm,
   onSuccess,
-  successMessage,
 }: ConfirmDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
