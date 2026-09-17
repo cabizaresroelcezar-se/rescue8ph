@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { updateCartQuantity, removeFromCart } from "@/features/cart/actions";
 import { ButtonLink } from "@/components/ui/button-link";
 import { ShoppingCart } from "lucide-react";
 import { CartItemControls } from "@/components/shop/cart-item-controls";

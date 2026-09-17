@@ -330,8 +330,7 @@ function SearchTrigger({
             action="/products"
             method="get"
             className="container-wide flex h-14 items-center gap-2"
-            onSubmit={(e) => {
-              // Don't prevent default — let the form submit
+            onSubmit={() => {
               setOpen(false);
             }}
           >

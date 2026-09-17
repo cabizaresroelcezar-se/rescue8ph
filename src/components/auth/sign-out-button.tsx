@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/toast";
 export function SignOutButton() {
   const [confirming, setConfirming] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
-  const { toast, update, dismiss } = useToast();
+  const { toast, dismiss } = useToast();
 
   async function handleSignOut() {
     setBusy(true);

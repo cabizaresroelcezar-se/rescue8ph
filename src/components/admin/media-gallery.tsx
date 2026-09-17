@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Check, Trash2, ExternalLink, FileIcon, AlertTriangle, Loader2, X } from "lucide-react";
+import { Copy, Check, Trash2, ExternalLink, FileIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { deleteMediaFile } from "@/features/media/actions";
 

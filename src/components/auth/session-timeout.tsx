@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast";
 import { signOut } from "@/features/auth/actions";
 import { Clock, X } from "lucide-react";
@@ -21,7 +20,6 @@ const WARNING_DURATION = 5 * 60 * 1000; // 5 minute warning
 const CHECK_INTERVAL = 10 * 1000; // Check every 10 seconds
 
 export function SessionTimeout() {
-  const router = useRouter();
   const { toast } = useToast();
   const [showWarning, setShowWarning] = React.useState(false);
   const [countdown, setCountdown] = React.useState(WARNING_DURATION);
@@ -29,6 +27,7 @@ export function SessionTimeout() {
   const warningTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Track user activity
+  /* eslint-disable react-hooks/exhaustive-deps */
   React.useEffect(() => {
     lastActivityRef.current = Date.now();
 
